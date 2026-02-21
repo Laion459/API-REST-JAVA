@@ -29,8 +29,8 @@ public class InputSanitizer {
         // Remove control characters (except newline, tab, carriage return)
         sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
         
-        // Replace multiple spaces with single space
-        sanitized = sanitized.replaceAll("\\s+", " ");
+        // Replace multiple spaces with single space (but preserve newlines and tabs)
+        sanitized = sanitized.replaceAll("[ ]+", " ");
         
         return sanitized;
     }
@@ -53,8 +53,8 @@ public class InputSanitizer {
         // Remove control characters (except newline, tab, carriage return)
         sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
         
-        // Replace multiple spaces with single space
-        sanitized = sanitized.replaceAll("\\s+", " ");
+        // Replace multiple spaces with single space (but preserve newlines and tabs)
+        sanitized = sanitized.replaceAll("[ ]+", " ");
         
         if (!sanitized.equals(input)) {
             log.debug("Input sanitized: original length={}, sanitized length={}", 

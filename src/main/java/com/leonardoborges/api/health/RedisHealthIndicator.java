@@ -3,6 +3,7 @@ package com.leonardoborges.api.health;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean(RedisTemplate.class)
 public class RedisHealthIndicator implements HealthIndicator {
     
     private final RedisTemplate<String, Object> redisTemplate;

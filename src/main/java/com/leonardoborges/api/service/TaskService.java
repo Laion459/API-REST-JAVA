@@ -32,10 +32,18 @@ public class TaskService {
     private final InputSanitizer inputSanitizer;
     private final TaskMetrics taskMetrics;
     
+    private boolean isMetricsEnabled() {
+        try {
+            return taskMetrics != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
         log.info("Creating new task: title={}", request.getTitle());
-        Timer.Sample sample = taskMetrics.startTaskCreationTimer();
+        Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskCreationTimer() : null;
         
         try {
             // Sanitize input
@@ -55,8 +63,10 @@ public class TaskService {
             log.info("Task created successfully with ID: {}", savedTask.getId());
             
             // Record metrics
-            taskMetrics.incrementTaskCreated();
-            taskMetrics.incrementTaskStatus(savedTask.getStatus().name());
+            if (isMetricsEnabled()) {
+                taskMetrics.incrementTaskCreated();
+                taskMetrics.incrementTaskStatus(savedTask.getStatus().name());
+            }
             
             // Invalidate related caches after creation
             cacheService.evictTaskLists();
@@ -64,7 +74,9 @@ public class TaskService {
             
             return mapToResponse(savedTask);
         } finally {
-            taskMetrics.recordTaskCreation(sample);
+            if (isMetricsEnabled() && sample != null) {
+                taskMetrics.recordTaskCreation(sample);
+            }
         }
     }
     
@@ -72,15 +84,19 @@ public class TaskService {
     @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long id) {
         log.debug("Fetching task with ID: {}", id);
-        Timer.Sample sample = taskMetrics.startTaskRetrievalTimer();
+        Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskRetrievalTimer() : null;
         
         try {
             Task task = taskRepository.findById(id)
                     .orElseThrow(() -> new TaskNotFoundException(id));
-            taskMetrics.incrementTaskRetrieved();
+            if (isMetricsEnabled()) {
+                taskMetrics.incrementTaskRetrieved();
+            }
             return mapToResponse(task);
         } finally {
-            taskMetrics.recordTaskRetrieval(sample);
+            if (isMetricsEnabled() && sample != null) {
+                taskMetrics.recordTaskRetrieval(sample);
+            }
         }
     }
     
@@ -112,7 +128,7 @@ public class TaskService {
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public TaskResponse updateTask(Long id, TaskRequest request) {
         log.info("Updating task with ID: {}", id);
-        Timer.Sample sample = taskMetrics.startTaskUpdateTimer();
+        Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskUpdateTimer() : null;
         
         try {
             Task task = taskRepository.findById(id)
@@ -146,9 +162,11 @@ public class TaskService {
             log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
             
             // Record metrics
-            taskMetrics.incrementTaskUpdated();
-            if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
-                taskMetrics.incrementTaskStatus(request.getStatus().name());
+            if (isMetricsEnabled()) {
+                taskMetrics.incrementTaskUpdated();
+                if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
+                    taskMetrics.incrementTaskStatus(request.getStatus().name());
+                }
             }
             
             // Selective cache eviction - only evict what changed
@@ -169,7 +187,9 @@ public class TaskService {
             throw new OptimisticLockingException(
                     "The task has been modified by another user. Please refresh and try again.", e);
         } finally {
-            taskMetrics.recordTaskUpdate(sample);
+            if (isMetricsEnabled() && sample != null) {
+                taskMetrics.recordTaskUpdate(sample);
+            }
         }
     }
     

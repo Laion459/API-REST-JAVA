@@ -87,51 +87,74 @@ public class TaskMetrics {
     }
     
     public void incrementTaskCreated() {
-        taskCreatedCounter.increment();
+        if (taskCreatedCounter != null) {
+            taskCreatedCounter.increment();
+        }
     }
     
     public void incrementTaskUpdated() {
-        taskUpdatedCounter.increment();
+        if (taskUpdatedCounter != null) {
+            taskUpdatedCounter.increment();
+        }
     }
     
     public void incrementTaskDeleted() {
-        taskDeletedCounter.increment();
+        if (taskDeletedCounter != null) {
+            taskDeletedCounter.increment();
+        }
     }
     
     public void incrementTaskRetrieved() {
-        taskRetrievedCounter.increment();
+        if (taskRetrievedCounter != null) {
+            taskRetrievedCounter.increment();
+        }
     }
     
     public void incrementTaskStatus(String status) {
+        if (status == null) return;
         switch (status) {
-            case "PENDING" -> taskStatusPendingCounter.increment();
-            case "IN_PROGRESS" -> taskStatusInProgressCounter.increment();
-            case "COMPLETED" -> taskStatusCompletedCounter.increment();
-            case "CANCELLED" -> taskStatusCancelledCounter.increment();
+            case "PENDING" -> {
+                if (taskStatusPendingCounter != null) taskStatusPendingCounter.increment();
+            }
+            case "IN_PROGRESS" -> {
+                if (taskStatusInProgressCounter != null) taskStatusInProgressCounter.increment();
+            }
+            case "COMPLETED" -> {
+                if (taskStatusCompletedCounter != null) taskStatusCompletedCounter.increment();
+            }
+            case "CANCELLED" -> {
+                if (taskStatusCancelledCounter != null) taskStatusCancelledCounter.increment();
+            }
         }
     }
     
     public Timer.Sample startTaskCreationTimer() {
-        return Timer.start(meterRegistry);
+        return meterRegistry != null ? Timer.start(meterRegistry) : null;
     }
     
     public Timer.Sample startTaskUpdateTimer() {
-        return Timer.start(meterRegistry);
+        return meterRegistry != null ? Timer.start(meterRegistry) : null;
     }
     
     public Timer.Sample startTaskRetrievalTimer() {
-        return Timer.start(meterRegistry);
+        return meterRegistry != null ? Timer.start(meterRegistry) : null;
     }
     
     public void recordTaskCreation(Timer.Sample sample) {
-        sample.stop(taskCreationTimer);
+        if (taskCreationTimer != null && sample != null) {
+            sample.stop(taskCreationTimer);
+        }
     }
     
     public void recordTaskUpdate(Timer.Sample sample) {
-        sample.stop(taskUpdateTimer);
+        if (taskUpdateTimer != null && sample != null) {
+            sample.stop(taskUpdateTimer);
+        }
     }
     
     public void recordTaskRetrieval(Timer.Sample sample) {
-        sample.stop(taskRetrievalTimer);
+        if (taskRetrievalTimer != null && sample != null) {
+            sample.stop(taskRetrievalTimer);
+        }
     }
 }

@@ -3,8 +3,11 @@ package com.leonardoborges.api.service;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.TaskNotFoundException;
+import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
+import com.leonardoborges.api.util.InputSanitizer;
+import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +25,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +34,18 @@ class TaskServiceTest {
 
     @Mock
     private TaskRepository taskRepository;
+    
+    @Mock
+    private CacheService cacheService;
+    
+    @Mock
+    private InputSanitizer inputSanitizer;
+    
+    @Mock
+    private TaskMetrics taskMetrics;
+    
+    @Mock
+    private Timer.Sample timerSample;
 
     @InjectMocks
     private TaskService taskService;
@@ -44,6 +61,7 @@ class TaskServiceTest {
                 .description("Test Description")
                 .status(Task.TaskStatus.PENDING)
                 .priority(1)
+                .version(0L)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -54,6 +72,22 @@ class TaskServiceTest {
                 .status(Task.TaskStatus.PENDING)
                 .priority(1)
                 .build();
+        
+        // Mock TaskMetrics with lenient to avoid unnecessary stubbing errors
+        lenient().when(taskMetrics.startTaskCreationTimer()).thenReturn(timerSample);
+        lenient().when(taskMetrics.startTaskUpdateTimer()).thenReturn(timerSample);
+        lenient().when(taskMetrics.startTaskRetrievalTimer()).thenReturn(timerSample);
+        lenient().doNothing().when(taskMetrics).incrementTaskCreated();
+        lenient().doNothing().when(taskMetrics).incrementTaskUpdated();
+        lenient().doNothing().when(taskMetrics).incrementTaskDeleted();
+        lenient().doNothing().when(taskMetrics).incrementTaskRetrieved();
+        lenient().doNothing().when(taskMetrics).incrementTaskStatus(anyString());
+        lenient().doNothing().when(taskMetrics).recordTaskCreation(any(Timer.Sample.class));
+        lenient().doNothing().when(taskMetrics).recordTaskUpdate(any(Timer.Sample.class));
+        lenient().doNothing().when(taskMetrics).recordTaskRetrieval(any(Timer.Sample.class));
+        
+        // Mock InputSanitizer with lenient
+        lenient().when(inputSanitizer.sanitizeAndTruncate(anyString(), anyInt())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -100,7 +134,7 @@ class TaskServiceTest {
     
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentTask() {
-        when(taskRepository.existsById(1L)).thenReturn(false);
+        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(TaskNotFoundException.class, () -> taskService.deleteTask(1L));
     }
@@ -122,6 +156,10 @@ class TaskServiceTest {
     void shouldUpdateTask() {
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
+        doNothing().when(cacheService).evictTask(anyLong());
+        doNothing().when(cacheService).evictTaskLists();
+        doNothing().when(cacheService).evictTasksByStatus(anyString());
+        doNothing().when(cacheService).evictTaskStats(anyString());
 
         TaskRequest updateRequest = TaskRequest.builder()
                 .title("Updated Task")
@@ -139,8 +177,12 @@ class TaskServiceTest {
 
     @Test
     void shouldDeleteTask() {
-        when(taskRepository.existsById(1L)).thenReturn(true);
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         doNothing().when(taskRepository).deleteById(1L);
+        doNothing().when(cacheService).evictTask(anyLong());
+        doNothing().when(cacheService).evictTaskLists();
+        doNothing().when(cacheService).evictTasksByStatus(anyString());
+        doNothing().when(cacheService).evictTaskStats(anyString());
 
         taskService.deleteTask(1L);
 

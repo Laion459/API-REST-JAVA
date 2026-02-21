@@ -29,13 +29,13 @@ class CacheServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
-        when(cacheManager.getCache("taskStats")).thenReturn(statsCache);
+        // Setup will be done per test as needed
     }
 
     @Test
     void shouldEvictTask() {
         Long taskId = 1L;
+        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
         cacheService.evictTask(taskId);
 
         verify(tasksCache, times(1)).evict(taskId);
@@ -44,6 +44,7 @@ class CacheServiceTest {
     @Test
     void shouldEvictTaskStats() {
         String status = "PENDING";
+        when(cacheManager.getCache("taskStats")).thenReturn(statsCache);
         cacheService.evictTaskStats(status);
 
         verify(statsCache, times(1)).evict(status);
@@ -51,6 +52,7 @@ class CacheServiceTest {
 
     @Test
     void shouldEvictAllTaskStats() {
+        when(cacheManager.getCache("taskStats")).thenReturn(statsCache);
         cacheService.evictAllTaskStats();
 
         verify(statsCache, times(1)).clear();
@@ -66,6 +68,7 @@ class CacheServiceTest {
     @Test
     void shouldCheckIfTaskIsCached() {
         Long taskId = 1L;
+        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
         Cache.ValueWrapper wrapper = mock(Cache.ValueWrapper.class);
         when(wrapper.get()).thenReturn(new Object());
         when(tasksCache.get(taskId)).thenReturn(wrapper);
@@ -78,6 +81,7 @@ class CacheServiceTest {
     @Test
     void shouldReturnFalseWhenTaskNotCached() {
         Long taskId = 1L;
+        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
         when(tasksCache.get(taskId)).thenReturn(null);
 
         boolean result = cacheService.isTaskCached(taskId);

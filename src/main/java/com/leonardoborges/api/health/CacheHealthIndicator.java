@@ -3,6 +3,7 @@ package com.leonardoborges.api.health;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean(CacheManager.class)
 public class CacheHealthIndicator implements HealthIndicator {
     
     private final CacheManager cacheManager;
