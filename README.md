@@ -74,6 +74,57 @@ src/
 - Maven 3.6+ - Instalar: `sudo apt install maven`
 - Docker e Docker Compose (opcional)
 
+### Opção 0: Makefile (Mais Fácil - Recomendado)
+
+O projeto inclui um **Makefile completo** com comandos úteis para simplificar o desenvolvimento:
+
+```bash
+# Ver todos os comandos disponíveis
+make help
+
+# Instalar dependências e iniciar serviços Docker
+make install
+
+# Início rápido completo (Docker + Build + Run)
+make quickstart
+
+# Desenvolvimento (Docker + Run aplicação)
+make dev
+
+# Executar testes
+make test
+
+# Testes com cobertura
+make test-coverage
+
+# Docker - comandos simplificados
+make up      # Iniciar containers
+make down    # Parar containers
+make ps      # Listar containers
+make logs    # Ver logs
+
+# Build e execução
+make build   # Compilar projeto
+make run     # Executar aplicação
+make clean   # Limpar artefatos
+```
+
+**Comandos mais usados:**
+
+| Comando | Descrição |
+|---------|-----------|
+| `make install` | Instala dependências e inicia serviços Docker |
+| `make quickstart` | Início rápido completo (tudo automático) |
+| `make dev` | Desenvolvimento (Docker + aplicação) |
+| `make test` | Executa todos os testes |
+| `make test-coverage` | Testes com relatório de cobertura |
+| `make up` | Inicia containers Docker |
+| `make down` | Para containers Docker |
+| `make ps` | Lista containers em execução |
+| `make logs` | Mostra logs dos containers |
+
+Para ver todos os comandos disponíveis: `make help`
+
 ### Opção 1: Docker Compose (Recomendado)
 
 ```bash
