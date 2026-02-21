@@ -3,6 +3,7 @@ package com.leonardoborges.api.service;
 import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
+import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.TaskNotFoundException;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
@@ -11,8 +12,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,11 +90,19 @@ public class TaskService {
     
     @Transactional
     @CachePut(value = "tasks", key = "#id")
+    @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public TaskResponse updateTask(Long id, TaskRequest request) {
         log.info("Updating task with ID: {}", id);
         
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
+        
+        // Check version if provided (for optimistic locking)
+        if (request.getVersion() != null && !request.getVersion().equals(task.getVersion())) {
+            throw new OptimisticLockingException(
+                    String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
+                            task.getVersion(), request.getVersion()));
+        }
         
         Task.TaskStatus oldStatus = task.getStatus();
         
@@ -109,22 +121,28 @@ public class TaskService {
             task.setPriority(request.getPriority());
         }
         
-        Task updatedTask = taskRepository.save(task);
-        log.info("Task updated successfully with ID: {}", updatedTask.getId());
-        
-        // Selective cache eviction - only evict what changed
-        cacheService.evictTask(id); // Evict old cached version
-        cacheService.evictTaskLists(); // Evict paginated lists
-        cacheService.evictTasksByStatus(oldStatus.name()); // Evict old status list
-        if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
-            cacheService.evictTasksByStatus(request.getStatus().name()); // Evict new status list
-            cacheService.evictTaskStats(oldStatus.name()); // Evict old status stats
-            cacheService.evictTaskStats(request.getStatus().name()); // Evict new status stats
-        } else {
-            cacheService.evictTaskStats(oldStatus.name()); // Evict stats if status unchanged
+        try {
+                Task updatedTask = taskRepository.save(task);
+            log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
+            
+            // Selective cache eviction - only evict what changed
+            cacheService.evictTask(id); // Evict old cached version
+            cacheService.evictTaskLists(); // Evict paginated lists
+            cacheService.evictTasksByStatus(oldStatus.name()); // Evict old status list
+            if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
+                cacheService.evictTasksByStatus(request.getStatus().name()); // Evict new status list
+                cacheService.evictTaskStats(oldStatus.name()); // Evict old status stats
+                cacheService.evictTaskStats(request.getStatus().name()); // Evict new status stats
+            } else {
+                cacheService.evictTaskStats(oldStatus.name()); // Evict stats if status unchanged
+            }
+            
+            return mapToResponse(updatedTask);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("Optimistic locking conflict for task ID: {}", id);
+            throw new OptimisticLockingException(
+                    "The task has been modified by another user. Please refresh and try again.", e);
         }
-        
-        return mapToResponse(updatedTask);
     }
     
     @Transactional
@@ -153,6 +171,7 @@ public class TaskService {
                 .description(task.getDescription())
                 .status(task.getStatus())
                 .priority(task.getPriority())
+                .version(task.getVersion())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .build();
