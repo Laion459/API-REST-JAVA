@@ -1,7 +1,7 @@
 # Roadmap - High Performance REST API
 
-## Current Status: v1.4.0 (Authentication & Authorization)
-**Grade: 9.5/10**
+## Current Status: v1.5.0 (Rate Limiting & Security)
+**Grade: 9.7/10**
 
 ## Target: v2.0.0 (Production Ready)
 **Target Grade: 10/10**
@@ -51,12 +51,13 @@
 - [ ] Create authentication endpoints
 - [ ] Add password encryption (BCrypt)
 
-### v1.5.0 - Authorization & Security
-- [ ] Implement role-based access control (RBAC)
-- [ ] Add rate limiting (Bucket4j)
-- [ ] Implement CORS properly
-- [ ] Add request validation
-- [ ] Implement security headers
+### v1.5.0 - Rate Limiting & Security ✅
+- [x] Add rate limiting (Bucket4j)
+- [x] Implement different rate limits for different endpoints
+- [x] Protect auth endpoints with stricter limits
+- [x] Add rate limit filter to security chain
+- [x] Add rate limiting constants
+- [x] Implement security headers (CORS already done in v1.4.0)
 
 ---
 

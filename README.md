@@ -30,6 +30,7 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 - CRUD completo de tarefas
 - **Autenticação JWT** (v1.4.0)
 - **Autorização baseada em roles** (USER, ADMIN)
+- **Rate Limiting** (v1.5.0) - Proteção contra abuso
 - Paginação e filtros
 - Cache inteligente (Redis)
 - Validação de dados
@@ -133,6 +134,15 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 - `DELETE /api/v1/cache/stats` - Limpar cache de estatísticas
 - `DELETE /api/v1/cache/all` - Limpar todos os caches (administrativo)
 
+### Rate Limiting (v1.5.0+)
+
+A API implementa rate limiting para proteger contra abuso:
+- **Endpoints padrão**: 60 requisições por minuto
+- **Endpoints de autenticação**: 5 requisições por minuto (proteção contra brute force)
+- **Endpoints administrativos**: 200 requisições por minuto (para admins)
+
+Quando o limite é excedido, a API retorna `429 Too Many Requests` com informações sobre quando tentar novamente.
+
 ### Exemplo de Requisição
 
 ```bash
@@ -204,7 +214,7 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **42 testes** automatizados (100% passando)
+- **44 testes** automatizados (100% passando)
 - Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
 - Testes de autenticação (JWT, login, registro)
@@ -293,6 +303,7 @@ SERVER_PORT=8081
 - JWT Authentication & Authorization (v1.4.0)
 - Role-Based Access Control (v1.4.0)
 - Password Encryption (BCrypt) (v1.4.0)
+- Rate Limiting (Bucket4j) (v1.5.0)
 - Structured Logging
 - Constants for Magic Numbers (v1.3.0)
 - Caching Strategy

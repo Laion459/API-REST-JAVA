@@ -10,11 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned Improvements
 - Real reactive programming with R2DBC
 - Comprehensive CI/CD pipeline
-- Rate limiting
 - Performance testing automation
 - Optimistic locking for concurrency
 - Custom metrics
 - Architecture decision records
+
+## [1.5.0] - 2025-01-XX
+
+### Added
+- Rate limiting with Bucket4j
+- RateLimitConfig with different buckets (default, auth, admin)
+- RateLimitFilter for request throttling
+- Different rate limits for different endpoint types
+- Rate limiting constants in TaskConstants
+- RateLimitFilterTest with 2 new tests
+
+### Changed
+- SecurityConfig now includes RateLimitFilter
+- Auth endpoints have stricter rate limits (5 req/min)
+- Admin endpoints have higher rate limits (200 req/min)
+- Default endpoints have standard rate limits (60 req/min)
+
+### Fixed
+- Protection against DDoS and brute force attacks
+- Better API security with request throttling
+- Improved resource management
+
+### Tests
+- Added RateLimitFilterTest with 2 new tests
+- Total test count: 44 tests (42 + 2)
 
 ## [1.4.0] - 2025-01-XX
 
