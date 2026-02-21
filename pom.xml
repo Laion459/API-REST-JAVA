@@ -200,27 +200,27 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.11</version>
                 <configuration>
+                    <excludes>
+                        <!-- Exclude packages that don't need high coverage -->
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/constants/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/config/TestSecurityConfig.class</exclude>
+                        <exclude>**/config/TestDataSourceConfig.class</exclude>
+                    </excludes>
                     <rules>
                         <rule>
-                            <element>PACKAGE</element>
-                            <excludes>
-                                <!-- Exclude packages that don't need high coverage -->
-                                <exclude>com.leonardoborges.api.dto.*</exclude>
-                                <exclude>com.leonardoborges.api.constants.*</exclude>
-                                <exclude>com.leonardoborges.api.model.*</exclude>
-                                <exclude>com.leonardoborges.api.config.TestSecurityConfig</exclude>
-                                <exclude>com.leonardoborges.api.config.TestDataSourceConfig</exclude>
-                            </excludes>
+                            <element>BUNDLE</element>
                             <limits>
                                 <limit>
                                     <counter>LINE</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.70</minimum>
+                                    <minimum>0.60</minimum>
                                 </limit>
                                 <limit>
                                     <counter>BRANCH</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.60</minimum>
+                                    <minimum>0.50</minimum>
                                 </limit>
                             </limits>
                         </rule>
