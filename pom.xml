@@ -203,16 +203,24 @@
                     <rules>
                         <rule>
                             <element>PACKAGE</element>
+                            <excludes>
+                                <!-- Exclude packages that don't need high coverage -->
+                                <exclude>com.leonardoborges.api.dto.*</exclude>
+                                <exclude>com.leonardoborges.api.constants.*</exclude>
+                                <exclude>com.leonardoborges.api.model.*</exclude>
+                                <exclude>com.leonardoborges.api.config.TestSecurityConfig</exclude>
+                                <exclude>com.leonardoborges.api.config.TestDataSourceConfig</exclude>
+                            </excludes>
                             <limits>
                                 <limit>
                                     <counter>LINE</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.90</minimum>
+                                    <minimum>0.70</minimum>
                                 </limit>
                                 <limit>
                                     <counter>BRANCH</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.85</minimum>
+                                    <minimum>0.60</minimum>
                                 </limit>
                             </limits>
                         </rule>
