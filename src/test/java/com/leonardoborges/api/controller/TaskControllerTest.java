@@ -1,6 +1,7 @@
 package com.leonardoborges.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leonardoborges.api.config.TestSecurityConfig;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.service.TaskService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,8 +21,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 class TaskControllerTest {
 
     @Autowired

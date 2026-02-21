@@ -1,5 +1,6 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.config.TestSecurityConfig;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.model.Task;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 @Transactional
 class TaskServiceOptimisticLockingTest {
 
