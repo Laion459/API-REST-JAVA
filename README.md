@@ -178,10 +178,21 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **29 testes** automatizados (100% passando)
-- Testes unitários (Service, Repository, Controller, Cache)
+- **37 testes** automatizados (100% passando)
+- Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
 - Testes com H2 (banco em memória)
+- JaCoCo configurado para relatórios de cobertura
+
+### Executar Testes com Cobertura
+
+```bash
+# Executar testes e gerar relatório de cobertura
+mvn clean test jacoco:report
+
+# Ver relatório (HTML)
+open target/site/jacoco/index.html
+```
 
 ## Performance
 
@@ -251,11 +262,14 @@ SERVER_PORT=8081
 - DTO Pattern
 - Exception Handling
 - Validation
-- Logging estruturado
+- Input Sanitization (v1.3.0)
+- Structured Logging
+- Constants for Magic Numbers (v1.3.0)
 - Caching Strategy
 - Database Indexing
 - API Versioning
 - Documentation (Swagger)
+- Code Coverage Reporting (JaCoCo)
 
 ## CI/CD
 

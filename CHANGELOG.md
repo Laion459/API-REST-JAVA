@@ -17,6 +17,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom metrics
 - Architecture decision records
 
+## [1.3.0] - 2025-01-XX
+
+### Added
+- TaskConstants class for centralized magic numbers
+- InputSanitizer utility for input validation and sanitization
+- JaCoCo plugin for code coverage reporting
+- Structured logging configuration
+- Input sanitization in TaskService (create and update operations)
+
+### Changed
+- Replaced all magic numbers with constants from TaskConstants
+- Improved logging levels (INFO for services/controllers, DEBUG for utils)
+- Enhanced logging patterns for better readability
+- TaskService now sanitizes all string inputs before processing
+- All cache names now use constants
+- All pagination sizes use constants
+- All TTL values use constants
+
+### Fixed
+- Better code maintainability with centralized constants
+- Improved security with input sanitization
+- More consistent logging across the application
+
+### Tests
+- Added InputSanitizerTest with 8 new tests
+- Total test count: 37 tests (29 + 8)
+
 ## [1.2.0] - 2025-01-XX
 
 ### Added
