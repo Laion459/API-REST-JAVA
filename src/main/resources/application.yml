@@ -32,6 +32,12 @@ server:
   port: 8081
   compression:
     enabled: true
+  # Security: Remove server header
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
 
 management:
   endpoints:
