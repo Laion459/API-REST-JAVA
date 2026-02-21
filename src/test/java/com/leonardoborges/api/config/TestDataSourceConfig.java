@@ -1,10 +1,12 @@
 package com.leonardoborges.api.config;
 
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
+
+import javax.sql.DataSource;
 
 /**
  * Test datasource configuration that auto-detects driver from JDBC URL.
@@ -15,32 +17,35 @@ public class TestDataSourceConfig {
     
     @Bean
     @Primary
-    public DataSourceProperties dataSourceProperties(Environment env) {
-        DataSourceProperties properties = new DataSourceProperties();
+    public DataSource dataSource(Environment env) {
         String url = env.getProperty("spring.datasource.url", "jdbc:h2:mem:testdb");
+        String username = env.getProperty("spring.datasource.username", "sa");
+        String password = env.getProperty("spring.datasource.password", "");
         String explicitDriver = env.getProperty("spring.datasource.driver-class-name");
         
-        properties.setUrl(url);
-        properties.setUsername(env.getProperty("spring.datasource.username", "sa"));
-        properties.setPassword(env.getProperty("spring.datasource.password", ""));
-        
         // Auto-detect driver from URL if not explicitly set
+        String driverClassName;
         if (explicitDriver != null && !explicitDriver.isEmpty()) {
-            properties.setDriverClassName(explicitDriver);
+            driverClassName = explicitDriver;
         } else {
             // Auto-detect from URL
             if (url.startsWith("jdbc:postgresql:")) {
-                properties.setDriverClassName("org.postgresql.Driver");
+                driverClassName = "org.postgresql.Driver";
             } else if (url.startsWith("jdbc:h2:")) {
-                properties.setDriverClassName("org.h2.Driver");
+                driverClassName = "org.h2.Driver";
             } else if (url.startsWith("jdbc:mysql:")) {
-                properties.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                driverClassName = "com.mysql.cj.jdbc.Driver";
             } else {
                 // Default to H2 for tests
-                properties.setDriverClassName("org.h2.Driver");
+                driverClassName = "org.h2.Driver";
             }
         }
         
-        return properties;
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        dataSource.setDriverClassName(driverClassName);
+        return dataSource;
     }
 }
