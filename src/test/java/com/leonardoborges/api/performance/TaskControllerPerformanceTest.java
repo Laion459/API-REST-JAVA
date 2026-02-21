@@ -1,6 +1,5 @@
 package com.leonardoborges.api.performance;
 
-import com.leonardoborges.api.config.TestSecurityConfig;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
