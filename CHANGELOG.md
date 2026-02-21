@@ -12,6 +12,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance testing automation
 - Architecture decision records
 
+## [2.1.0] - 2025-02-XX
+
+### Added
+- **CORS configurável via properties** - CORS agora é configurável via `application.yml` com `CorsProperties`
+- **Refresh Tokens** - Implementado sistema completo de refresh tokens para renovação de autenticação
+- **Validação de JWT Secret** - `JwtProperties` valida que o secret está configurado corretamente (obrigatório em produção)
+- **Sistema de Auditoria** - `AuditService` para log de operações sensíveis (criação, atualização, deleção de tasks, autenticação)
+- **Connection Pooling explícito** - Configuração HikariCP com parâmetros otimizados
+- **SortParameterValidator** - Utility class para validação e normalização de parâmetros de ordenação
+- **SqlInjectionValidator** - Validação adicional de SQL injection (defense in depth)
+- **Testes de Performance** - `TaskControllerPerformanceTest` para validação de tempos de resposta
+
+### Changed
+- **CORS mais seguro** - Não usa mais `*` por padrão, usa origens configuráveis
+- **JWT Service** - Refatorado para usar `JwtProperties` ao invés de `@Value`
+- **TaskService e UserService** - Integrados com `AuditService` para auditoria de operações
+- **TaskController** - Usa `SortParameterValidator` para eliminar duplicação de código
+- **AuthResponse** - Adicionado campo `refreshToken`
+
+### Security
+- CORS configurável e mais restritivo por padrão
+- JWT secret validado no startup (obrigatório em produção)
+- Refresh tokens para melhor segurança de autenticação
+- Auditoria de todas as operações sensíveis
+- **Prevenção de SQL Injection em múltiplas camadas** - Validação adicional além do JPA
+- **Validação de sort fields** - Prevenção de SQL injection em parâmetros de ordenação
+
+### Performance
+- Connection pooling configurado explicitamente (HikariCP)
+- Melhorias na validação de parâmetros (menos overhead)
+- Testes de performance para garantir tempos de resposta aceitáveis
+
+
 ## [2.0.0] - 2025-01-XX
 
 ### Added

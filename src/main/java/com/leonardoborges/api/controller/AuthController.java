@@ -3,6 +3,7 @@ package com.leonardoborges.api.controller;
 import com.leonardoborges.api.dto.AuthRequest;
 import com.leonardoborges.api.dto.AuthResponse;
 import com.leonardoborges.api.dto.LoginRequest;
+import com.leonardoborges.api.dto.RefreshTokenRequest;
 import com.leonardoborges.api.exception.ErrorResponse;
 import com.leonardoborges.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -105,6 +106,49 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         log.info("Login request for: {}", request.getUsernameOrEmail());
         AuthResponse response = userService.login(request.getUsernameOrEmail(), request.getPassword());
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/refresh")
+    @Operation(
+            summary = "Renovar token de acesso",
+            description = "Renova o token de acesso usando um refresh token válido. Endpoint público, não requer autenticação."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Token renovado com sucesso",
+                    content = @Content(schema = @Schema(implementation = AuthResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Refresh token inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Refresh token inválido ou expirado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Erro de validação de negócio",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "429",
+                    description = "Muitas requisições - Rate limit excedido (limite: 5 req/min para auth)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno do servidor",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        log.info("Refresh token request");
+        AuthResponse response = userService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 }

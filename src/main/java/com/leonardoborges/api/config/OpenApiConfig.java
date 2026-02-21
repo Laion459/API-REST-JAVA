@@ -21,7 +21,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("High Performance REST API")
-                        .version("1.8.0")
+                        .version("2.1.0")
                         .description("API REST de alta performance desenvolvida com Spring Boot para demonstração de habilidades backend, focada em escalabilidade, performance e boas práticas de engenharia de software.")
                         .contact(new Contact()
                                 .name("Leonardo Borges")

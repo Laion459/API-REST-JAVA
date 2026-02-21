@@ -7,6 +7,7 @@ import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.ErrorResponse;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.service.TaskService;
+import com.leonardoborges.api.util.SortParameterValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +20,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -37,6 +37,7 @@ import java.util.Map;
 public class TaskController {
     
     private final TaskService taskService;
+    private final SortParameterValidator sortParameterValidator;
     
     @PostMapping
     @Operation(
@@ -176,39 +177,9 @@ public class TaskController {
         log.debug("GET /api/v1/tasks - Fetching all tasks with pagination: page={}, size={}", 
                 pageable.getPageNumber(), pageable.getPageSize());
         
-        // Validar e corrigir parâmetros de sort inválidos (comum quando Swagger UI envia "string" literal)
-        Pageable validPageable = pageable;
-        if (pageable.getSort().isSorted()) {
-            try {
-                // Verificar se os campos de sort são válidos
-                boolean hasInvalidSort = pageable.getSort().stream()
-                        .anyMatch(order -> {
-                            String property = order.getProperty();
-                            // Campos válidos para Task
-                            return !property.equals("id") && !property.equals("title") && 
-                                   !property.equals("description") && !property.equals("status") && 
-                                   !property.equals("priority") && !property.equals("createdAt") && 
-                                   !property.equals("updatedAt") && !property.equals("version");
-                        });
-                
-                if (hasInvalidSort) {
-                    // Se houver sort inválido, usar o padrão
-                    log.warn("Invalid sort parameter detected, using default sort: createdAt");
-                    validPageable = PageRequest.of(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            Sort.by("createdAt").descending()
-                    );
-                }
-            } catch (Exception e) {
-                log.warn("Error validating sort parameters, using default: {}", e.getMessage());
-                validPageable = PageRequest.of(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        Sort.by("createdAt").descending()
-                );
-            }
-        }
+        // Validate and normalize sort parameters using utility class
+        Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
+                pageable, "createdAt", Sort.Direction.DESC);
         
         Page<TaskResponse> page = taskService.getAllTasks(validPageable);
         
@@ -277,36 +248,9 @@ public class TaskController {
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "priority") Pageable pageable) {
         log.debug("GET /api/v1/tasks/status/{} - Fetching tasks by status", status);
         
-        // Validar e corrigir parâmetros de sort inválidos
-        Pageable validPageable = pageable;
-        if (pageable.getSort().isSorted()) {
-            try {
-                boolean hasInvalidSort = pageable.getSort().stream()
-                        .anyMatch(order -> {
-                            String property = order.getProperty();
-                            return !property.equals("id") && !property.equals("title") && 
-                                   !property.equals("description") && !property.equals("status") && 
-                                   !property.equals("priority") && !property.equals("createdAt") && 
-                                   !property.equals("updatedAt") && !property.equals("version");
-                        });
-                
-                if (hasInvalidSort) {
-                    log.warn("Invalid sort parameter detected, using default sort: priority");
-                    validPageable = PageRequest.of(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            Sort.by("priority").descending()
-                    );
-                }
-            } catch (Exception e) {
-                log.warn("Error validating sort parameters, using default: {}", e.getMessage());
-                validPageable = PageRequest.of(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        Sort.by("priority").descending()
-                );
-            }
-        }
+        // Validate and normalize sort parameters using utility class
+        Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
+                pageable, "priority", Sort.Direction.DESC);
         
         Page<TaskResponse> page = taskService.getTasksByStatus(status, validPageable);
         

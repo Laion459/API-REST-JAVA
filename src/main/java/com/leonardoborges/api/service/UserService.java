@@ -1,5 +1,6 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.audit.AuditService;
 import com.leonardoborges.api.dto.AuthRequest;
 import com.leonardoborges.api.dto.AuthResponse;
 import com.leonardoborges.api.exception.BusinessException;
@@ -27,6 +28,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuditService auditService;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,12 +78,20 @@ public class UserService implements UserDetailsService {
 
         user = userRepository.save(user);
         log.info("User registered successfully: {}", user.getUsername());
+        
+        // Audit sensitive operation
+        auditService.audit("USER_REGISTERED", "User", user.getId(), 
+                String.format("Username: %s, Email: %s", user.getUsername(), user.getEmail()));
 
-        // Generate token
+        // Generate tokens
         UserDetails userDetails = loadUserByUsername(user.getUsername());
         String token = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        
+        // Audit authentication
+        auditService.auditAuthentication("REGISTRATION_SUCCESS", user.getUsername(), "New user registered");
 
-        return buildAuthResponse(user, token);
+        return buildAuthResponse(user, token, refreshToken);
     }
 
     @Transactional(readOnly = true)
@@ -92,22 +102,61 @@ public class UserService implements UserDetailsService {
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             log.warn("Invalid password for user: {}", usernameOrEmail);
+            // Audit failed login attempt
+            auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "Invalid password");
             throw new BusinessException("Invalid credentials");
         }
 
         User user = userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
-                        .orElseThrow(() -> new BusinessException("User not found")));
+                        .orElseThrow(() -> {
+                            auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "User not found");
+                            return new BusinessException("User not found");
+                        }));
 
         String token = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
         log.info("User logged in successfully: {}", user.getUsername());
+        
+        // Audit successful login
+        auditService.auditAuthentication("LOGIN_SUCCESS", user.getUsername(), "User authenticated successfully");
 
-        return buildAuthResponse(user, token);
+        return buildAuthResponse(user, token, refreshToken);
+    }
+    
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(String refreshToken) {
+        log.info("Refresh token request");
+        
+        // Validate refresh token
+        if (!jwtService.validateRefreshToken(refreshToken)) {
+            throw new BusinessException("Invalid or expired refresh token");
+        }
+        
+        // Extract username from token
+        String username = jwtService.extractUsername(refreshToken);
+        
+        // Load user and generate new tokens
+        UserDetails userDetails = loadUserByUsername(username);
+        User user = userRepository.findByUsername(username)
+                .orElseGet(() -> userRepository.findByEmail(username)
+                        .orElseThrow(() -> new BusinessException("User not found")));
+        
+        String newToken = jwtService.generateToken(userDetails);
+        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+        
+        log.info("Tokens refreshed successfully for user: {}", username);
+        
+        // Audit token refresh
+        auditService.auditAuthentication("TOKEN_REFRESHED", username, "Access token renewed");
+        
+        return buildAuthResponse(user, newToken, newRefreshToken);
     }
 
-    private AuthResponse buildAuthResponse(User user, String token) {
+    private AuthResponse buildAuthResponse(User user, String token, String refreshToken) {
         return AuthResponse.builder()
                 .token(token)
+                .refreshToken(refreshToken)
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())

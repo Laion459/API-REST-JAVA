@@ -1,5 +1,6 @@
 package com.leonardoborges.api.config;
 
+import com.leonardoborges.api.config.CorsProperties;
 import com.leonardoborges.api.security.JwtAuthenticationFilter;
 import com.leonardoborges.api.security.RateLimitFilter;
 import com.leonardoborges.api.security.SecurityHeadersFilter;
@@ -23,7 +24,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -37,6 +37,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitFilter rateLimitFilter;
     private final SecurityHeadersFilter securityHeadersFilter;
+    private final CorsProperties corsProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -79,12 +80,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(false); // Swagger UI doesn't need credentials
-        configuration.setMaxAge(3600L);
+        
+        // Use configurable origins (more secure than "*")
+        List<String> allowedOrigins = corsProperties.getAllowedOriginsList();
+        if (allowedOrigins.isEmpty()) {
+            // Fallback to localhost for development if not configured
+            allowedOrigins = List.of("http://localhost:3000", "http://localhost:8080");
+        }
+        configuration.setAllowedOrigins(allowedOrigins);
+        
+        configuration.setAllowedMethods(corsProperties.getAllowedMethodsList());
+        configuration.setAllowedHeaders(corsProperties.getAllowedHeadersList());
+        configuration.setExposedHeaders(corsProperties.getExposedHeadersList());
+        configuration.setAllowCredentials(corsProperties.getAllowCredentials());
+        configuration.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

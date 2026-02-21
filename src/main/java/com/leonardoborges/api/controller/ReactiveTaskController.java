@@ -41,6 +41,15 @@ public class ReactiveTaskController {
     @Operation(
             summary = "Stream de tarefas (SSE)",
             description = "Retorna stream de tarefas usando Server-Sent Events para programação reativa e concorrente. Requer autenticação JWT.\n\n" +
+                    "**Nota sobre Reatividade:**\n" +
+                    "- Este endpoint usa Spring WebFlux para programação reativa\n" +
+                    "- Atualmente, o backend ainda usa JPA (blocking) para acesso a dados\n" +
+                    "- Para reatividade completa, seria necessário migrar para R2DBC (reactive database driver)\n" +
+                    "- Esta é uma limitação conhecida e está no roadmap para futuras versões\n\n" +
+                    "**Limitações Atuais:**\n" +
+                    "- O endpoint busca todas as tasks de uma vez (não é streaming real do banco)\n" +
+                    "- Funciona bem para demonstração de conceitos reativos\n" +
+                    "- Para produção com alto volume, considere migrar para R2DBC\n\n" +
                     "**Nota:** Este endpoint usa Server-Sent Events (SSE) e pode não funcionar corretamente no Swagger UI. " +
                     "Use um cliente HTTP que suporte SSE (como curl ou Postman) ou acesse diretamente via navegador.\n\n" +
                     "**Exemplo com curl:**\n" +

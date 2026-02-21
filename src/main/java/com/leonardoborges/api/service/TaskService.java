@@ -1,14 +1,17 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.audit.AuditService;
 import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.TaskNotFoundException;
+import com.leonardoborges.api.exception.ValidationException;
 import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
 import com.leonardoborges.api.util.InputSanitizer;
+import com.leonardoborges.api.util.SqlInjectionValidator;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,8 @@ public class TaskService {
     private final CacheService cacheService;
     private final InputSanitizer inputSanitizer;
     private final TaskMetrics taskMetrics;
+    private final AuditService auditService;
+    private final SqlInjectionValidator sqlInjectionValidator;
     
     private boolean isMetricsEnabled() {
         try {
@@ -46,6 +51,14 @@ public class TaskService {
         Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskCreationTimer() : null;
         
         try {
+            // Validate for SQL injection (defense in depth)
+            if (!sqlInjectionValidator.isSafe(request.getTitle())) {
+                throw new ValidationException("Invalid input detected in title field");
+            }
+            if (request.getDescription() != null && !sqlInjectionValidator.isSafe(request.getDescription())) {
+                throw new ValidationException("Invalid input detected in description field");
+            }
+            
             // Sanitize input
             String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
                 request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
@@ -61,6 +74,10 @@ public class TaskService {
             
             Task savedTask = taskRepository.save(task);
             log.info("Task created successfully with ID: {}", savedTask.getId());
+            
+            // Audit sensitive operation
+            auditService.audit("TASK_CREATED", "Task", savedTask.getId(), 
+                    String.format("Title: %s, Status: %s", savedTask.getTitle(), savedTask.getStatus()));
             
             // Record metrics
             if (isMetricsEnabled()) {
@@ -144,6 +161,14 @@ public class TaskService {
             
             Task.TaskStatus oldStatus = task.getStatus();
             
+            // Validate for SQL injection (defense in depth)
+            if (!sqlInjectionValidator.isSafe(request.getTitle())) {
+                throw new ValidationException("Invalid input detected in title field");
+            }
+            if (request.getDescription() != null && !sqlInjectionValidator.isSafe(request.getDescription())) {
+                throw new ValidationException("Invalid input detected in description field");
+            }
+            
             // Sanitize input before updating
             String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
                 request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
@@ -161,6 +186,11 @@ public class TaskService {
             
             Task updatedTask = taskRepository.save(task);
             log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
+            
+            // Audit sensitive operation with changes
+            auditService.auditWithChanges("TASK_UPDATED", "Task", updatedTask.getId(), 
+                    String.format("Title: %s", updatedTask.getTitle()), 
+                    oldStatus.toString(), updatedTask.getStatus().toString());
             
             // Record metrics
             if (isMetricsEnabled()) {
@@ -203,8 +233,13 @@ public class TaskService {
                 .orElseThrow(() -> new TaskNotFoundException(id));
         
         Task.TaskStatus status = task.getStatus();
+        String taskTitle = task.getTitle();
         taskRepository.deleteById(id);
         log.info("Task deleted successfully with ID: {}", id);
+        
+        // Audit sensitive operation
+        auditService.audit("TASK_DELETED", "Task", id, 
+                String.format("Title: %s, Status: %s", taskTitle, status));
         
         // Record metrics
         taskMetrics.incrementTaskDeleted();

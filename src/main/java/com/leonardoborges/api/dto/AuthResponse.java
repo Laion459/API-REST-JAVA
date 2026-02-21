@@ -15,8 +15,11 @@ import java.util.Set;
 @Schema(description = "Response DTO com informações de autenticação e token JWT")
 public class AuthResponse {
     
-    @Schema(description = "Token JWT para autenticação", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    @Schema(description = "Token JWT de acesso para autenticação", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;
+    
+    @Schema(description = "Token JWT de refresh para renovação do token de acesso", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    private String refreshToken;
     
     @Schema(description = "Tipo do token", example = "Bearer")
     @Builder.Default

@@ -2,6 +2,10 @@
 
 API REST de alta performance desenvolvida com Spring Boot para demonstração de habilidades backend, focada em escalabilidade, performance e boas práticas de engenharia de software.
 
+## Status: v2.1.0
+
+Projeto de referência implementando todas as melhores práticas de engenharia de software, segurança e performance. Pronto para produção.
+
 ## Objetivo
 
 Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot, incluindo:
@@ -28,22 +32,26 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 ## Funcionalidades
 
 - CRUD completo de tarefas
-- **Autenticação JWT** (v1.4.0)
+- **Autenticação JWT com Refresh Tokens** (v1.4.0, v2.1.0)
 - **Autorização baseada em roles** (USER, ADMIN)
 - **Rate Limiting** (v1.5.0) - Proteção contra abuso
 - **Security Headers** (v1.7.0) - Headers HTTP de segurança (OWASP)
 - **Optimistic Locking** (v1.8.0) - Controle de concorrência
+- **CORS Configurável** (v2.1.0) - Segurança aprimorada
+- **Sistema de Auditoria** (v2.1.0) - Log de operações sensíveis
+- **Prevenção de SQL Injection** (v2.1.0) - Validação em múltiplas camadas
 - Paginação e filtros
 - Cache inteligente (Redis)
-- Validação de dados
+- Validação de dados em múltiplas camadas
 - Tratamento de erros padronizado
 - **Documentação Swagger completa** (v1.9.0) - Todos os códigos HTTP documentados
 - **Health Checks Customizados** (v2.0.0) - Monitoramento de DB, Redis e Cache
 - **Métricas Customizadas** (v2.0.0) - Métricas de negócio com Prometheus
 - **Cobertura de Testes 90%+** (v2.0.0) - Validação obrigatória no CI/CD
+- **Testes de Performance** (v2.1.0) - Validação de tempos de resposta
 - Métricas Prometheus
 - Health checks
-- Testes automatizados
+- Testes automatizados (unitários, integração, performance)
 - Docker e Docker Compose
 - **CI/CD Pipeline** (v1.6.0) - GitHub Actions
 
@@ -170,13 +178,13 @@ java -jar target/high-performance-api-1.0.0.jar
 Acesse: `http://localhost:8081/swagger-ui.html`
 
 A documentação Swagger está completa com:
-- ✅ Todos os endpoints documentados
-- ✅ Todos os códigos de status HTTP (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
-- ✅ Exemplos de requisição e resposta
-- ✅ Descrições detalhadas de cada endpoint
-- ✅ Esquemas de autenticação JWT
-- ✅ Validações e constraints documentadas
-- ✅ DTOs com exemplos e descrições
+- Todos os endpoints documentados
+- Todos os códigos de status HTTP (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
+- Exemplos de requisição e resposta
+- Descrições detalhadas de cada endpoint
+- Esquemas de autenticação JWT
+- Validações e constraints documentadas
+- DTOs com exemplos e descrições
 
 ### Endpoints Principais
 
