@@ -1,10 +1,12 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.TaskNotFoundException;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
+import com.leonardoborges.api.util.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
@@ -21,16 +23,23 @@ public class TaskService {
     
     private final TaskRepository taskRepository;
     private final CacheService cacheService;
+    private final InputSanitizer inputSanitizer;
     
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
-        log.info("Creating new task: {}", request.getTitle());
+        log.info("Creating new task: title={}", request.getTitle());
+        
+        // Sanitize input
+        String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
+            request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
+        String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
+            request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
         
         Task task = Task.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
+                .title(sanitizedTitle)
+                .description(sanitizedDescription)
                 .status(request.getStatus() != null ? request.getStatus() : Task.TaskStatus.PENDING)
-                .priority(request.getPriority() != null ? request.getPriority() : 0)
+                .priority(request.getPriority() != null ? request.getPriority() : TaskConstants.DEFAULT_PRIORITY)
                 .build();
         
         Task savedTask = taskRepository.save(task);
@@ -85,8 +94,14 @@ public class TaskService {
         
         Task.TaskStatus oldStatus = task.getStatus();
         
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
+        // Sanitize input before updating
+        String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
+            request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
+        String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
+            request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
+        
+        task.setTitle(sanitizedTitle);
+        task.setDescription(sanitizedDescription);
         if (request.getStatus() != null) {
             task.setStatus(request.getStatus());
         }
