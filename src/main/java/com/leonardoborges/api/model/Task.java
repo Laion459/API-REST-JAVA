@@ -50,6 +50,11 @@ public class Task {
     @Builder.Default
     private Integer priority = TaskConstants.DEFAULT_PRIORITY;
     
+    @Version
+    @Column(name = "version", nullable = false)
+    @Builder.Default
+    private Long version = 0L;
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
