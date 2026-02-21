@@ -6,12 +6,10 @@ import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.TaskNotFoundException;
-import com.leonardoborges.api.exception.ValidationException;
+import com.leonardoborges.api.mapper.TaskMapper;
 import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
-import com.leonardoborges.api.util.InputSanitizer;
-import com.leonardoborges.api.util.SqlInjectionValidator;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,17 +30,13 @@ public class TaskService {
     
     private final TaskRepository taskRepository;
     private final CacheService cacheService;
-    private final InputSanitizer inputSanitizer;
+    private final TaskMapper taskMapper;
+    private final TaskValidationService taskValidationService;
     private final TaskMetrics taskMetrics;
     private final AuditService auditService;
-    private final SqlInjectionValidator sqlInjectionValidator;
     
     private boolean isMetricsEnabled() {
-        try {
-            return taskMetrics != null;
-        } catch (Exception e) {
-            return false;
-        }
+        return taskMetrics != null;
     }
     
     @Transactional
@@ -51,45 +45,28 @@ public class TaskService {
         Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskCreationTimer() : null;
         
         try {
-            // Validate for SQL injection (defense in depth)
-            if (!sqlInjectionValidator.isSafe(request.getTitle())) {
-                throw new ValidationException("Invalid input detected in title field");
-            }
-            if (request.getDescription() != null && !sqlInjectionValidator.isSafe(request.getDescription())) {
-                throw new ValidationException("Invalid input detected in description field");
-            }
+            taskValidationService.validateAndSanitizeTaskRequest(request);
             
-            // Sanitize input
-            String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
-                request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
-            String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
-                request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
-            
-            Task task = Task.builder()
-                    .title(sanitizedTitle)
-                    .description(sanitizedDescription)
-                    .status(request.getStatus() != null ? request.getStatus() : Task.TaskStatus.PENDING)
-                    .priority(request.getPriority() != null ? request.getPriority() : TaskConstants.DEFAULT_PRIORITY)
-                    .build();
+            Task task = taskMapper.toEntity(request);
+            if (task.getPriority() == null) {
+                task.setPriority(TaskConstants.DEFAULT_PRIORITY);
+            }
             
             Task savedTask = taskRepository.save(task);
             log.info("Task created successfully with ID: {}", savedTask.getId());
             
-            // Audit sensitive operation
             auditService.audit("TASK_CREATED", "Task", savedTask.getId(), 
                     String.format("Title: %s, Status: %s", savedTask.getTitle(), savedTask.getStatus()));
             
-            // Record metrics
             if (isMetricsEnabled()) {
                 taskMetrics.incrementTaskCreated();
                 taskMetrics.incrementTaskStatus(savedTask.getStatus().name());
             }
             
-            // Invalidate related caches after creation
             cacheService.evictTaskLists();
             cacheService.evictTaskStats(savedTask.getStatus().name());
             
-            return mapToResponse(savedTask);
+            return taskMapper.toResponse(savedTask);
         } finally {
             if (isMetricsEnabled() && sample != null) {
                 taskMetrics.recordTaskCreation(sample);
@@ -109,7 +86,7 @@ public class TaskService {
             if (isMetricsEnabled()) {
                 taskMetrics.incrementTaskRetrieved();
             }
-            return mapToResponse(task);
+            return taskMapper.toResponse(task);
         } finally {
             if (isMetricsEnabled() && sample != null) {
                 taskMetrics.recordTaskRetrieval(sample);
@@ -120,18 +97,15 @@ public class TaskService {
     @Transactional(readOnly = true)
     public Page<TaskResponse> getAllTasks(Pageable pageable) {
         log.debug("Fetching all tasks with pagination: {}", pageable);
-        // Cache removido temporariamente devido a problemas de serialização com Page<TaskResponse>
-        // Objetos Page do Spring são complexos e podem causar problemas com Redis cache
-        return taskRepository.findAll(pageable)
-                .map(this::mapToResponse);
+        Page<Task> taskPage = taskRepository.findAll(pageable);
+        return taskMapper.toResponsePage(taskPage);
     }
     
     @Transactional(readOnly = true)
     public Page<TaskResponse> getTasksByStatus(Task.TaskStatus status, Pageable pageable) {
         log.debug("Fetching tasks with status: {}", status);
-        // Cache removido temporariamente devido a problemas de serialização com Page<TaskResponse>
-        return taskRepository.findByStatus(status, pageable)
-                .map(this::mapToResponse);
+        Page<Task> taskPage = taskRepository.findByStatus(status, pageable);
+        return taskMapper.toResponsePage(taskPage);
     }
     
     @Cacheable(value = "taskStats", key = "#status")
@@ -152,47 +126,20 @@ public class TaskService {
             Task task = taskRepository.findById(id)
                     .orElseThrow(() -> new TaskNotFoundException(id));
             
-            // Check version if provided (for optimistic locking)
-            if (request.getVersion() != null && !request.getVersion().equals(task.getVersion())) {
-                throw new OptimisticLockingException(
-                        String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
-                                task.getVersion(), request.getVersion()));
-            }
-            
+            validateVersionForOptimisticLocking(task, request);
             Task.TaskStatus oldStatus = task.getStatus();
             
-            // Validate for SQL injection (defense in depth)
-            if (!sqlInjectionValidator.isSafe(request.getTitle())) {
-                throw new ValidationException("Invalid input detected in title field");
-            }
-            if (request.getDescription() != null && !sqlInjectionValidator.isSafe(request.getDescription())) {
-                throw new ValidationException("Invalid input detected in description field");
-            }
-            
-            // Sanitize input before updating
-            String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
-                request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
-            String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
-                request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
-            
-            task.setTitle(sanitizedTitle);
-            task.setDescription(sanitizedDescription);
-            if (request.getStatus() != null) {
-                task.setStatus(request.getStatus());
-            }
-            if (request.getPriority() != null) {
-                task.setPriority(request.getPriority());
-            }
+            taskValidationService.validateAndSanitizeTaskRequest(request);
+            taskValidationService.validateStatusTransition(oldStatus, request.getStatus());
+            taskMapper.updateEntityFromRequest(task, request);
             
             Task updatedTask = taskRepository.save(task);
             log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
             
-            // Audit sensitive operation with changes
             auditService.auditWithChanges("TASK_UPDATED", "Task", updatedTask.getId(), 
                     String.format("Title: %s", updatedTask.getTitle()), 
                     oldStatus.toString(), updatedTask.getStatus().toString());
             
-            // Record metrics
             if (isMetricsEnabled()) {
                 taskMetrics.incrementTaskUpdated();
                 if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
@@ -200,19 +147,9 @@ public class TaskService {
                 }
             }
             
-            // Selective cache eviction - only evict what changed
-            cacheService.evictTask(id); // Evict old cached version
-            cacheService.evictTaskLists(); // Evict paginated lists
-            cacheService.evictTasksByStatus(oldStatus.name()); // Evict old status list
-            if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
-                cacheService.evictTasksByStatus(request.getStatus().name()); // Evict new status list
-                cacheService.evictTaskStats(oldStatus.name()); // Evict old status stats
-                cacheService.evictTaskStats(request.getStatus().name()); // Evict new status stats
-            } else {
-                cacheService.evictTaskStats(oldStatus.name()); // Evict stats if status unchanged
-            }
+            evictCacheAfterUpdate(id, oldStatus, request.getStatus());
             
-            return mapToResponse(updatedTask);
+            return taskMapper.toResponse(updatedTask);
         } catch (OptimisticLockingFailureException e) {
             log.warn("Optimistic locking conflict for task ID: {}", id);
             throw new OptimisticLockingException(
@@ -224,11 +161,37 @@ public class TaskService {
         }
     }
     
+    private void validateVersionForOptimisticLocking(Task task, TaskRequest request) {
+        if (request.getVersion() == null) {
+            log.warn("Task update attempted without version field. Optimistic locking may not work correctly for task ID: {}", task.getId());
+            return;
+        }
+        
+        if (!request.getVersion().equals(task.getVersion())) {
+            throw new OptimisticLockingException(
+                    String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
+                            task.getVersion(), request.getVersion()));
+        }
+    }
+    
+    private void evictCacheAfterUpdate(Long taskId, Task.TaskStatus oldStatus, Task.TaskStatus newStatus) {
+        cacheService.evictTask(taskId);
+        cacheService.evictTaskLists();
+        cacheService.evictTasksByStatus(oldStatus.name());
+        
+        if (newStatus != null && !oldStatus.equals(newStatus)) {
+            cacheService.evictTasksByStatus(newStatus.name());
+            cacheService.evictTaskStats(oldStatus.name());
+            cacheService.evictTaskStats(newStatus.name());
+        } else {
+            cacheService.evictTaskStats(oldStatus.name());
+        }
+    }
+    
     @Transactional
     public void deleteTask(Long id) {
         log.info("Deleting task with ID: {}", id);
         
-        // Get task before deletion to know its status for cache eviction
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         
@@ -237,30 +200,20 @@ public class TaskService {
         taskRepository.deleteById(id);
         log.info("Task deleted successfully with ID: {}", id);
         
-        // Audit sensitive operation
         auditService.audit("TASK_DELETED", "Task", id, 
                 String.format("Title: %s, Status: %s", taskTitle, status));
         
-        // Record metrics
-        taskMetrics.incrementTaskDeleted();
+        if (isMetricsEnabled()) {
+            taskMetrics.incrementTaskDeleted();
+        }
         
-        // Selective cache eviction - only evict what's affected
-        cacheService.evictTask(id); // Evict the deleted task
-        cacheService.evictTaskLists(); // Evict paginated lists
-        cacheService.evictTasksByStatus(status.name()); // Evict status-filtered list
-        cacheService.evictTaskStats(status.name()); // Evict stats for this status
+        evictCacheAfterDelete(id, status);
     }
     
-    private TaskResponse mapToResponse(Task task) {
-        return TaskResponse.builder()
-                .id(task.getId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .status(task.getStatus())
-                .priority(task.getPriority())
-                .version(task.getVersion())
-                .createdAt(task.getCreatedAt())
-                .updatedAt(task.getUpdatedAt())
-                .build();
+    private void evictCacheAfterDelete(Long taskId, Task.TaskStatus status) {
+        cacheService.evictTask(taskId);
+        cacheService.evictTaskLists();
+        cacheService.evictTasksByStatus(status.name());
+        cacheService.evictTaskStats(status.name());
     }
 }

@@ -96,8 +96,26 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private long getRetryAfterSeconds(Bucket bucket) {
-        // Estimate retry after based on bucket configuration
-        // This is a simplified version - in production, you'd calculate based on available tokens
-        return 60; // Default to 60 seconds
+        if (bucket == null) {
+            return 60;
+        }
+        
+        long availableTokens = bucket.getAvailableTokens();
+        if (availableTokens > 0) {
+            return 0;
+        }
+        
+        long refillPeriodSeconds = 60;
+        long estimatedWaitTime = refillPeriodSeconds;
+        
+        try {
+            if (bucket.tryConsume(0)) {
+                return 0;
+            }
+        } catch (Exception e) {
+            log.debug("Error checking bucket availability: {}", e.getMessage());
+        }
+        
+        return estimatedWaitTime;
     }
 }

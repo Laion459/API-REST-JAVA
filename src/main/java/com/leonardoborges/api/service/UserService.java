@@ -33,10 +33,8 @@ public class UserService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseGet(() -> userRepository.findByEmail(username)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username)));
-
+        User user = findUserByUsernameOrEmail(username);
+        
         if (!user.getEnabled()) {
             throw new BusinessException("User account is disabled");
         }
@@ -48,6 +46,13 @@ public class UserService implements UserDetailsService {
                         .map(role -> role.name())
                         .toArray(String[]::new))
                 .build();
+    }
+    
+    @Transactional(readOnly = true)
+    public User findUserByUsernameOrEmail(String usernameOrEmail) {
+        return userRepository.findByUsername(usernameOrEmail)
+                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail)));
     }
 
     @Transactional
@@ -102,17 +107,11 @@ public class UserService implements UserDetailsService {
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             log.warn("Invalid password for user: {}", usernameOrEmail);
-            // Audit failed login attempt
             auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "Invalid password");
             throw new BusinessException("Invalid credentials");
         }
 
-        User user = userRepository.findByUsername(usernameOrEmail)
-                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
-                        .orElseThrow(() -> {
-                            auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "User not found");
-                            return new BusinessException("User not found");
-                        }));
+        User user = findUserByUsernameOrEmail(usernameOrEmail);
 
         String token = jwtService.generateToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
@@ -138,9 +137,7 @@ public class UserService implements UserDetailsService {
         
         // Load user and generate new tokens
         UserDetails userDetails = loadUserByUsername(username);
-        User user = userRepository.findByUsername(username)
-                .orElseGet(() -> userRepository.findByEmail(username)
-                        .orElseThrow(() -> new BusinessException("User not found")));
+        User user = findUserByUsernameOrEmail(username);
         
         String newToken = jwtService.generateToken(userDetails);
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);

@@ -4,11 +4,10 @@ import com.leonardoborges.api.audit.AuditService;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.TaskNotFoundException;
+import com.leonardoborges.api.mapper.TaskMapper;
 import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
-import com.leonardoborges.api.util.InputSanitizer;
-import com.leonardoborges.api.util.SqlInjectionValidator;
 import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -41,7 +39,10 @@ class TaskServiceTest {
     private CacheService cacheService;
     
     @Mock
-    private InputSanitizer inputSanitizer;
+    private TaskMapper taskMapper;
+    
+    @Mock
+    private TaskValidationService taskValidationService;
     
     @Mock
     private TaskMetrics taskMetrics;
@@ -50,15 +51,13 @@ class TaskServiceTest {
     private Timer.Sample timerSample;
     
     @Mock
-    private SqlInjectionValidator sqlInjectionValidator;
-    
-    @Mock
     private AuditService auditService;
 
     private TaskService taskService;
 
     private Task task;
     private TaskRequest taskRequest;
+    private TaskResponse taskResponse;
 
     @BeforeEach
     void setUp() {
@@ -66,10 +65,10 @@ class TaskServiceTest {
         taskService = new TaskService(
                 taskRepository,
                 cacheService,
-                inputSanitizer,
+                taskMapper,
+                taskValidationService,
                 taskMetrics,
-                auditService,
-                sqlInjectionValidator
+                auditService
         );
         
         task = Task.builder()
@@ -90,6 +89,17 @@ class TaskServiceTest {
                 .priority(1)
                 .build();
         
+        taskResponse = TaskResponse.builder()
+                .id(1L)
+                .title("Test Task")
+                .description("Test Description")
+                .status(Task.TaskStatus.PENDING)
+                .priority(1)
+                .version(0L)
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .build();
+        
         // Mock TaskMetrics with lenient to avoid unnecessary stubbing errors
         lenient().when(taskMetrics.startTaskCreationTimer()).thenReturn(timerSample);
         lenient().when(taskMetrics.startTaskUpdateTimer()).thenReturn(timerSample);
@@ -103,11 +113,19 @@ class TaskServiceTest {
         lenient().doNothing().when(taskMetrics).recordTaskUpdate(any(Timer.Sample.class));
         lenient().doNothing().when(taskMetrics).recordTaskRetrieval(any(Timer.Sample.class));
         
-        // Mock InputSanitizer with lenient
-        lenient().when(inputSanitizer.sanitizeAndTruncate(anyString(), anyInt())).thenAnswer(invocation -> invocation.getArgument(0));
+        // Mock TaskValidationService
+        lenient().doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        lenient().doNothing().when(taskValidationService).validateStatusTransition(any(Task.TaskStatus.class), any(Task.TaskStatus.class));
         
-        // Mock SqlInjectionValidator
-        lenient().when(sqlInjectionValidator.isSafe(anyString())).thenReturn(true);
+        // Mock TaskMapper
+        lenient().when(taskMapper.toEntity(any(TaskRequest.class))).thenReturn(task);
+        lenient().when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        lenient().when(taskMapper.toResponsePage(any(Page.class))).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Page<Task> page = (Page<Task>) invocation.getArgument(0);
+            return page.map(t -> taskResponse);
+        });
+        lenient().doNothing().when(taskMapper).updateEntityFromRequest(any(Task.class), any(TaskRequest.class));
         
         // Mock AuditService
         lenient().doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
@@ -168,12 +186,18 @@ class TaskServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Task> taskPage = new PageImpl<>(Arrays.asList(task), pageable, 1);
         when(taskRepository.findAll(pageable)).thenReturn(taskPage);
+        when(taskMapper.toResponsePage(any(Page.class))).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Page<Task> page = (Page<Task>) invocation.getArgument(0);
+            return page.map(t -> taskResponse);
+        });
 
         Page<TaskResponse> response = taskService.getAllTasks(pageable);
 
         assertNotNull(response);
         assertEquals(1, response.getTotalElements());
         verify(taskRepository, times(1)).findAll(pageable);
+        verify(taskMapper, times(1)).toResponsePage(any(Page.class));
     }
 
     @Test
