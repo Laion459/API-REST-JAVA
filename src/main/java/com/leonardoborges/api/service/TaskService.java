@@ -100,18 +100,19 @@ public class TaskService {
         }
     }
     
-    @Cacheable(value = "tasks", key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     @Transactional(readOnly = true)
     public Page<TaskResponse> getAllTasks(Pageable pageable) {
         log.debug("Fetching all tasks with pagination: {}", pageable);
+        // Cache removido temporariamente devido a problemas de serialização com Page<TaskResponse>
+        // Objetos Page do Spring são complexos e podem causar problemas com Redis cache
         return taskRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
     
-    @Cacheable(value = "tasks", key = "'status-' + #status + '-' + #pageable.pageNumber")
     @Transactional(readOnly = true)
     public Page<TaskResponse> getTasksByStatus(Task.TaskStatus status, Pageable pageable) {
         log.debug("Fetching tasks with status: {}", status);
+        // Cache removido temporariamente devido a problemas de serialização com Page<TaskResponse>
         return taskRepository.findByStatus(status, pageable)
                 .map(this::mapToResponse);
     }

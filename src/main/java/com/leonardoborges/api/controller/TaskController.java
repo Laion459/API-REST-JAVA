@@ -1,6 +1,7 @@
 package com.leonardoborges.api.controller;
 
 import com.leonardoborges.api.constants.TaskConstants;
+import com.leonardoborges.api.dto.TaskPageResponse;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.ErrorResponse;
@@ -18,7 +19,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +58,11 @@ public class TaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -97,6 +105,11 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "Tarefa não encontrada",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
@@ -122,18 +135,28 @@ public class TaskController {
     @GetMapping
     @Operation(
             summary = "Listar todas as tarefas",
-            description = "Retorna lista paginada de todas as tarefas. Suporta paginação e ordenação. Requer autenticação JWT.",
+            description = "Retorna lista paginada de todas as tarefas. Suporta paginação e ordenação. Requer autenticação JWT.\n\n" +
+                    "**Parâmetros de paginação:**\n" +
+                    "- `page`: Número da página (começa em 0, padrão: 0)\n" +
+                    "- `size`: Tamanho da página (padrão: 20, recomendado: 10-50)\n" +
+                    "- `sort`: Campo para ordenação (ex: `createdAt`, `title`, `priority`). Use `,desc` para ordem decrescente (ex: `createdAt,desc`)\n\n" +
+                    "**Exemplo:** `?page=0&size=20&sort=createdAt,desc`",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de tarefas retornada com sucesso",
-                    content = @Content(schema = @Schema(implementation = Page.class))
+                    content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -147,24 +170,80 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public ResponseEntity<Page<TaskResponse>> getAllTasks(
+    public ResponseEntity<TaskPageResponse> getAllTasks(
+            @Parameter(description = "Parâmetros de paginação. Exemplo: ?page=0&size=20&sort=createdAt,desc. Padrão: page=0, size=20, sort=createdAt") 
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "createdAt") Pageable pageable) {
-        log.debug("GET /api/v1/tasks - Fetching all tasks with pagination");
-        Page<TaskResponse> response = taskService.getAllTasks(pageable);
+        log.debug("GET /api/v1/tasks - Fetching all tasks with pagination: page={}, size={}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+        
+        // Validar e corrigir parâmetros de sort inválidos (comum quando Swagger UI envia "string" literal)
+        Pageable validPageable = pageable;
+        if (pageable.getSort().isSorted()) {
+            try {
+                // Verificar se os campos de sort são válidos
+                boolean hasInvalidSort = pageable.getSort().stream()
+                        .anyMatch(order -> {
+                            String property = order.getProperty();
+                            // Campos válidos para Task
+                            return !property.equals("id") && !property.equals("title") && 
+                                   !property.equals("description") && !property.equals("status") && 
+                                   !property.equals("priority") && !property.equals("createdAt") && 
+                                   !property.equals("updatedAt") && !property.equals("version");
+                        });
+                
+                if (hasInvalidSort) {
+                    // Se houver sort inválido, usar o padrão
+                    log.warn("Invalid sort parameter detected, using default sort: createdAt");
+                    validPageable = PageRequest.of(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            Sort.by("createdAt").descending()
+                    );
+                }
+            } catch (Exception e) {
+                log.warn("Error validating sort parameters, using default: {}", e.getMessage());
+                validPageable = PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        Sort.by("createdAt").descending()
+                );
+            }
+        }
+        
+        Page<TaskResponse> page = taskService.getAllTasks(validPageable);
+        
+        // Converter Page para TaskPageResponse para melhor compatibilidade com Swagger UI
+        TaskPageResponse response = TaskPageResponse.builder()
+                .content(page.getContent())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .size(page.getSize())
+                .number(page.getNumber())
+                .numberOfElements(page.getNumberOfElements())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+        
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/status/{status}")
     @Operation(
             summary = "Listar tarefas por status",
-            description = "Retorna lista paginada de tarefas filtradas por status. Valores possíveis: PENDING, IN_PROGRESS, COMPLETED, CANCELLED. Requer autenticação JWT.",
+            description = "Retorna lista paginada de tarefas filtradas por status. Valores possíveis: PENDING, IN_PROGRESS, COMPLETED, CANCELLED. Requer autenticação JWT.\n\n" +
+                    "**Parâmetros de paginação:**\n" +
+                    "- `page`: Número da página (começa em 0, padrão: 0)\n" +
+                    "- `size`: Tamanho da página (padrão: 20, recomendado: 10-50)\n" +
+                    "- `sort`: Campo para ordenação (ex: `priority`, `createdAt`, `title`). Use `,desc` para ordem decrescente\n\n" +
+                    "**Exemplo:** `/api/v1/tasks/status/PENDING?page=0&size=20&sort=priority,desc`",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de tarefas filtradas por status retornada com sucesso",
-                    content = @Content(schema = @Schema(implementation = Page.class))
+                    content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -177,6 +256,11 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
                     responseCode = "429",
                     description = "Muitas requisições - Rate limit excedido",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
@@ -187,18 +271,74 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public ResponseEntity<Page<TaskResponse>> getTasksByStatus(
-            @Parameter(description = "Status da tarefa") @PathVariable Task.TaskStatus status,
+    public ResponseEntity<TaskPageResponse> getTasksByStatus(
+            @Parameter(description = "Status da tarefa (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)") @PathVariable Task.TaskStatus status,
+            @Parameter(description = "Parâmetros de paginação. Exemplo: ?page=0&size=20&sort=priority,desc. Padrão: page=0, size=20, sort=priority") 
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "priority") Pageable pageable) {
         log.debug("GET /api/v1/tasks/status/{} - Fetching tasks by status", status);
-        Page<TaskResponse> response = taskService.getTasksByStatus(status, pageable);
+        
+        // Validar e corrigir parâmetros de sort inválidos
+        Pageable validPageable = pageable;
+        if (pageable.getSort().isSorted()) {
+            try {
+                boolean hasInvalidSort = pageable.getSort().stream()
+                        .anyMatch(order -> {
+                            String property = order.getProperty();
+                            return !property.equals("id") && !property.equals("title") && 
+                                   !property.equals("description") && !property.equals("status") && 
+                                   !property.equals("priority") && !property.equals("createdAt") && 
+                                   !property.equals("updatedAt") && !property.equals("version");
+                        });
+                
+                if (hasInvalidSort) {
+                    log.warn("Invalid sort parameter detected, using default sort: priority");
+                    validPageable = PageRequest.of(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            Sort.by("priority").descending()
+                    );
+                }
+            } catch (Exception e) {
+                log.warn("Error validating sort parameters, using default: {}", e.getMessage());
+                validPageable = PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        Sort.by("priority").descending()
+                );
+            }
+        }
+        
+        Page<TaskResponse> page = taskService.getTasksByStatus(status, validPageable);
+        
+        // Converter Page para TaskPageResponse para melhor compatibilidade com Swagger UI
+        TaskPageResponse response = TaskPageResponse.builder()
+                .content(page.getContent())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .size(page.getSize())
+                .number(page.getNumber())
+                .numberOfElements(page.getNumberOfElements())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+        
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/stats/count")
     @Operation(
             summary = "Estatísticas de tarefas",
-            description = "Retorna contagem de tarefas por status. Requer autenticação JWT.",
+            description = "Retorna contagem de tarefas por status. Requer autenticação JWT.\n\n" +
+                    "**Exemplo de resposta:**\n" +
+                    "```json\n" +
+                    "{\n" +
+                    "  \"pending\": 5,\n" +
+                    "  \"in_progress\": 3,\n" +
+                    "  \"completed\": 10,\n" +
+                    "  \"cancelled\": 1\n" +
+                    "}\n" +
+                    "```",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -210,6 +350,11 @@ public class TaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -254,6 +399,11 @@ public class TaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
