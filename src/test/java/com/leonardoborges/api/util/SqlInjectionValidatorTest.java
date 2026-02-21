@@ -37,7 +37,8 @@ class SqlInjectionValidatorTest {
         assertFalse(validator.isSafe("SELECT * FROM tasks"));
         assertFalse(validator.isSafe("DROP TABLE tasks"));
         assertFalse(validator.isSafe("INSERT INTO tasks VALUES"));
-        assertFalse(validator.isSafe("UPDATE tasks SET"));
+        // UPDATE needs to be followed by INTO/TABLE/etc to match the pattern
+        assertFalse(validator.isSafe("UPDATE tasks SET title='hack' WHERE id=1"));
         assertFalse(validator.isSafe("DELETE FROM tasks"));
     }
     

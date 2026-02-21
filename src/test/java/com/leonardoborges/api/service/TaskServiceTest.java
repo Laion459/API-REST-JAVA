@@ -1,5 +1,6 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.audit.AuditService;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.TaskNotFoundException;
@@ -7,6 +8,7 @@ import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
 import com.leonardoborges.api.util.InputSanitizer;
+import com.leonardoborges.api.util.SqlInjectionValidator;
 import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,12 @@ class TaskServiceTest {
     
     @Mock
     private Timer.Sample timerSample;
+    
+    @Mock
+    private SqlInjectionValidator sqlInjectionValidator;
+    
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private TaskService taskService;
@@ -88,6 +96,13 @@ class TaskServiceTest {
         
         // Mock InputSanitizer with lenient
         lenient().when(inputSanitizer.sanitizeAndTruncate(anyString(), anyInt())).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock SqlInjectionValidator
+        lenient().when(sqlInjectionValidator.isSafe(anyString())).thenReturn(true);
+        
+        // Mock AuditService
+        lenient().doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
     }
 
     @Test

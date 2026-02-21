@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 /**
@@ -18,6 +19,12 @@ import org.springframework.util.StringUtils;
 @Setter
 @Slf4j
 public class JwtProperties {
+    
+    private final Environment environment;
+    
+    public JwtProperties(Environment environment) {
+        this.environment = environment;
+    }
     
     /**
      * JWT secret key for signing tokens.
@@ -44,8 +51,19 @@ public class JwtProperties {
      */
     @PostConstruct
     public void validate() {
-        String activeProfile = System.getProperty("spring.profiles.active", "");
-        boolean isProduction = "prod".equals(activeProfile) || "production".equals(activeProfile);
+        String[] activeProfiles = environment.getActiveProfiles();
+        boolean isProduction = java.util.Arrays.asList(activeProfiles).contains("prod") || 
+                              java.util.Arrays.asList(activeProfiles).contains("production");
+        boolean isTest = java.util.Arrays.asList(activeProfiles).contains("test");
+        
+        // Skip validation in test profile
+        if (isTest) {
+            if (!StringUtils.hasText(secret)) {
+                // Set a default test secret if not provided
+                this.secret = "test-secret-key-for-testing-purposes-only-minimum-32-chars";
+            }
+            return;
+        }
         
         if (!StringUtils.hasText(secret) || secret.length() < 32) {
             String message = String.format(

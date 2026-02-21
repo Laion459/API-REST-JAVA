@@ -18,6 +18,11 @@ app:
   metrics:
     enabled: false
 
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-minimum-32-chars
+  expiration: 86400000
+  refresh-expiration: 604800000
+
 logging:
   level:
     com.leonardoborges.api: DEBUG

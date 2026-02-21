@@ -19,13 +19,15 @@ public class SqlInjectionValidator {
     // Patterns for common SQL injection attempts
     private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
             "(?i)(union|select|insert|update|delete|drop|create|alter|exec|execute|script|javascript|onerror|onload)" +
-            ".*(from|into|table|database|schema|procedure|function|trigger|view|index)" +
+            ".*(from|into|table|database|schema|procedure|function|trigger|view|index|set|where)" +
             "|('|(\\-\\-)|(;)|(\\|\\|)|(\\+)|(/\\*)|(\\*/)|(xp_)|(sp_))" +
             "|(or|and).*=.*=" +
             "|(or|and).*'1'='1'" +
             "|(or|and).*'1'='1'" +
             "|(\\bor\\b.*\\d+.*=.*\\d+)" +
-            "|(\\band\\b.*\\d+.*=.*\\d+)"
+            "|(\\band\\b.*\\d+.*=.*\\d+)" +
+            "|(update.*set)" +
+            "|(delete.*from)"
     );
     
     private static final Pattern DANGEROUS_CHARS = Pattern.compile(
