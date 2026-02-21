@@ -1,6 +1,5 @@
 package com.leonardoborges.api.config;
 
-import com.leonardoborges.api.config.CorsProperties;
 import com.leonardoborges.api.security.JwtAuthenticationFilter;
 import com.leonardoborges.api.security.RateLimitFilter;
 import com.leonardoborges.api.security.SecurityHeadersFilter;
