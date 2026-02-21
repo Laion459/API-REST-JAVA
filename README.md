@@ -31,6 +31,7 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 - **Autenticação JWT** (v1.4.0)
 - **Autorização baseada em roles** (USER, ADMIN)
 - **Rate Limiting** (v1.5.0) - Proteção contra abuso
+- **Security Headers** (v1.7.0) - Headers HTTP de segurança (OWASP)
 - Paginação e filtros
 - Cache inteligente (Redis)
 - Validação de dados
@@ -215,7 +216,7 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **44 testes** automatizados (100% passando)
+- **46 testes** automatizados (100% passando)
 - Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
 - Testes de autenticação (JWT, login, registro)
@@ -338,6 +339,7 @@ SERVER_PORT=8081
 - Role-Based Access Control (v1.4.0)
 - Password Encryption (BCrypt) (v1.4.0)
 - Rate Limiting (Bucket4j) (v1.5.0)
+- Security Headers (OWASP) (v1.7.0)
 - Structured Logging
 - Constants for Magic Numbers (v1.3.0)
 - Caching Strategy

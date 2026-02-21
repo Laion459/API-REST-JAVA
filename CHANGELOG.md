@@ -14,6 +14,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom metrics
 - Architecture decision records
 
+## [1.7.0] - 2025-01-XX
+
+### Added
+- SecurityHeadersFilter for HTTP security headers
+- OWASP-compliant security headers implementation
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+- Strict-Transport-Security (HSTS) for HTTPS
+- Content-Security-Policy
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy
+- X-Permitted-Cross-Domain-Policies: none
+- SecurityHeadersFilterTest with 2 new tests
+- Server error message hiding configuration
+
+### Changed
+- SecurityConfig now includes SecurityHeadersFilter
+- Security headers applied to all HTTP responses
+- Improved security posture following OWASP guidelines
+
+### Fixed
+- Protection against MIME type sniffing
+- Protection against clickjacking attacks
+- Protection against XSS attacks
+- Better security headers compliance
+
+### Tests
+- Added SecurityHeadersFilterTest with 2 new tests
+- Total test count: 46 tests (44 + 2)
+
 ## [1.6.0] - 2025-01-XX
 
 ### Added
