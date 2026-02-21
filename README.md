@@ -40,6 +40,7 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 - Health checks
 - Testes automatizados
 - Docker e Docker Compose
+- **CI/CD Pipeline** (v1.6.0) - GitHub Actions
 
 ## Arquitetura
 
@@ -231,6 +232,39 @@ mvn clean test jacoco:report
 open target/site/jacoco/index.html
 ```
 
+## CI/CD Pipeline (v1.6.0+)
+
+O projeto inclui um pipeline completo de CI/CD usando GitHub Actions:
+
+### Jobs do Pipeline
+
+1. **Test** - Executa todos os testes
+   - Configura PostgreSQL e Redis como serviços
+   - Roda testes com cobertura
+   - Valida cobertura mínima (80%)
+   - Upload de resultados e relatórios
+
+2. **Build** - Compila a aplicação
+   - Build do JAR
+   - Upload do artefato
+
+3. **Docker Build** - Constrói imagem Docker
+   - Build da imagem Docker
+   - Cache otimizado
+
+### Triggers
+
+- Push para `main` ou `develop`
+- Pull requests para `main`
+- Tags de versão (`v*`)
+
+### Status Badge
+
+Adicione ao seu README:
+```markdown
+![CI/CD](https://github.com/Laion459/API-REST-JAVA/workflows/CI%2FCD%20Pipeline/badge.svg)
+```
+
 ## Performance
 
 ### Otimizações Implementadas
@@ -311,6 +345,7 @@ SERVER_PORT=8081
 - API Versioning
 - Documentation (Swagger)
 - Code Coverage Reporting (JaCoCo)
+- CI/CD Pipeline (GitHub Actions) (v1.6.0)
 
 ## CI/CD
 

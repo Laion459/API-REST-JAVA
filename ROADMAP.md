@@ -1,7 +1,7 @@
 # Roadmap - High Performance REST API
 
-## Current Status: v1.5.0 (Rate Limiting & Security)
-**Grade: 9.7/10**
+## Current Status: v1.6.0 (CI/CD Pipeline)
+**Grade: 9.8/10**
 
 ## Target: v2.0.0 (Production Ready)
 **Target Grade: 10/10**
@@ -92,8 +92,15 @@
 - [ ] Add contract testing
 - [ ] Add mutation testing
 
+### v1.6.0 - CI/CD Pipeline ✅
+- [x] GitHub Actions workflow
+- [x] Automated testing on push/PR
+- [x] Code coverage validation
+- [x] Docker image building
+- [x] Artifact uploads
+- [x] PostgreSQL and Redis services
+
 ### v2.0.0 - Production Readiness
-- [ ] Complete CI/CD pipeline
 - [ ] Add deployment automation
 - [ ] Implement monitoring and alerting
 - [ ] Add documentation (ADRs, API docs)

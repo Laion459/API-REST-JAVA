@@ -9,11 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned Improvements
 - Real reactive programming with R2DBC
-- Comprehensive CI/CD pipeline
 - Performance testing automation
 - Optimistic locking for concurrency
 - Custom metrics
 - Architecture decision records
+
+## [1.6.0] - 2025-01-XX
+
+### Added
+- GitHub Actions CI/CD pipeline
+- Automated testing on push and pull requests
+- Code coverage reporting and validation
+- Docker image building in CI
+- Automated build and artifact upload
+- PostgreSQL and Redis services in CI
+- Multi-job pipeline (test, build, docker-build)
+
+### Changed
+- Dockerfile updated to use Java 21
+- Dockerfile improved with non-root user
+- CI runs on push to main/develop and PRs
+- CI runs on version tags
+
+### Fixed
+- Automated quality assurance
+- Continuous integration for all changes
+- Build verification before deployment
+
+### Tests
+- All existing tests run in CI pipeline
+- Code coverage checked automatically
+- Test results uploaded as artifacts
 
 ## [1.5.0] - 2025-01-XX
 
