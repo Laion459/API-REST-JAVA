@@ -10,8 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned Improvements
 - Real reactive programming with R2DBC
 - Performance testing automation
-- Custom metrics
 - Architecture decision records
+
+## [2.0.0] - 2025-01-XX
+
+### Added
+- Custom health indicators (DatabaseHealthIndicator, RedisHealthIndicator, CacheHealthIndicator)
+- Custom business metrics (TaskMetrics) with Prometheus integration
+- TaskMetrics tracks: created, updated, deleted, retrieved operations
+- TaskMetrics tracks: operations by status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)
+- TaskMetrics tracks: operation duration timers (creation, update, retrieval)
+- MetricsConfig for automatic metrics initialization
+- Enhanced health endpoint with component details
+
+### Changed
+- Increased minimum code coverage from 80% to 90% (JaCoCo)
+- Added branch coverage requirement (85% minimum)
+- CI/CD now enforces 90% code coverage (fails build if not met)
+- TaskService integrated with TaskMetrics for all operations
+- Health endpoint shows detailed component status
+- Management endpoints configured for better observability
+
+### Fixed
+- Better production readiness with comprehensive monitoring
+- Improved observability with custom metrics
+- Health checks for all critical components (DB, Redis, Cache)
+
+### Tests
+- Code coverage validation now requires 90%+ (was 80%)
+- Branch coverage validation requires 85%+
 
 ## [1.9.0] - 2025-01-XX
 

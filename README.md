@@ -38,6 +38,9 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 - Validação de dados
 - Tratamento de erros padronizado
 - **Documentação Swagger completa** (v1.9.0) - Todos os códigos HTTP documentados
+- **Health Checks Customizados** (v2.0.0) - Monitoramento de DB, Redis e Cache
+- **Métricas Customizadas** (v2.0.0) - Métricas de negócio com Prometheus
+- **Cobertura de Testes 90%+** (v2.0.0) - Validação obrigatória no CI/CD
 - Métricas Prometheus
 - Health checks
 - Testes automatizados
@@ -227,6 +230,8 @@ mvn test jacoco:report
 ### Cobertura de Testes
 
 - **49 testes** automatizados (100% passando)
+- **Cobertura mínima: 90%** (linhas) e **85%** (branches)
+- **Validação obrigatória no CI/CD** - Build falha se cobertura < 90%
 - Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
 - Testes de autenticação (JWT, login, registro)
@@ -351,6 +356,8 @@ SERVER_PORT=8081
 - Rate Limiting (Bucket4j) (v1.5.0)
 - Security Headers (OWASP) (v1.7.0)
 - Optimistic Locking (v1.8.0)
+- Health Checks Customizados (v2.0.0)
+- Métricas Customizadas (v2.0.0)
 - Structured Logging
 - Constants for Magic Numbers (v1.3.0)
 - Caching Strategy
