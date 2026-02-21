@@ -7,7 +7,7 @@ import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
     
     private final TaskRepository taskRepository;
+    private final CacheService cacheService;
     
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
@@ -34,6 +35,10 @@ public class TaskService {
         
         Task savedTask = taskRepository.save(task);
         log.info("Task created successfully with ID: {}", savedTask.getId());
+        
+        // Invalidate related caches after creation
+        cacheService.evictTaskLists();
+        cacheService.evictTaskStats(savedTask.getStatus().name());
         
         return mapToResponse(savedTask);
     }
@@ -71,12 +76,14 @@ public class TaskService {
     }
     
     @Transactional
-    @CacheEvict(value = {"tasks", "taskStats"}, allEntries = true)
+    @CachePut(value = "tasks", key = "#id")
     public TaskResponse updateTask(Long id, TaskRequest request) {
         log.info("Updating task with ID: {}", id);
         
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
+        
+        Task.TaskStatus oldStatus = task.getStatus();
         
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -90,18 +97,38 @@ public class TaskService {
         Task updatedTask = taskRepository.save(task);
         log.info("Task updated successfully with ID: {}", updatedTask.getId());
         
+        // Selective cache eviction - only evict what changed
+        cacheService.evictTask(id); // Evict old cached version
+        cacheService.evictTaskLists(); // Evict paginated lists
+        cacheService.evictTasksByStatus(oldStatus.name()); // Evict old status list
+        if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
+            cacheService.evictTasksByStatus(request.getStatus().name()); // Evict new status list
+            cacheService.evictTaskStats(oldStatus.name()); // Evict old status stats
+            cacheService.evictTaskStats(request.getStatus().name()); // Evict new status stats
+        } else {
+            cacheService.evictTaskStats(oldStatus.name()); // Evict stats if status unchanged
+        }
+        
         return mapToResponse(updatedTask);
     }
     
     @Transactional
-    @CacheEvict(value = {"tasks", "taskStats"}, allEntries = true)
     public void deleteTask(Long id) {
         log.info("Deleting task with ID: {}", id);
-        if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException(id);
-        }
+        
+        // Get task before deletion to know its status for cache eviction
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+        
+        Task.TaskStatus status = task.getStatus();
         taskRepository.deleteById(id);
         log.info("Task deleted successfully with ID: {}", id);
+        
+        // Selective cache eviction - only evict what's affected
+        cacheService.evictTask(id); // Evict the deleted task
+        cacheService.evictTaskLists(); // Evict paginated lists
+        cacheService.evictTasksByStatus(status.name()); // Evict status-filtered list
+        cacheService.evictTaskStats(status.name()); // Evict stats for this status
     }
     
     private TaskResponse mapToResponse(Task task) {
