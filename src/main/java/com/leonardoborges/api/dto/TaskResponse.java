@@ -19,6 +19,7 @@ public class TaskResponse {
     private String description;
     private Task.TaskStatus status;
     private Integer priority;
+    private Long version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

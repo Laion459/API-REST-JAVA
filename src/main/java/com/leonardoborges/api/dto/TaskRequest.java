@@ -27,4 +27,6 @@ public class TaskRequest {
     private Task.TaskStatus status;
     
     private Integer priority;
+    
+    private Long version; // For optimistic locking
 }
