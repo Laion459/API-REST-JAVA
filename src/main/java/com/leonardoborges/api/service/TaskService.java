@@ -5,9 +5,11 @@ import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.TaskNotFoundException;
+import com.leonardoborges.api.metrics.TaskMetrics;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
 import com.leonardoborges.api.util.InputSanitizer;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
@@ -28,41 +30,58 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final CacheService cacheService;
     private final InputSanitizer inputSanitizer;
+    private final TaskMetrics taskMetrics;
     
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
         log.info("Creating new task: title={}", request.getTitle());
+        Timer.Sample sample = taskMetrics.startTaskCreationTimer();
         
-        // Sanitize input
-        String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
-            request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
-        String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
-            request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
-        
-        Task task = Task.builder()
-                .title(sanitizedTitle)
-                .description(sanitizedDescription)
-                .status(request.getStatus() != null ? request.getStatus() : Task.TaskStatus.PENDING)
-                .priority(request.getPriority() != null ? request.getPriority() : TaskConstants.DEFAULT_PRIORITY)
-                .build();
-        
-        Task savedTask = taskRepository.save(task);
-        log.info("Task created successfully with ID: {}", savedTask.getId());
-        
-        // Invalidate related caches after creation
-        cacheService.evictTaskLists();
-        cacheService.evictTaskStats(savedTask.getStatus().name());
-        
-        return mapToResponse(savedTask);
+        try {
+            // Sanitize input
+            String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
+                request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
+            String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
+                request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
+            
+            Task task = Task.builder()
+                    .title(sanitizedTitle)
+                    .description(sanitizedDescription)
+                    .status(request.getStatus() != null ? request.getStatus() : Task.TaskStatus.PENDING)
+                    .priority(request.getPriority() != null ? request.getPriority() : TaskConstants.DEFAULT_PRIORITY)
+                    .build();
+            
+            Task savedTask = taskRepository.save(task);
+            log.info("Task created successfully with ID: {}", savedTask.getId());
+            
+            // Record metrics
+            taskMetrics.incrementTaskCreated();
+            taskMetrics.incrementTaskStatus(savedTask.getStatus().name());
+            
+            // Invalidate related caches after creation
+            cacheService.evictTaskLists();
+            cacheService.evictTaskStats(savedTask.getStatus().name());
+            
+            return mapToResponse(savedTask);
+        } finally {
+            taskMetrics.recordTaskCreation(sample);
+        }
     }
     
     @Cacheable(value = "tasks", key = "#id")
     @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long id) {
         log.debug("Fetching task with ID: {}", id);
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id));
-        return mapToResponse(task);
+        Timer.Sample sample = taskMetrics.startTaskRetrievalTimer();
+        
+        try {
+            Task task = taskRepository.findById(id)
+                    .orElseThrow(() -> new TaskNotFoundException(id));
+            taskMetrics.incrementTaskRetrieved();
+            return mapToResponse(task);
+        } finally {
+            taskMetrics.recordTaskRetrieval(sample);
+        }
     }
     
     @Cacheable(value = "tasks", key = "'all-' + #pageable.pageNumber + '-' + #pageable.pageSize")
@@ -93,37 +112,44 @@ public class TaskService {
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public TaskResponse updateTask(Long id, TaskRequest request) {
         log.info("Updating task with ID: {}", id);
-        
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id));
-        
-        // Check version if provided (for optimistic locking)
-        if (request.getVersion() != null && !request.getVersion().equals(task.getVersion())) {
-            throw new OptimisticLockingException(
-                    String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
-                            task.getVersion(), request.getVersion()));
-        }
-        
-        Task.TaskStatus oldStatus = task.getStatus();
-        
-        // Sanitize input before updating
-        String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
-            request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
-        String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
-            request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
-        
-        task.setTitle(sanitizedTitle);
-        task.setDescription(sanitizedDescription);
-        if (request.getStatus() != null) {
-            task.setStatus(request.getStatus());
-        }
-        if (request.getPriority() != null) {
-            task.setPriority(request.getPriority());
-        }
+        Timer.Sample sample = taskMetrics.startTaskUpdateTimer();
         
         try {
-                Task updatedTask = taskRepository.save(task);
+            Task task = taskRepository.findById(id)
+                    .orElseThrow(() -> new TaskNotFoundException(id));
+            
+            // Check version if provided (for optimistic locking)
+            if (request.getVersion() != null && !request.getVersion().equals(task.getVersion())) {
+                throw new OptimisticLockingException(
+                        String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
+                                task.getVersion(), request.getVersion()));
+            }
+            
+            Task.TaskStatus oldStatus = task.getStatus();
+            
+            // Sanitize input before updating
+            String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
+                request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
+            String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
+                request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
+            
+            task.setTitle(sanitizedTitle);
+            task.setDescription(sanitizedDescription);
+            if (request.getStatus() != null) {
+                task.setStatus(request.getStatus());
+            }
+            if (request.getPriority() != null) {
+                task.setPriority(request.getPriority());
+            }
+            
+            Task updatedTask = taskRepository.save(task);
             log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
+            
+            // Record metrics
+            taskMetrics.incrementTaskUpdated();
+            if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
+                taskMetrics.incrementTaskStatus(request.getStatus().name());
+            }
             
             // Selective cache eviction - only evict what changed
             cacheService.evictTask(id); // Evict old cached version
@@ -142,6 +168,8 @@ public class TaskService {
             log.warn("Optimistic locking conflict for task ID: {}", id);
             throw new OptimisticLockingException(
                     "The task has been modified by another user. Please refresh and try again.", e);
+        } finally {
+            taskMetrics.recordTaskUpdate(sample);
         }
     }
     
@@ -156,6 +184,9 @@ public class TaskService {
         Task.TaskStatus status = task.getStatus();
         taskRepository.deleteById(id);
         log.info("Task deleted successfully with ID: {}", id);
+        
+        // Record metrics
+        taskMetrics.incrementTaskDeleted();
         
         // Selective cache eviction - only evict what's affected
         cacheService.evictTask(id); // Evict the deleted task
