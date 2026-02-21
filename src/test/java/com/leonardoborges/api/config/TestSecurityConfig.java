@@ -19,21 +19,13 @@ public class TestSecurityConfig {
     
     @Bean
     @Primary
-    @Order(Integer.MIN_VALUE)
+    @Order(-1)
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-        // Disable all security for tests
+        // Minimal security configuration for tests - permit all requests
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(formLogin -> formLogin.disable())
-                .logout(logout -> logout.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
 }
