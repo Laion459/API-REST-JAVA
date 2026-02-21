@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: high-performance-api
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tasksdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  cache:
+    type: ${CACHE_TYPE:simple}
+    cache-names: tasks, taskStats
+    redis:
+      time-to-live: 600000
+  
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+
+server:
+  port: 8081
+  compression:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.leonardoborges.api: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: WARN
