@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 
-import javax.sql.DataSource;
-
 /**
  * Test datasource configuration that auto-detects driver from JDBC URL.
  * This ensures the correct driver is used when SPRING_DATASOURCE_DRIVER is not set.
