@@ -19,6 +19,7 @@ import java.time.Duration;
 
 @Configuration
 @ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis", matchIfMissing = true)
+@org.springframework.context.annotation.Profile("!test")
 public class RedisConfig {
     
     @Bean
