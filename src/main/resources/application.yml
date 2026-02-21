@@ -49,8 +49,21 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-must-be-at-least-32-characters-long-for-security}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+
 logging:
   level:
-    com.leonardoborges.api: DEBUG
+    com.leonardoborges.api: INFO
+    com.leonardoborges.api.service: INFO
+    com.leonardoborges.api.controller: INFO
+    com.leonardoborges.api.util: DEBUG
+    com.leonardoborges.api.security: DEBUG
     org.springframework.web: INFO
+    org.springframework.security: INFO
     org.hibernate: WARN
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

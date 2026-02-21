@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -56,6 +57,7 @@ public class CacheController {
     }
     
     @DeleteMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Clear all caches", description = "Administrative operation to clear all caches. Use with caution.")
     public ResponseEntity<Void> clearAllCaches() {
         log.warn("Clearing all caches - administrative operation");
