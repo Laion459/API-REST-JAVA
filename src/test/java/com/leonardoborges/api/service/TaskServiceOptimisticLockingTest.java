@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(excludeAutoConfiguration = {
-    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
-})
+@SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 class TaskServiceOptimisticLockingTest {
