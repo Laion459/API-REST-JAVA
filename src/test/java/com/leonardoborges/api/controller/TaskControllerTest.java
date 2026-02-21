@@ -20,10 +20,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+})
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
 class TaskControllerTest {
 
     @Autowired

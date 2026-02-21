@@ -25,10 +25,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Performance tests for TaskController.
  * These tests verify that endpoints meet performance requirements.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+})
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
 @Transactional
 class TaskControllerPerformanceTest {
     

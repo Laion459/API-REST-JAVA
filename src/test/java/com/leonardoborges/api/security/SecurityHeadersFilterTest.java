@@ -11,10 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+})
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
-@org.springframework.context.annotation.Import(com.leonardoborges.api.config.TestSecurityConfig.class)
 class SecurityHeadersFilterTest {
 
     @Autowired

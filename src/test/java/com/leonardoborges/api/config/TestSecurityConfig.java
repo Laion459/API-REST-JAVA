@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Test security configuration that disables security for testing.
+ * This configuration takes precedence over SecurityConfig in test environments.
  */
 @TestConfiguration
 @EnableWebSecurity

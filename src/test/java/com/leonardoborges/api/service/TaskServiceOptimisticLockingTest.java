@@ -13,10 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+})
 @ActiveProfiles("test")
 @Transactional
-@org.springframework.context.annotation.Import(com.leonardoborges.api.config.TestSecurityConfig.class)
 class TaskServiceOptimisticLockingTest {
 
     @Autowired
