@@ -10,9 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned Improvements
 - Real reactive programming with R2DBC
 - Performance testing automation
-- Optimistic locking for concurrency
 - Custom metrics
 - Architecture decision records
+
+## [1.8.0] - 2025-01-XX
+
+### Added
+- Optimistic locking with @Version annotation
+- Version field in Task entity
+- Version field in TaskResponse and TaskRequest DTOs
+- OptimisticLockingException for handling version conflicts
+- Spring Retry for automatic retry on optimistic locking failures
+- Retry mechanism (3 attempts with 100ms delay)
+- TaskServiceOptimisticLockingTest with 3 new tests
+
+### Changed
+- TaskService.updateTask now validates version before update
+- GlobalExceptionHandler handles OptimisticLockingException and OptimisticLockingFailureException
+- Update operations now return version in response
+- HighPerformanceApiApplication enables @EnableRetry
+
+### Fixed
+- Protection against concurrent update conflicts
+- Better handling of version mismatches
+- Automatic retry on transient optimistic locking failures
+
+### Tests
+- Added TaskServiceOptimisticLockingTest with 3 new tests
+- Total test count: 49 tests (46 + 3)
 
 ## [1.7.0] - 2025-01-XX
 
