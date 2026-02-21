@@ -12,11 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Test security configuration that provides a permissive security setup for testing.
  * This configuration takes precedence over SecurityConfig in test environments.
- * 
- * This approach is necessary because:
- * - We need Spring Security beans (PasswordEncoder, UserDetailsService) available
- * - But we want to disable security enforcement for easier testing
- * - SecurityConfig is excluded via @Profile("!test")
  */
 @TestConfiguration
 @EnableWebSecurity
@@ -24,13 +19,21 @@ public class TestSecurityConfig {
     
     @Bean
     @Primary
-    @Order(-100)
+    @Order(Integer.MIN_VALUE)
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+        // Disable all security for tests
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(formLogin -> formLogin.disable())
+                .logout(logout -> logout.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
         return http.build();
     }
 }
