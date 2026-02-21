@@ -28,6 +28,8 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 ## Funcionalidades
 
 - CRUD completo de tarefas
+- **Autenticação JWT** (v1.4.0)
+- **Autorização baseada em roles** (USER, ADMIN)
 - Paginação e filtros
 - Cache inteligente (Redis)
 - Validação de dados
@@ -111,7 +113,11 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 
 ### Endpoints Principais
 
-**Tasks:**
+**Authentication (v1.4.0+):**
+- `POST /api/v1/auth/register` - Registrar novo usuário
+- `POST /api/v1/auth/login` - Login e obter token JWT
+
+**Tasks:** (Requer autenticação)
 - `POST /api/v1/tasks` - Criar nova tarefa
 - `GET /api/v1/tasks` - Listar todas as tarefas (paginado)
 - `GET /api/v1/tasks/{id}` - Buscar tarefa por ID
@@ -120,7 +126,7 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 - `PUT /api/v1/tasks/{id}` - Atualizar tarefa
 - `DELETE /api/v1/tasks/{id}` - Deletar tarefa
 
-**Cache Management (v1.2.0+):**
+**Cache Management (v1.2.0+):** (Requer role ADMIN)
 - `GET /api/v1/cache/stats` - Estatísticas do cache
 - `GET /api/v1/cache/tasks/{id}/cached` - Verificar se tarefa está em cache
 - `DELETE /api/v1/cache/tasks/{id}` - Remover tarefa do cache
@@ -130,9 +136,27 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 ### Exemplo de Requisição
 
 ```bash
-# Criar tarefa
+# 1. Registrar novo usuário
+curl -X POST http://localhost:8081/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123"
+  }'
+
+# 2. Login e obter token
+TOKEN=$(curl -X POST http://localhost:8081/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usernameOrEmail": "testuser",
+    "password": "password123"
+  }' | jq -r '.token')
+
+# 3. Criar tarefa (com autenticação)
 curl -X POST http://localhost:8081/api/v1/tasks \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "title": "Implementar feature X",
     "description": "Descrição da tarefa",
@@ -140,11 +164,13 @@ curl -X POST http://localhost:8081/api/v1/tasks \
     "priority": 1
   }'
 
-# Listar tarefas
-curl http://localhost:8081/api/v1/tasks?page=0&size=20
+# 4. Listar tarefas (com autenticação)
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8081/api/v1/tasks?page=0&size=20
 
-# Buscar por ID
-curl http://localhost:8081/api/v1/tasks/1
+# 5. Buscar por ID (com autenticação)
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8081/api/v1/tasks/1
 ```
 
 ## Monitoramento e Métricas
@@ -178,9 +204,10 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **37 testes** automatizados (100% passando)
+- **42 testes** automatizados (100% passando)
 - Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
+- Testes de autenticação (JWT, login, registro)
 - Testes com H2 (banco em memória)
 - JaCoCo configurado para relatórios de cobertura
 
@@ -263,6 +290,9 @@ SERVER_PORT=8081
 - Exception Handling
 - Validation
 - Input Sanitization (v1.3.0)
+- JWT Authentication & Authorization (v1.4.0)
+- Role-Based Access Control (v1.4.0)
+- Password Encryption (BCrypt) (v1.4.0)
 - Structured Logging
 - Constants for Magic Numbers (v1.3.0)
 - Caching Strategy

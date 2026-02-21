@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned Improvements
-- JWT authentication and authorization
 - Real reactive programming with R2DBC
 - Comprehensive CI/CD pipeline
 - Rate limiting
@@ -16,6 +15,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimistic locking for concurrency
 - Custom metrics
 - Architecture decision records
+
+## [1.4.0] - 2025-01-XX
+
+### Added
+- JWT authentication and authorization
+- User entity with roles (USER, ADMIN)
+- UserRepository for user management
+- JwtService for token generation and validation
+- UserService for authentication and registration
+- AuthController with register and login endpoints
+- SecurityConfig with Spring Security configuration
+- JwtAuthenticationFilter for token validation
+- Password encryption with BCrypt
+- Role-based access control (RBAC)
+- Protected endpoints with authentication
+- Admin-only endpoints for cache management
+- CORS configuration
+- AuthControllerTest with 5 new tests
+
+### Changed
+- All task endpoints now require authentication
+- Cache management endpoints require ADMIN role
+- Swagger UI and health endpoints remain public
+- Security configuration with stateless sessions
+
+### Fixed
+- Improved API security with JWT tokens
+- Better access control with role-based permissions
+- Secure password storage with BCrypt
+
+### Tests
+- Added AuthControllerTest with 5 new tests
+- Total test count: 42 tests (37 + 5)
 
 ## [1.3.0] - 2025-01-XX
 

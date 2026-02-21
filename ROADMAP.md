@@ -1,7 +1,7 @@
 # Roadmap - High Performance REST API
 
-## Current Status: v1.3.0 (Code Quality & Best Practices)
-**Grade: 9.0/10**
+## Current Status: v1.4.0 (Authentication & Authorization)
+**Grade: 9.5/10**
 
 ## Target: v2.0.0 (Production Ready)
 **Target Grade: 10/10**
@@ -31,6 +31,15 @@
 - [x] Add input sanitization
 - [x] Improve logging strategy
 - [x] Add code coverage reporting (JaCoCo)
+
+### v1.4.0 - Authentication & Authorization ✅
+- [x] JWT authentication implementation
+- [x] User entity with roles
+- [x] Registration and login endpoints
+- [x] Role-based access control (RBAC)
+- [x] Password encryption with BCrypt
+- [x] Protected endpoints
+- [x] Admin-only endpoints
 
 ---
 
