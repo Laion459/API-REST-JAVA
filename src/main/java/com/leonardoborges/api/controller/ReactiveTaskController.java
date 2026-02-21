@@ -40,7 +40,13 @@ public class ReactiveTaskController {
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(
             summary = "Stream de tarefas (SSE)",
-            description = "Retorna stream de tarefas usando Server-Sent Events para programação reativa e concorrente. Requer autenticação JWT.",
+            description = "Retorna stream de tarefas usando Server-Sent Events para programação reativa e concorrente. Requer autenticação JWT.\n\n" +
+                    "**Nota:** Este endpoint usa Server-Sent Events (SSE) e pode não funcionar corretamente no Swagger UI. " +
+                    "Use um cliente HTTP que suporte SSE (como curl ou Postman) ou acesse diretamente via navegador.\n\n" +
+                    "**Exemplo com curl:**\n" +
+                    "```bash\n" +
+                    "curl -N -H 'Authorization: Bearer TOKEN' http://localhost:8080/api/v1/reactive/tasks\n" +
+                    "```",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -52,6 +58,11 @@ public class ReactiveTaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -67,20 +78,23 @@ public class ReactiveTaskController {
     })
     public Flux<TaskResponse> streamTasks() {
         log.info("Streaming tasks using reactive programming");
-        return Flux.interval(Duration.ofSeconds(1))
-                .flatMap(sequence -> {
-                    Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_STREAM_PAGE_SIZE);
-                    List<TaskResponse> tasks = taskService.getAllTasks(pageable).getContent();
-                    return Flux.fromIterable(tasks);
-                })
-                .take(TaskConstants.REACTIVE_MAX_ITEMS)
-                .doOnNext(task -> log.debug("Streaming task: {}", task.getId()));
+        // Buscar todas as tasks e enviar como stream
+        // Isso funciona melhor do que interval que pode causar problemas no Swagger UI
+        Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_MAX_ITEMS);
+        List<TaskResponse> tasks = taskService.getAllTasks(pageable).getContent();
+        
+        return Flux.fromIterable(tasks)
+                .delayElements(Duration.ofMillis(100)) // Pequeno delay entre itens para simular stream
+                .doOnNext(task -> log.debug("Streaming task: {}", task.getId()))
+                .doOnComplete(() -> log.info("Stream completed"));
     }
     
     @GetMapping("/status/{status}")
     @Operation(
             summary = "Buscar tarefas por status (reativo)",
-            description = "Retorna tarefas filtradas por status usando programação reativa. Requer autenticação JWT.",
+            description = "Retorna tarefas filtradas por status usando programação reativa. Requer autenticação JWT.\n\n" +
+                    "**Status válidos:** PENDING, IN_PROGRESS, COMPLETED, CANCELLED\n\n" +
+                    "**Exemplo:** `/api/v1/reactive/tasks/status/PENDING`",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -97,6 +111,11 @@ public class ReactiveTaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -121,7 +140,16 @@ public class ReactiveTaskController {
     @GetMapping("/stats")
     @Operation(
             summary = "Estatísticas em tempo real",
-            description = "Retorna estatísticas de tarefas usando programação reativa. Requer autenticação JWT.",
+            description = "Retorna estatísticas de tarefas usando programação reativa. Retorna contagem de tarefas por status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED). Requer autenticação JWT.\n\n" +
+                    "**Exemplo de resposta:**\n" +
+                    "```json\n" +
+                    "{\n" +
+                    "  \"pending\": 5,\n" +
+                    "  \"in_progress\": 3,\n" +
+                    "  \"completed\": 10,\n" +
+                    "  \"cancelled\": 1\n" +
+                    "}\n" +
+                    "```",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -133,6 +161,11 @@ public class ReactiveTaskController {
             @ApiResponse(
                     responseCode = "401",
                     description = "Não autenticado - Token JWT inválido ou ausente",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
