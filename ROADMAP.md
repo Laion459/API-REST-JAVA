@@ -1,6 +1,6 @@
 # Roadmap - High Performance REST API
 
-## Current Status: v1.8.0 (Optimistic Locking & Concurrency)
+## Current Status: v1.9.0 (Complete Swagger Documentation)
 **Grade: 10/10** 🎉
 
 ## Target: v2.0.0 (Production Ready)

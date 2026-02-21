@@ -13,6 +13,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom metrics
 - Architecture decision records
 
+## [1.9.0] - 2025-01-XX
+
+### Added
+- Comprehensive Swagger/OpenAPI documentation
+- OpenApiConfig with API metadata and security scheme
+- Complete HTTP response documentation for all endpoints
+- @ApiResponses annotations for all status codes (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
+- @Schema annotations for all DTOs with examples and descriptions
+- Security requirements documented in Swagger
+- ErrorResponse schema in all error responses
+- Detailed descriptions for all endpoints
+
+### Changed
+- All controllers now have complete Swagger documentation
+- TaskController: 7 endpoints fully documented
+- AuthController: 2 endpoints fully documented
+- ReactiveTaskController: 3 endpoints fully documented
+- CacheController: 5 endpoints fully documented
+- All DTOs have @Schema annotations with examples
+
+### Fixed
+- Improved API documentation quality
+- Better developer experience with complete Swagger UI
+- All HTTP status codes properly documented
+
 ## [1.8.0] - 2025-01-XX
 
 ### Added

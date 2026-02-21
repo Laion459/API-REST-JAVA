@@ -37,7 +37,7 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 - Cache inteligente (Redis)
 - Validação de dados
 - Tratamento de erros padronizado
-- Documentação Swagger automática
+- **Documentação Swagger completa** (v1.9.0) - Todos os códigos HTTP documentados
 - Métricas Prometheus
 - Health checks
 - Testes automatizados
@@ -114,6 +114,15 @@ java -jar target/high-performance-api-1.0.0.jar
 
 ### Swagger UI
 Acesse: `http://localhost:8081/swagger-ui.html`
+
+A documentação Swagger está completa com:
+- ✅ Todos os endpoints documentados
+- ✅ Todos os códigos de status HTTP (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
+- ✅ Exemplos de requisição e resposta
+- ✅ Descrições detalhadas de cada endpoint
+- ✅ Esquemas de autenticação JWT
+- ✅ Validações e constraints documentadas
+- ✅ DTOs com exemplos e descrições
 
 ### Endpoints Principais
 
