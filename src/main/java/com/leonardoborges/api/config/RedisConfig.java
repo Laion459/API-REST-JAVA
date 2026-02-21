@@ -1,5 +1,6 @@
 package com.leonardoborges.api.config;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
@@ -39,29 +40,29 @@ public class RedisConfig {
     public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         // Default configuration for all caches
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
+                .entryTtl(Duration.ofMinutes(TaskConstants.CACHE_TTL_DEFAULT_MINUTES))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
         
         // Specific configuration for task statistics (shorter TTL, more frequent updates)
         RedisCacheConfiguration taskStatsConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(5))
+                .entryTtl(Duration.ofMinutes(TaskConstants.CACHE_TTL_STATS_MINUTES))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
         
         // Specific configuration for individual tasks (longer TTL, less frequent updates)
         RedisCacheConfiguration tasksConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(15))
+                .entryTtl(Duration.ofMinutes(TaskConstants.CACHE_TTL_TASKS_MINUTES))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
                 .disableCachingNullValues();
         
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
-                .withCacheConfiguration("taskStats", taskStatsConfig)
-                .withCacheConfiguration("tasks", tasksConfig)
+                .withCacheConfiguration(TaskConstants.CACHE_NAME_TASK_STATS, taskStatsConfig)
+                .withCacheConfiguration(TaskConstants.CACHE_NAME_TASKS, tasksConfig)
                 .build();
     }
 }

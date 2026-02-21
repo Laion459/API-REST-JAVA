@@ -1,5 +1,6 @@
 package com.leonardoborges.api.config;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +62,7 @@ public class CacheWarmingConfig {
     private void warmUpTaskLists() {
         log.debug("Warming up task lists cache");
         try {
-            Pageable firstPage = PageRequest.of(0, 20);
+            Pageable firstPage = PageRequest.of(0, TaskConstants.CACHE_WARMING_PAGE_SIZE);
             taskRepository.findAll(firstPage);
             log.debug("Warmed up first page of tasks");
             

@@ -1,5 +1,6 @@
 package com.leonardoborges.api.config;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -14,9 +15,9 @@ public class AsyncConfig {
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
+        executor.setCorePoolSize(TaskConstants.ASYNC_CORE_POOL_SIZE);
         executor.setMaxPoolSize(50);
-        executor.setQueueCapacity(100);
+        executor.setQueueCapacity(TaskConstants.ASYNC_QUEUE_CAPACITY);
         executor.setThreadNamePrefix("async-task-");
         executor.initialize();
         return executor;

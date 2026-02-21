@@ -1,5 +1,6 @@
 package com.leonardoborges.api.dto;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.model.Task;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -15,10 +16,12 @@ import lombok.NoArgsConstructor;
 public class TaskRequest {
     
     @NotBlank(message = "Title is required")
-    @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
+    @Size(min = TaskConstants.TITLE_MIN_LENGTH, max = TaskConstants.TITLE_MAX_LENGTH, 
+          message = "Title must be between " + TaskConstants.TITLE_MIN_LENGTH + " and " + TaskConstants.TITLE_MAX_LENGTH + " characters")
     private String title;
     
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
+    @Size(max = TaskConstants.DESCRIPTION_MAX_LENGTH, 
+          message = "Description must not exceed " + TaskConstants.DESCRIPTION_MAX_LENGTH + " characters")
     private String description;
     
     private Task.TaskStatus status;

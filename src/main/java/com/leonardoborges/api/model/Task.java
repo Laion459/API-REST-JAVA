@@ -1,5 +1,6 @@
 package com.leonardoborges.api.model;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -30,12 +31,14 @@ public class Task {
     private Long id;
     
     @NotBlank(message = "Title is required")
-    @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
+    @Size(min = TaskConstants.TITLE_MIN_LENGTH, max = TaskConstants.TITLE_MAX_LENGTH, 
+          message = "Title must be between " + TaskConstants.TITLE_MIN_LENGTH + " and " + TaskConstants.TITLE_MAX_LENGTH + " characters")
     @Column(nullable = false)
     private String title;
     
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
-    @Column(length = 1000)
+    @Size(max = TaskConstants.DESCRIPTION_MAX_LENGTH, 
+          message = "Description must not exceed " + TaskConstants.DESCRIPTION_MAX_LENGTH + " characters")
+    @Column(length = TaskConstants.DESCRIPTION_MAX_LENGTH)
     private String description;
     
     @Enumerated(EnumType.STRING)
@@ -45,7 +48,7 @@ public class Task {
     
     @Column(name = "priority")
     @Builder.Default
-    private Integer priority = 0;
+    private Integer priority = TaskConstants.DEFAULT_PRIORITY;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

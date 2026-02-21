@@ -1,5 +1,6 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -23,7 +24,7 @@ public class CacheService {
      * @param taskId The task ID to evict
      */
     public void evictTask(Long taskId) {
-        Cache tasksCache = cacheManager.getCache("tasks");
+        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
         if (tasksCache != null) {
             tasksCache.evict(taskId);
             log.debug("Evicted task {} from cache", taskId);
@@ -35,7 +36,7 @@ public class CacheService {
      * This is more selective than evicting all entries.
      */
     public void evictTaskLists() {
-        Cache tasksCache = cacheManager.getCache("tasks");
+        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
         if (tasksCache != null) {
             // Evict all keys starting with "all-" (paginated lists)
             // Note: Spring Cache doesn't support pattern-based eviction natively
@@ -50,7 +51,7 @@ public class CacheService {
      * @param status The status to evict
      */
     public void evictTasksByStatus(String status) {
-        Cache tasksCache = cacheManager.getCache("tasks");
+        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
         if (tasksCache != null) {
             // Evict all keys starting with "status-{status}-"
             log.debug("Evicted tasks with status {} from cache", status);
@@ -63,7 +64,7 @@ public class CacheService {
      * @param status The status to evict stats for
      */
     public void evictTaskStats(String status) {
-        Cache statsCache = cacheManager.getCache("taskStats");
+        Cache statsCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASK_STATS);
         if (statsCache != null) {
             statsCache.evict(status);
             log.debug("Evicted task stats for status {} from cache", status);
@@ -74,7 +75,7 @@ public class CacheService {
      * Evicts all task statistics from cache.
      */
     public void evictAllTaskStats() {
-        Cache statsCache = cacheManager.getCache("taskStats");
+        Cache statsCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASK_STATS);
         if (statsCache != null) {
             statsCache.clear();
             log.debug("Evicted all task stats from cache");
@@ -120,7 +121,7 @@ public class CacheService {
      * @return true if cached, false otherwise
      */
     public boolean isTaskCached(Long taskId) {
-        Cache tasksCache = cacheManager.getCache("tasks");
+        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
         if (tasksCache != null) {
             Cache.ValueWrapper wrapper = tasksCache.get(taskId);
             return wrapper != null && wrapper.get() != null;

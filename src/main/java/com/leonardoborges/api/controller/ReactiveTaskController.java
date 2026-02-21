@@ -1,5 +1,6 @@
 package com.leonardoborges.api.controller;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.service.TaskService;
@@ -36,11 +37,11 @@ public class ReactiveTaskController {
         log.info("Streaming tasks using reactive programming");
         return Flux.interval(Duration.ofSeconds(1))
                 .flatMap(sequence -> {
-                    Pageable pageable = PageRequest.of(0, 10);
+                    Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_STREAM_PAGE_SIZE);
                     List<TaskResponse> tasks = taskService.getAllTasks(pageable).getContent();
                     return Flux.fromIterable(tasks);
                 })
-                .take(100) // Limitar a 100 itens
+                .take(TaskConstants.REACTIVE_MAX_ITEMS)
                 .doOnNext(task -> log.debug("Streaming task: {}", task.getId()));
     }
     
@@ -48,7 +49,7 @@ public class ReactiveTaskController {
     @Operation(summary = "Buscar tarefas por status (reativo)", description = "Retorna tarefas filtradas por status usando programação reativa")
     public Mono<List<TaskResponse>> getTasksByStatusReactive(@PathVariable Task.TaskStatus status) {
         log.debug("Fetching tasks by status reactively: {}", status);
-        Pageable pageable = PageRequest.of(0, 100);
+        Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_MAX_ITEMS);
         return Mono.fromSupplier(() -> 
                 taskService.getTasksByStatus(status, pageable).getContent()
         ).subscribeOn(Schedulers.boundedElastic());

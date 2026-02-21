@@ -1,5 +1,6 @@
 package com.leonardoborges.api.controller;
 
+import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.model.Task;
@@ -48,7 +49,7 @@ public class TaskController {
     @GetMapping
     @Operation(summary = "Listar todas as tarefas", description = "Retorna lista paginada de todas as tarefas")
     public ResponseEntity<Page<TaskResponse>> getAllTasks(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "createdAt") Pageable pageable) {
         log.debug("GET /api/v1/tasks - Fetching all tasks with pagination");
         Page<TaskResponse> response = taskService.getAllTasks(pageable);
         return ResponseEntity.ok(response);
@@ -58,7 +59,7 @@ public class TaskController {
     @Operation(summary = "Listar tarefas por status", description = "Retorna lista paginada de tarefas filtradas por status")
     public ResponseEntity<Page<TaskResponse>> getTasksByStatus(
             @Parameter(description = "Status da tarefa") @PathVariable Task.TaskStatus status,
-            @PageableDefault(size = 20, sort = "priority") Pageable pageable) {
+            @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "priority") Pageable pageable) {
         log.debug("GET /api/v1/tasks/status/{} - Fetching tasks by status", status);
         Page<TaskResponse> response = taskService.getTasksByStatus(status, pageable);
         return ResponseEntity.ok(response);
