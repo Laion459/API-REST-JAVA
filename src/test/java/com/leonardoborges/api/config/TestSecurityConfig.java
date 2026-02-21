@@ -14,15 +14,15 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @TestConfiguration
 @EnableWebSecurity
-@Profile("test")
 public class TestSecurityConfig {
     
     @Bean
     @Primary
-    @Order(1)
+    @Order(-100)
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS));
         return http.build();
