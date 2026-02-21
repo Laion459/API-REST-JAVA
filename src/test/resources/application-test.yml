@@ -8,12 +8,16 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
-    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:}
+    properties:
+      hibernate:
+        dialect: ${SPRING_JPA_DATABASE_PLATFORM:}
   cache:
     type: simple
   redis:
     host: ${SPRING_REDIS_HOST:localhost}
     port: ${SPRING_REDIS_PORT:6379}
+  main:
+    allow-bean-definition-overriding: true
 
 app:
   metrics:
