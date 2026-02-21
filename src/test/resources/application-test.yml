@@ -18,6 +18,12 @@ spring:
     port: ${SPRING_REDIS_PORT:6379}
   main:
     allow-bean-definition-overriding: true
+  # Exclude Spring Security web autoconfiguration for tests
+  # This is the recommended approach per Spring Boot best practices
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
 
 app:
   metrics:
