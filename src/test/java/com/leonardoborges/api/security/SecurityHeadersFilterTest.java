@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(com.leonardoborges.api.config.TestSecurityConfig.class)
 class SecurityHeadersFilterTest {
 
     @Autowired

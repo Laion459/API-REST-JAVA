@@ -13,7 +13,6 @@ import io.micrometer.core.instrument.Timer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -28,6 +27,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -55,7 +55,6 @@ class TaskServiceTest {
     @Mock
     private AuditService auditService;
 
-    @InjectMocks
     private TaskService taskService;
 
     private Task task;
@@ -63,6 +62,16 @@ class TaskServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Initialize TaskService with mocked dependencies (order matches @RequiredArgsConstructor)
+        taskService = new TaskService(
+                taskRepository,
+                cacheService,
+                inputSanitizer,
+                taskMetrics,
+                auditService,
+                sqlInjectionValidator
+        );
+        
         task = Task.builder()
                 .id(1L)
                 .title("Test Task")

@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@org.springframework.context.annotation.Import(com.leonardoborges.api.config.TestSecurityConfig.class)
 class TaskServiceOptimisticLockingTest {
 
     @Autowired
