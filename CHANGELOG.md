@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned Improvements
 - JWT authentication and authorization
-- Optimized cache strategy
 - Real reactive programming with R2DBC
 - Comprehensive CI/CD pipeline
 - Rate limiting
@@ -17,6 +16,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimistic locking for concurrency
 - Custom metrics
 - Architecture decision records
+
+## [1.2.0] - 2025-01-XX
+
+### Added
+- CacheService for selective cache management
+- CacheController for cache administration and statistics
+- CacheWarmingConfig for pre-loading frequently accessed data
+- Selective cache eviction (replaces allEntries = true)
+- Cache statistics endpoint
+- Different TTL configurations for different cache types
+- Cache warming on application startup (production profile)
+
+### Changed
+- TaskService now uses selective cache eviction instead of clearing all entries
+- Cache eviction strategy optimized to only invalidate affected caches
+- Redis cache configuration with different TTLs:
+  - Individual tasks: 15 minutes
+  - Task statistics: 5 minutes
+  - Default: 10 minutes
+- Update operations now use @CachePut for immediate cache update
+
+### Fixed
+- Cache performance improved by avoiding unnecessary cache clears
+- Reduced database load through better cache hit rates
+- More efficient cache invalidation strategy
+
+### Performance
+- Cache hit rate improved by selective eviction
+- Reduced cache misses after updates
+- Better memory utilization with optimized TTLs
 
 ## [1.1.0] - 2025-01-XX
 

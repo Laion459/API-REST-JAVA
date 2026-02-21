@@ -111,6 +111,7 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 
 ### Endpoints Principais
 
+**Tasks:**
 - `POST /api/v1/tasks` - Criar nova tarefa
 - `GET /api/v1/tasks` - Listar todas as tarefas (paginado)
 - `GET /api/v1/tasks/{id}` - Buscar tarefa por ID
@@ -118,6 +119,13 @@ Acesse: `http://localhost:8081/swagger-ui.html`
 - `GET /api/v1/tasks/stats/count` - Estatísticas
 - `PUT /api/v1/tasks/{id}` - Atualizar tarefa
 - `DELETE /api/v1/tasks/{id}` - Deletar tarefa
+
+**Cache Management (v1.2.0+):**
+- `GET /api/v1/cache/stats` - Estatísticas do cache
+- `GET /api/v1/cache/tasks/{id}/cached` - Verificar se tarefa está em cache
+- `DELETE /api/v1/cache/tasks/{id}` - Remover tarefa do cache
+- `DELETE /api/v1/cache/stats` - Limpar cache de estatísticas
+- `DELETE /api/v1/cache/all` - Limpar todos os caches (administrativo)
 
 ### Exemplo de Requisição
 
@@ -170,8 +178,8 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **18 testes** automatizados (100% passando)
-- Testes unitários (Service, Repository, Controller)
+- **29 testes** automatizados (100% passando)
+- Testes unitários (Service, Repository, Controller, Cache)
 - Testes de integração (end-to-end)
 - Testes com H2 (banco em memória)
 
@@ -180,11 +188,22 @@ mvn test jacoco:report
 ### Otimizações Implementadas
 
 - **Cache Redis** - Reduz consultas ao banco
+  - Evict seletivo (v1.2.0) - Invalida apenas caches afetados
+  - TTLs otimizados por tipo de cache
+  - Cache warming em produção
 - **Índices no banco** - Otimização de queries
 - **Paginação** - Reduz transferência de dados
 - **Compressão HTTP** - Reduz tamanho de respostas
 - **Connection Pool** - Reutilização de conexões
 - **Lazy Loading** - Carregamento otimizado
+
+### Estratégia de Cache (v1.2.0+)
+
+- **Individual Tasks**: TTL de 15 minutos
+- **Task Statistics**: TTL de 5 minutos
+- **Task Lists**: TTL de 10 minutos (padrão)
+- **Evict Seletivo**: Apenas caches afetados são invalidados
+- **Cache Warming**: Pré-carrega dados frequentes na inicialização (perfil prod)
 
 ### Testes de Carga
 
