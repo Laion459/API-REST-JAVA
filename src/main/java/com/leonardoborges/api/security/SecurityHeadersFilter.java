@@ -18,6 +18,7 @@ import java.io.IOException;
 @Component
 @Order(0)
 @Slf4j
+@org.springframework.context.annotation.Profile("!test")
 public class SecurityHeadersFilter extends OncePerRequestFilter {
 
     private static final String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";

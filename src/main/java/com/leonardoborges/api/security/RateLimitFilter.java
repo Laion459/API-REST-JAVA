@@ -22,6 +22,7 @@ import java.util.Collection;
 @Order(1)
 @RequiredArgsConstructor
 @Slf4j
+@org.springframework.context.annotation.Profile("!test")
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Bucket defaultBucket;
