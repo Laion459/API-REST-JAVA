@@ -34,13 +34,13 @@ public class CacheService {
     /**
      * Evicts all paginated task lists from cache.
      * Since Spring Cache doesn't support pattern-based eviction natively,
-     * we clear the entire tasks cache to ensure consistency.
+     * we clear the entire task lists cache to ensure consistency.
      * For production with Redis, consider implementing pattern-based eviction.
      */
     public void evictTaskLists() {
-        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
-        if (tasksCache != null) {
-            tasksCache.clear();
+        Cache taskListsCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASK_LISTS);
+        if (taskListsCache != null) {
+            taskListsCache.clear();
             log.debug("Evicted all task lists from cache");
         }
     }
@@ -48,15 +48,15 @@ public class CacheService {
     /**
      * Evicts tasks filtered by status from cache.
      * Since Spring Cache doesn't support pattern-based eviction natively,
-     * we clear the entire tasks cache to ensure consistency.
+     * we clear the entire task lists cache to ensure consistency.
      * For production with Redis, consider implementing pattern-based eviction.
      * 
      * @param status The status to evict
      */
     public void evictTasksByStatus(String status) {
-        Cache tasksCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASKS);
-        if (tasksCache != null) {
-            tasksCache.clear();
+        Cache taskListsCache = cacheManager.getCache(TaskConstants.CACHE_NAME_TASK_LISTS);
+        if (taskListsCache != null) {
+            taskListsCache.clear();
             log.debug("Evicted tasks with status {} from cache", status);
         }
     }
