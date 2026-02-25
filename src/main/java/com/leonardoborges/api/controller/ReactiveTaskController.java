@@ -1,11 +1,13 @@
 package com.leonardoborges.api.controller;
 
-import com.leonardoborges.api.constants.TaskConstants;
+import com.leonardoborges.api.dto.TaskPageResponse;
 import com.leonardoborges.api.dto.TaskResponse;
 import com.leonardoborges.api.exception.ErrorResponse;
 import com.leonardoborges.api.model.Task;
-import com.leonardoborges.api.service.TaskService;
+import com.leonardoborges.api.service.ReactiveTaskService;
+import com.leonardoborges.api.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,103 +16,126 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.List;
-import reactor.core.scheduler.Schedulers;
+import java.util.Map;
 
+/**
+ * Controller reativo para operações de leitura de alta performance.
+ * Usa WebFlux para melhor escalabilidade e uso de recursos.
+ * 
+ * Endpoints reativos otimizados para:
+ * - Alta concorrência (milhares de requisições simultâneas)
+ * - Baixa latência (operações não-bloqueantes)
+ * - Melhor uso de recursos (event loop vs thread pool)
+ * 
+ * Para operações de escrita (POST/PUT/DELETE), use TaskController (MVC).
+ */
 @RestController
-@RequestMapping("/api/v1/reactive/tasks")
+@RequestMapping("/api/v2/reactive/tasks")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Reactive Tasks", description = "API reativa para tarefas usando WebFlux (programação concorrente)")
+@Tag(name = "Reactive Tasks", description = "Endpoints reativos de alta performance para leitura de tarefas (WebFlux)")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "spring.r2dbc.enabled", havingValue = "true", matchIfMissing = false)
 public class ReactiveTaskController {
     
-    private final TaskService taskService;
+    private final ReactiveTaskService reactiveTaskService;
+    private final SecurityUtils securityUtils;
     
-    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping("/{id}")
     @Operation(
-            summary = "Stream de tarefas (SSE)",
-            description = "Retorna stream de tarefas usando Server-Sent Events para programação reativa e concorrente. Requer autenticação JWT.\n\n" +
-                    "**Nota sobre Reatividade:**\n" +
-                    "- Este endpoint usa Spring WebFlux para programação reativa\n" +
-                    "- Atualmente, o backend ainda usa JPA (blocking) para acesso a dados\n" +
-                    "- Para reatividade completa, seria necessário migrar para R2DBC (reactive database driver)\n" +
-                    "- Esta é uma limitação conhecida e está no roadmap para futuras versões\n\n" +
-                    "**Limitações Atuais:**\n" +
-                    "- O endpoint busca todas as tasks de uma vez (não é streaming real do banco)\n" +
-                    "- Funciona bem para demonstração de conceitos reativos\n" +
-                    "- Para produção com alto volume, considere migrar para R2DBC\n\n" +
-                    "**Nota:** Este endpoint usa Server-Sent Events (SSE) e pode não funcionar corretamente no Swagger UI. " +
-                    "Use um cliente HTTP que suporte SSE (como curl ou Postman) ou acesse diretamente via navegador.\n\n" +
-                    "**Exemplo com curl:**\n" +
-                    "```bash\n" +
-                    "curl -N -H 'Authorization: Bearer TOKEN' http://localhost:8080/api/v1/reactive/tasks\n" +
-                    "```",
+            summary = "Buscar tarefa por ID (Reativo)",
+            description = "Retorna uma tarefa específica usando programação reativa (WebFlux) para alta performance. " +
+                    "Otimizado para alta concorrência e baixa latência. Requer autenticação JWT.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Stream iniciado com sucesso (Server-Sent Events)",
-                    content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE)
+                    description = "Tarefa encontrada com sucesso",
+                    content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
-                    responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno do servidor",
+                    responseCode = "404",
+                    description = "Tarefa não encontrada",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public Flux<TaskResponse> streamTasks() {
-        log.info("Streaming tasks using reactive programming");
-        // Buscar todas as tasks e enviar como stream
-        // Isso funciona melhor do que interval que pode causar problemas no Swagger UI
-        Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_MAX_ITEMS);
-        List<TaskResponse> tasks = taskService.getAllTasks(pageable).getContent();
-        
-        return Flux.fromIterable(tasks)
-                .delayElements(Duration.ofMillis(100)) // Pequeno delay entre itens para simular stream
-                .doOnNext(task -> log.debug("Streaming task: {}", task.getId()))
-                .doOnComplete(() -> log.info("Stream completed"));
+    public Mono<ResponseEntity<TaskResponse>> getTaskById(
+            @Parameter(description = "ID da tarefa") @PathVariable Long id) {
+        log.debug("GET /api/v2/reactive/tasks/{} - Fetching task reactively", id);
+        Long userId = securityUtils.getCurrentUser().getId();
+        return reactiveTaskService.getTaskById(id, userId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
     
-    @GetMapping("/status/{status}")
+    @GetMapping
     @Operation(
-            summary = "Buscar tarefas por status (reativo)",
-            description = "Retorna tarefas filtradas por status usando programação reativa. Requer autenticação JWT.\n\n" +
-                    "**Status válidos:** PENDING, IN_PROGRESS, COMPLETED, CANCELLED\n\n" +
-                    "**Exemplo:** `/api/v1/reactive/tasks/status/PENDING`",
+            summary = "Listar todas as tarefas (Reativo)",
+            description = "Retorna lista paginada de tarefas usando programação reativa para alta performance. " +
+                    "Suporta milhares de requisições concorrentes. Requer autenticação JWT.\n\n" +
+                    "**Parâmetros:**\n" +
+                    "- `page`: Número da página (padrão: 0)\n" +
+                    "- `size`: Tamanho da página (padrão: 20)\n\n" +
+                    "**Performance:** Otimizado para alta concorrência usando event loop não-bloqueante.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de tarefas retornada com sucesso",
-                    content = @Content(schema = @Schema(implementation = List.class))
+                    content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public Mono<ResponseEntity<TaskPageResponse>> getAllTasks(
+            @Parameter(description = "Número da página (padrão: 0)") 
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página (padrão: 20)") 
+            @RequestParam(defaultValue = "20") int size) {
+        log.debug("GET /api/v2/reactive/tasks - Fetching all tasks reactively: page={}, size={}", page, size);
+        Long userId = securityUtils.getCurrentUser().getId();
+        
+        return reactiveTaskService.getAllTasks(page, size, userId)
+                .collectList()
+                .map(tasks -> {
+                    TaskPageResponse response = TaskPageResponse.builder()
+                            .content(tasks)
+                            .size(size)
+                            .number(page)
+                            .numberOfElements(tasks.size())
+                            .first(page == 0)
+                            .last(tasks.size() < size)
+                            .empty(tasks.isEmpty())
+                            .build();
+                    return ResponseEntity.ok(response);
+                });
+    }
+    
+    @GetMapping("/status/{status}")
+    @Operation(
+            summary = "Listar tarefas por status (Reativo)",
+            description = "Retorna lista paginada de tarefas filtradas por status usando programação reativa. " +
+                    "Otimizado para alta performance. Requer autenticação JWT.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de tarefas filtradas retornada com sucesso",
+                    content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -119,84 +144,59 @@ public class ReactiveTaskController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public Mono<List<TaskResponse>> getTasksByStatusReactive(@PathVariable Task.TaskStatus status) {
-        log.debug("Fetching tasks by status reactively: {}", status);
-        Pageable pageable = PageRequest.of(0, TaskConstants.REACTIVE_MAX_ITEMS);
-        return Mono.fromSupplier(() -> 
-                taskService.getTasksByStatus(status, pageable).getContent()
-        ).subscribeOn(Schedulers.boundedElastic());
+    public Mono<ResponseEntity<TaskPageResponse>> getTasksByStatus(
+            @Parameter(description = "Status da tarefa (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)") 
+            @PathVariable Task.TaskStatus status,
+            @Parameter(description = "Número da página (padrão: 0)") 
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página (padrão: 20)") 
+            @RequestParam(defaultValue = "20") int size) {
+        log.debug("GET /api/v2/reactive/tasks/status/{} - Fetching tasks by status reactively", status);
+        Long userId = securityUtils.getCurrentUser().getId();
+        
+        return reactiveTaskService.getTasksByStatus(status, page, size, userId)
+                .collectList()
+                .map(tasks -> {
+                    TaskPageResponse response = TaskPageResponse.builder()
+                            .content(tasks)
+                            .size(size)
+                            .number(page)
+                            .numberOfElements(tasks.size())
+                            .first(page == 0)
+                            .last(tasks.size() < size)
+                            .empty(tasks.isEmpty())
+                            .build();
+                    return ResponseEntity.ok(response);
+                });
     }
     
-    @GetMapping("/stats")
+    @GetMapping("/stats/count")
     @Operation(
-            summary = "Estatísticas em tempo real",
-            description = "Retorna estatísticas de tarefas usando programação reativa. Retorna contagem de tarefas por status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED). Requer autenticação JWT.\n\n" +
-                    "**Exemplo de resposta:**\n" +
-                    "```json\n" +
-                    "{\n" +
-                    "  \"pending\": 5,\n" +
-                    "  \"in_progress\": 3,\n" +
-                    "  \"completed\": 10,\n" +
-                    "  \"cancelled\": 1\n" +
-                    "}\n" +
-                    "```",
+            summary = "Estatísticas de tarefas (Reativo)",
+            description = "Retorna contagem de tarefas por status usando programação reativa. " +
+                    "Otimizado para leitura rápida. Requer autenticação JWT.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Estatísticas retornadas com sucesso",
-                    content = @Content(schema = @Schema(implementation = java.util.Map.class))
+                    content = @Content(schema = @Schema(implementation = Map.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Não autenticado",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public Mono<java.util.Map<String, Long>> getStatsReactive() {
-        log.debug("Fetching stats reactively");
-        return Mono.fromSupplier(() -> 
-                java.util.Map.of(
-                        "pending", taskService.getTaskCountByStatus(Task.TaskStatus.PENDING),
-                        "in_progress", taskService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS),
-                        "completed", taskService.getTaskCountByStatus(Task.TaskStatus.COMPLETED),
-                        "cancelled", taskService.getTaskCountByStatus(Task.TaskStatus.CANCELLED)
-                )
-        ).subscribeOn(Schedulers.boundedElastic());
+    public Mono<ResponseEntity<Map<String, Long>>> getTaskStats() {
+        log.debug("GET /api/v2/reactive/tasks/stats/count - Fetching task statistics reactively");
+        Long userId = securityUtils.getCurrentUser().getId();
+        return reactiveTaskService.getTaskStats(userId)
+                .map(ResponseEntity::ok);
     }
 }

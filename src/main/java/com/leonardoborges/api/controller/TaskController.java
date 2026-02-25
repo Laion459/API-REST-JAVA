@@ -177,13 +177,11 @@ public class TaskController {
         log.debug("GET /api/v1/tasks - Fetching all tasks with pagination: page={}, size={}", 
                 pageable.getPageNumber(), pageable.getPageSize());
         
-        // Validate and normalize sort parameters using utility class
         Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
                 pageable, "createdAt", Sort.Direction.DESC);
         
         Page<TaskResponse> page = taskService.getAllTasks(validPageable);
         
-        // Converter Page para TaskPageResponse para melhor compatibilidade com Swagger UI
         TaskPageResponse response = TaskPageResponse.builder()
                 .content(page.getContent())
                 .totalPages(page.getTotalPages())
@@ -248,13 +246,11 @@ public class TaskController {
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "priority") Pageable pageable) {
         log.debug("GET /api/v1/tasks/status/{} - Fetching tasks by status", status);
         
-        // Validate and normalize sort parameters using utility class
         Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
                 pageable, "priority", Sort.Direction.DESC);
         
         Page<TaskResponse> page = taskService.getTasksByStatus(status, validPageable);
         
-        // Converter Page para TaskPageResponse para melhor compatibilidade com Swagger UI
         TaskPageResponse response = TaskPageResponse.builder()
                 .content(page.getContent())
                 .totalPages(page.getTotalPages())
