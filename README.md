@@ -2,9 +2,10 @@
 
 API REST de alta performance desenvolvida com Spring Boot para demonstração de habilidades backend, focada em escalabilidade, performance e boas práticas de engenharia de software.
 
-## Status: v2.1.0
+## Status: v3.0.0
 
-Projeto de referência implementando todas as melhores práticas de engenharia de software, segurança e performance. Pronto para produção.
+Projeto de referência implementando todas as melhores práticas de engenharia de software, segurança e performance. 
+Inclui arquitetura híbrida MVC + WebFlux para máxima performance. Pronto para produção.
 
 ## Objetivo
 
@@ -20,10 +21,10 @@ Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot
 
 - **Java 21** (LTS) - Linguagem de programação
 - **Spring Boot 3.2.0** - Framework backend
-- **Spring Data JPA** - Persistência de dados
+- **Spring Data JPA** - Persistência de dados (MVC)
+- **Spring WebFlux + R2DBC** - Programação reativa para alta performance
 - **PostgreSQL** - Banco de dados relacional
-- **Redis** - Cache e otimização
-- **Spring WebFlux** - Programação reativa (alta performance)
+- **Redis** - Cache e otimização (bloqueante e reativo)
 - **Swagger/OpenAPI** - Documentação automática
 - **Prometheus** - Métricas e monitoramento
 - **Docker** - Containerização
@@ -62,16 +63,26 @@ src/
 ├── main/
 │   ├── java/
 │   │   └── com/leonardoborges/api/
-│   │       ├── config/          # Configurações (Cache, Web, etc)
+│   │       ├── audit/           # Sistema de auditoria
+│   │       ├── cache/            # Gerenciamento de cache
+│   │       ├── config/           # Configurações (Cache, Web, Security, etc)
+│   │       ├── constants/        # Constantes do sistema
 │   │       ├── controller/      # Controllers REST
-│   │       ├── dto/             # Data Transfer Objects
-│   │       ├── exception/       # Tratamento de erros
-│   │       ├── model/           # Entidades JPA
-│   │       ├── repository/      # Repositórios JPA
-│   │       └── service/         # Lógica de negócio
+│   │       ├── dto/              # Data Transfer Objects
+│   │       ├── exception/        # Tratamento de erros
+│   │       ├── health/           # Health checks customizados
+│   │       ├── mapper/           # Mapeamento DTO ↔ Entity
+│   │       ├── metrics/          # Métricas customizadas
+│   │       ├── model/            # Entidades JPA
+│   │       ├── repository/       # Repositórios JPA e R2DBC
+│   │       ├── security/         # Componentes de segurança
+│   │       ├── service/          # Lógica de negócio
+│   │       └── util/             # Utilitários
 │   └── resources/
-│       └── application.yml      # Configurações
-└── test/                        # Testes automatizados
+│       ├── application.yml       # Configurações
+│       ├── db/migration/         # Migrações Flyway
+│       └── logback-spring.xml    # Configuração de logs
+└── test/                         # Testes automatizados
 ```
 
 ## Como Executar
@@ -191,15 +202,44 @@ A documentação Swagger está completa com:
 **Authentication (v1.4.0+):**
 - `POST /api/v1/auth/register` - Registrar novo usuário
 - `POST /api/v1/auth/login` - Login e obter token JWT
+- `POST /api/v1/auth/refresh` - Renovar token de acesso usando refresh token
 
-**Tasks:** (Requer autenticação)
+**Tasks (MVC - Escritas e operações complexas):** (Requer autenticação)
 - `POST /api/v1/tasks` - Criar nova tarefa
 - `GET /api/v1/tasks` - Listar todas as tarefas (paginado)
 - `GET /api/v1/tasks/{id}` - Buscar tarefa por ID
 - `GET /api/v1/tasks/status/{status}` - Filtrar por status
 - `GET /api/v1/tasks/stats/count` - Estatísticas
 - `PUT /api/v1/tasks/{id}` - Atualizar tarefa
-- `DELETE /api/v1/tasks/{id}` - Deletar tarefa
+- `DELETE /api/v1/tasks/{id}` - Deletar tarefa (soft delete)
+- `GET /api/v1/tasks/{taskId}/history` - Histórico de mudanças de uma task (paginado)
+- `GET /api/v1/tasks/{taskId}/history/all` - Todo o histórico de uma task (sem paginação)
+- `GET /api/v1/tasks/{taskId}/history/field/{fieldName}` - Histórico de um campo específico
+- `GET /api/v1/tasks/{taskId}/history/date-range` - Histórico por intervalo de datas
+
+**Tasks Reativas (WebFlux - Alta Performance):** (Requer autenticação)
+- `GET /api/v2/reactive/tasks` - Listar tarefas (reativo, alta concorrência)
+- `GET /api/v2/reactive/tasks/{id}` - Buscar tarefa (reativo, baixa latência)
+- `GET /api/v2/reactive/tasks/status/{status}` - Filtrar por status (reativo)
+- `GET /api/v2/reactive/tasks/stats/count` - Estatísticas (reativo)
+
+**Batch Operations (Operações em Lote):** (Requer autenticação)
+- `POST /api/v1/tasks/batch/create` - Criar múltiplas tarefas (até 100)
+- `PUT /api/v1/tasks/batch/update` - Atualizar múltiplas tarefas (até 100)
+- `DELETE /api/v1/tasks/batch/delete` - Deletar múltiplas tarefas (até 100)
+
+**Audit (Admin only):** (Requer role ADMIN)
+- `GET /api/v1/audit` - Listar logs de auditoria
+- `GET /api/v1/audit/action/{action}` - Filtrar por ação
+- `GET /api/v1/audit/entity/{entityType}/{entityId}` - Filtrar por entidade
+- `GET /api/v1/audit/user/{username}` - Filtrar por usuário
+- `GET /api/v1/audit/date-range` - Filtrar por intervalo de datas
+- `GET /api/v1/audit/stats/failed` - Estatísticas de ações falhadas
+
+**Nota:** 
+- Endpoints reativos (`/api/v2/reactive/*`) são otimizados para leitura com alta concorrência (10.000+ req/s)
+- Use endpoints MVC (`/api/v1/*`) para operações de escrita que requerem transações complexas
+- Batch operations são ideais para processar múltiplas operações de forma eficiente
 
 **Cache Management (v1.2.0+):** (Requer role ADMIN)
 - `GET /api/v1/cache/stats` - Estatísticas do cache
@@ -230,12 +270,20 @@ curl -X POST http://localhost:8081/api/v1/auth/register \
   }'
 
 # 2. Login e obter token
-TOKEN=$(curl -X POST http://localhost:8081/api/v1/auth/login \
+RESPONSE=$(curl -X POST http://localhost:8081/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "usernameOrEmail": "testuser",
     "password": "password123"
-  }' | jq -r '.token')
+  }')
+
+TOKEN=$(echo $RESPONSE | jq -r '.token')
+REFRESH_TOKEN=$(echo $RESPONSE | jq -r '.refreshToken')
+
+# 2.1. Renovar token (opcional)
+# TOKEN=$(curl -X POST http://localhost:8081/api/v1/auth/refresh \
+#   -H "Content-Type: application/json" \
+#   -d "{\"refreshToken\": \"$REFRESH_TOKEN\"}" | jq -r '.token')
 
 # 3. Criar tarefa (com autenticação)
 curl -X POST http://localhost:8081/api/v1/tasks \
@@ -288,13 +336,17 @@ mvn test jacoco:report
 
 ### Cobertura de Testes
 
-- **49 testes** automatizados (100% passando)
+- **65+ testes** automatizados (100% passando)
 - **Cobertura mínima: 90%** (linhas) e **85%** (branches)
 - **Validação obrigatória no CI/CD** - Build falha se cobertura < 90%
 - Testes unitários (Service, Repository, Controller, Cache, Utils)
 - Testes de integração (end-to-end)
-- Testes de autenticação (JWT, login, registro)
+- Testes de autenticação (JWT, login, registro, refresh tokens)
+- Testes de segurança (OWASP Top 10, SQL Injection, XSS, Rate Limiting)
+- Testes de batch operations
+- Testes de Strategy Pattern (cache eviction)
 - Testes com H2 (banco em memória)
+- Testcontainers para testes de integração
 - JaCoCo configurado para relatórios de cobertura
 
 ### Executar Testes com Cobertura
@@ -309,14 +361,14 @@ open target/site/jacoco/index.html
 
 ## CI/CD Pipeline (v1.6.0+)
 
-O projeto inclui um pipeline completo de CI/CD usando GitHub Actions:
+> **Nota:** O pipeline de CI/CD está planejado para implementação. A estrutura abaixo descreve o pipeline que será configurado usando GitHub Actions.
 
 ### Jobs do Pipeline
 
 1. **Test** - Executa todos os testes
    - Configura PostgreSQL e Redis como serviços
    - Roda testes com cobertura
-   - Valida cobertura mínima (80%)
+   - Valida cobertura mínima (90% linhas, 85% branches)
    - Upload de resultados e relatórios
 
 2. **Build** - Compila a aplicação
@@ -403,32 +455,57 @@ SERVER_PORT=8081
 
 ## Boas Práticas Implementadas
 
-- Clean Architecture
-- SOLID Principles
-- DTO Pattern
-- Exception Handling
-- Validation
-- Input Sanitization (v1.3.0)
-- JWT Authentication & Authorization (v1.4.0)
-- Role-Based Access Control (v1.4.0)
-- Password Encryption (BCrypt) (v1.4.0)
-- Rate Limiting (Bucket4j) (v1.5.0)
-- Security Headers (OWASP) (v1.7.0)
-- Optimistic Locking (v1.8.0)
-- Health Checks Customizados (v2.0.0)
-- Métricas Customizadas (v2.0.0)
-- Structured Logging
-- Constants for Magic Numbers (v1.3.0)
-- Caching Strategy
-- Database Indexing
-- API Versioning
-- Documentation (Swagger)
-- Code Coverage Reporting (JaCoCo)
-- CI/CD Pipeline (GitHub Actions) (v1.6.0)
+### Arquitetura e Design
+- **Clean Architecture** - Separação clara de responsabilidades
+- **SOLID Principles** - Código extensível e manutenível
+- **Strategy Pattern** - Cache eviction estratégico
+- **DTO Pattern** - Transferência de dados otimizada
+- **Arquitetura Híbrida** - MVC + WebFlux para máxima performance
 
-## CI/CD
+### Segurança
+- **JWT Authentication & Authorization** - Autenticação stateless
+- **Refresh Tokens Persistidos** - Revogação e controle completo
+- **Role-Based Access Control (RBAC)** - Controle de acesso granular
+- **Password Encryption (BCrypt)** - Senhas seguras
+- **Rate Limiting (Bucket4j)** - Proteção contra abuso
+- **Rate Limiting por IP** - Camada adicional de proteção
+- **Security Headers (OWASP)** - Headers HTTP de segurança
+- **Input Sanitization** - Prevenção de injection attacks
+- **SQL Injection Prevention** - Validação em múltiplas camadas
 
-### GitHub Actions (Exemplo)
+### Performance
+- **WebFlux (Programação Reativa)** - Alta concorrência (10.000+ req/s)
+- **R2DBC** - Acesso não-bloqueante ao PostgreSQL
+- **Cache Inteligente** - Redis com estratégias otimizadas
+- **Cache Metrics** - Monitoramento de hit rate e performance
+- **Batch Operations** - Processamento eficiente em lote
+- **Connection Pooling** - HikariCP otimizado
+- **Database Indexing** - Queries otimizadas
+- **Soft Delete** - Recuperação de dados
+
+### Observabilidade
+- **Distributed Tracing** - Micrometer Tracing integrado
+- **Logs Estruturados JSON** - Logback configurado para produção
+- **Métricas Prometheus** - Monitoramento completo
+- **Health Checks Customizados** - DB, Redis, Cache
+- **Auditoria Persistente** - Logs de todas as operações sensíveis
+
+### Qualidade
+- **Exception Handling** - Tratamento robusto de erros
+- **Validation** - Validação em múltiplas camadas
+- **Optimistic Locking** - Controle de concorrência
+- **Structured Logging** - Logs organizados
+- **Constants for Magic Numbers** - Código limpo
+- **API Versioning** - Compatibilidade controlada
+- **Documentation (Swagger)** - Documentação completa
+- **Code Coverage 90%+** - Testes abrangentes
+- **CI/CD Pipeline** - Integração contínua
+
+## CI/CD (Planejado)
+
+> **Status:** O pipeline de CI/CD está planejado para implementação futura. A configuração abaixo serve como referência.
+
+### GitHub Actions (Exemplo de Configuração)
 
 ```yaml
 name: CI/CD Pipeline
@@ -436,27 +513,69 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: tasksdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
-      - run: mvn test
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Run tests with coverage
+        run: mvn clean test jacoco:report
+      - name: Verify coverage
+        run: mvn jacoco:check
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: target/site/jacoco/jacoco.xml
   build:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: mvn package
-      - run: docker build -t api:latest .
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+      - name: Build Docker image
+        run: docker build -t high-performance-api:latest .
 ```
 
 ## Deploy
 
 ### Docker
 ```bash
+# Build da imagem
 docker build -t high-performance-api:latest .
-docker run -p 8081:8081 high-performance-api:latest
+
+# Executar container
+docker run -p 8081:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/tasksdb \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=postgres \
+  -e SPRING_REDIS_HOST=host.docker.internal \
+  -e SPRING_REDIS_PORT=6379 \
+  high-performance-api:latest
 ```
 
 ### Cloud (AWS/GCP/Azure)

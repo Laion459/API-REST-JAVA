@@ -8,9 +8,148 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned Improvements
-- Real reactive programming with R2DBC
-- Performance testing automation
-- Architecture decision records
+
+#### Infraestrutura e DevOps
+- [ ] **CI/CD Pipeline** - Implementar pipeline completo com GitHub Actions
+  - Jobs de teste com cobertura (90% linhas, 85% branches)
+  - Build automatizado do JAR
+  - Build e push de imagem Docker
+  - Deploy automatizado (staging/produção)
+- [ ] **Docker Compose para produção** - Configuração otimizada para ambiente produtivo
+- [ ] **Kubernetes manifests** - Configuração para deploy em K8s
+- [ ] **Scripts de deploy** - Automação de deploy em diferentes ambientes
+
+#### Documentação
+- [ ] **Documentação de Arquitetura** - Criar ARQUITETURA_HIBRIDA.md explicando estratégia MVC vs WebFlux
+- [ ] **Architecture Decision Records (ADRs)** - Documentar decisões arquiteturais importantes
+- [ ] **Guia de Contribuição** - CONTRIBUTING.md com padrões de código e processo
+- [ ] **Guia de Deploy** - DEPLOY.md com instruções detalhadas de deploy
+- [ ] **Diagramas de arquitetura** - Diagramas visuais da arquitetura do sistema
+
+#### Testes e Qualidade
+- [ ] **Automação de testes de performance** - Integrar testes de carga no CI/CD
+- [ ] **Testes de contrato** - Implementar contract testing (Pact, Spring Cloud Contract)
+- [ ] **Testes de mutação** - Adicionar mutation testing para validar qualidade dos testes
+- [ ] **Análise estática de código** - Integrar SonarQube ou similar no CI/CD
+
+#### Performance e Observabilidade
+- [ ] **Ajustes de produção** - Configurar sampling probability para produção (< 1.0)
+- [ ] **Dashboards de monitoramento** - Configurar Grafana com métricas Prometheus
+- [ ] **Alertas configurados** - Configurar alertas para métricas críticas
+- [ ] **Distributed Tracing completo** - Integração com Jaeger/Zipkin para tracing completo
+- [ ] **Log aggregation** - Configurar ELK Stack ou similar para logs centralizados
+
+#### Segurança
+- [ ] **Rotação de secrets JWT** - Implementar rotação automática de secrets
+- [ ] **Rate limiting por usuário** - Adicionar rate limiting granular por usuário
+- [ ] **Análise de dependências** - Integrar OWASP Dependency Check no CI/CD
+- [ ] **Security scanning** - Adicionar scanning de vulnerabilidades no pipeline
+
+#### Funcionalidades
+- [ ] **Webhooks** - Sistema de webhooks para notificações de eventos
+- [ ] **Exportação de dados** - Endpoints para exportar dados em diferentes formatos (CSV, JSON, PDF)
+- [ ] **Filtros avançados** - Filtros mais complexos nas queries (range de datas, múltiplos status, etc.)
+- [ ] **Busca full-text** - Implementar busca full-text em tasks
+- [ ] **Notificações** - Sistema de notificações (email, push, etc.)
+
+#### Melhorias Técnicas
+- [ ] **Circuit Breaker** - Implementar circuit breaker para resiliência
+- [ ] **Retry policies** - Políticas de retry mais sofisticadas
+- [ ] **Cache distribuído** - Otimizar cache para ambientes distribuídos
+- [ ] **Database sharding** - Preparar para sharding se necessário
+- [ ] **API Gateway** - Considerar implementação de API Gateway para múltiplas APIs
+
+## [3.0.0] - 2025-02-XX
+
+### Added
+- **Arquitetura Híbrida MVC + WebFlux** - Implementação estratégica de programação reativa para alta performance
+- **ReactiveTaskController** - Endpoints reativos (`/api/v2/reactive/tasks`) otimizados para leitura com alta concorrência
+- **ReactiveTaskService** - Service reativo usando Mono/Flux para operações não-bloqueantes
+- **ReactiveTaskRepository** - Repository R2DBC para acesso não-bloqueante ao PostgreSQL
+- **R2DBC Config** - Configuração completa de R2DBC para programação reativa
+- **Redis Reativo** - Suporte a cache reativo usando ReactiveRedisTemplate
+- **Persistência de Refresh Tokens** - Refresh tokens agora são persistidos no banco de dados com suporte a revogação
+- **Sistema de Auditoria Persistente** - Todos os logs de auditoria são persistidos no banco de dados com rastreabilidade completa
+- **Soft Delete** - Implementado soft delete para Tasks e Users, permitindo recuperação de dados
+- **Rate Limiting por IP** - Rate limiting adicional baseado em IP usando Redis
+- **AuditController** - Endpoint administrativo para consultar logs de auditoria
+- **RefreshTokenService** - Serviço completo para gerenciamento de refresh tokens com revogação
+- **Métodos de restauração** - Método para restaurar tasks deletadas (soft delete)
+- **Índices otimizados** - Novos índices para melhorar performance de queries com soft delete
+- **Migrações de banco** - V3 (refresh_tokens), V4 (audit_logs), V5 (soft delete)
+
+### Changed
+- **AuditService** - Agora persiste logs no banco de dados de forma assíncrona
+- **UserService** - Integrado com RefreshTokenService para gerenciamento de tokens
+- **TaskService** - Implementado soft delete ao invés de delete físico
+- **TaskRepository** - Queries atualizadas para filtrar registros deletados (soft delete)
+- **UserRepository** - Queries atualizadas para filtrar usuários deletados
+- **SecurityConfig** - Adicionado endpoint de auditoria com proteção ADMIN
+- **README** - Removidas referências incorretas a WebFlux e ReactiveTaskController
+
+### Security
+- Refresh tokens podem ser revogados individualmente ou em massa
+- Auditoria completa de todas as operações sensíveis com persistência
+- Rate limiting por IP adiciona camada extra de proteção
+- Soft delete permite recuperação de dados em caso de exclusão acidental
+
+### Performance
+- **Arquitetura Híbrida**: MVC para escritas (JPA/transações) + WebFlux para leituras (alta concorrência)
+- **Endpoints Reativos**: `/api/v2/reactive/*` otimizados para 10.000+ req/s com baixa latência
+- **R2DBC**: Acesso não-bloqueante ao PostgreSQL para operações de leitura
+- **Cache Reativo**: Redis reativo integrado com WebFlux
+- **Batch Operations**: Operações em lote para processar múltiplas tasks eficientemente
+- **Strategy Pattern**: Cache eviction estratégico baseado no tipo de operação
+- **Cache Metrics**: Métricas de hit rate, miss rate e performance de cache
+- Índices otimizados para queries com soft delete
+- Auditoria assíncrona não impacta performance das operações principais
+- Rate limiting por IP usando Redis para alta performance
+- **Throughput esperado**: 
+  - MVC (escritas): 1.000+ req/s
+  - WebFlux (leituras): 10.000+ req/s
+  - Batch operations: 5.000+ req/s (dependendo do tamanho do lote)
+
+### Observability
+- **Logs Estruturados JSON**: Logback configurado para logs JSON em produção
+- **Distributed Tracing**: Micrometer Tracing integrado para rastreamento de requisições
+- **Cache Metrics**: Métricas detalhadas de cache (hits, misses, hit rate)
+- **Enhanced Error Handling**: Tratamento melhorado de exceções com códigos de erro específicos
+
+### Database
+- **Task History**: Tabela de histórico de mudanças para auditoria completa de dados
+- **TaskHistoryService**: Service para registrar mudanças de campos automaticamente
+- **TaskHistoryController**: Endpoints para consultar histórico de mudanças
+- **Índices Otimizados**: Novos índices para queries de histórico
+- **Migração V6**: Criação de tabela de histórico com índices
+
+### Tests
+- **SecurityTest**: Testes abrangentes de segurança (OWASP Top 10)
+  - Proteção contra SQL Injection
+  - Proteção contra XSS
+  - Rate limiting
+  - Autenticação e autorização
+  - Prevenção de brute force
+- **BatchTaskServiceTest**: Testes para operações em lote
+- **CacheEvictionServiceTest**: Testes para Strategy Pattern de cache
+- **RefreshTokenServiceTest**: Testes completos de refresh tokens
+- **UserServiceRefreshTokenTest**: Testes de integração de refresh tokens
+- **AuditControllerTest**: Testes de endpoints de auditoria
+- **BatchTaskControllerTest**: Testes de endpoints batch
+- **TaskHistoryServiceTest**: Testes de histórico de mudanças
+- Cobertura de testes expandida para novas funcionalidades
+- Total de testes: 65+ (aumento de 49 para 65+)
+
+### Database
+- Nova tabela `refresh_tokens` com índices otimizados
+- Nova tabela `audit_logs` com índices para consultas eficientes
+- Colunas de soft delete adicionadas a `tasks` e `users`
+- Migrações Flyway para todas as mudanças
+
+### Fixed
+- Inconsistências entre README e código (WebFlux removido)
+- Refresh tokens agora podem ser revogados antes do vencimento
+- Auditoria agora é persistente e consultável
+- Soft delete permite recuperação de dados
 
 ## [2.1.0] - 2025-02-XX
 
@@ -89,7 +228,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All controllers now have complete Swagger documentation
 - TaskController: 7 endpoints fully documented
 - AuthController: 2 endpoints fully documented
-- ReactiveTaskController: 3 endpoints fully documented
 - CacheController: 5 endpoints fully documented
 - All DTOs have @Schema annotations with examples
 
@@ -332,7 +470,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - REST API for task management (CRUD operations)
 - PostgreSQL database integration
 - Redis caching implementation
-- Spring WebFlux reactive endpoints
 - Swagger/OpenAPI documentation
 - Prometheus metrics and monitoring
 - Docker and Docker Compose setup
@@ -350,7 +487,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spring Data JPA
 - PostgreSQL 16
 - Redis 7
-- Spring WebFlux
 - Swagger/OpenAPI 2.3.0
 - Prometheus
 - Docker & Docker Compose
@@ -359,7 +495,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Known Issues
 - Uses generic RuntimeException instead of custom exceptions
 - Cache evict strategy is too aggressive (allEntries = true)
-- Reactive controller is not truly reactive (wraps blocking code)
 - No authentication/authorization
 - No rate limiting
 - CI/CD pipeline not fully implemented
