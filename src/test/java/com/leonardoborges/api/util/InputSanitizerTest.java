@@ -1,10 +1,26 @@
 package com.leonardoborges.api.util;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Testes unitários para InputSanitizer.
+ * 
+ * Valida a sanitização de inputs do usuário:
+ * - Remoção de espaços em branco
+ * - Remoção de caracteres de controle
+ * - Normalização de espaços múltiplos
+ * - Truncamento de strings longas
+ * - Validação após sanitização
+ * 
+ * Boas práticas aplicadas:
+ * - Testes isolados e independentes
+ * - Nomes descritivos de testes
+ * - Cobertura de casos de borda (null, vazio, muito longo)
+ */
 class InputSanitizerTest {
 
     private InputSanitizer inputSanitizer;
@@ -15,55 +31,87 @@ class InputSanitizerTest {
     }
 
     @Test
-    void shouldSanitizeStringWithWhitespace() {
+    @DisplayName("Deve remover espaços em branco no início e fim")
+    void shouldSanitizeString_WithLeadingAndTrailingWhitespace() {
+        // Arrange
         String input = "  Test String  ";
+
+        // Act
         String result = inputSanitizer.sanitizeString(input);
-        
+
+        // Assert
         assertEquals("Test String", result);
     }
 
     @Test
-    void shouldRemoveControlCharacters() {
+    @DisplayName("Deve remover caracteres de controle")
+    void shouldRemoveControlCharacters_FromString() {
+        // Arrange
         String input = "Test\u0000String\u0001";
+
+        // Act
         String result = inputSanitizer.sanitizeString(input);
-        
+
+        // Assert
         assertEquals("TestString", result);
     }
 
     @Test
-    void shouldReplaceMultipleSpaces() {
+    @DisplayName("Deve normalizar múltiplos espaços em um único espaço")
+    void shouldReplaceMultipleSpaces_WithSingleSpace() {
+        // Arrange
         String input = "Test    String";
+
+        // Act
         String result = inputSanitizer.sanitizeString(input);
-        
+
+        // Assert
         assertEquals("Test String", result);
     }
 
     @Test
-    void shouldReturnNullForNullInput() {
+    @DisplayName("Deve retornar null quando input é null")
+    void shouldReturnNull_WhenInputIsNull() {
+        // Act
         String result = inputSanitizer.sanitizeString(null);
-        
+
+        // Assert
         assertNull(result);
     }
 
     @Test
-    void shouldTruncateLongString() {
+    @DisplayName("Deve truncar string muito longa")
+    void shouldTruncateLongString_WhenExceedsMaxLength() {
+        // Arrange
         String input = "A".repeat(2000);
-        String result = inputSanitizer.sanitizeAndTruncate(input, 100);
-        
+        int maxLength = 100;
+
+        // Act
+        String result = inputSanitizer.sanitizeAndTruncate(input, maxLength);
+
+        // Assert
         assertNotNull(result);
-        assertEquals(100, result.length());
+        assertEquals(maxLength, result.length());
     }
 
     @Test
-    void shouldNotTruncateShortString() {
+    @DisplayName("Não deve truncar string curta")
+    void shouldNotTruncateShortString_WhenWithinMaxLength() {
+        // Arrange
         String input = "Short string";
-        String result = inputSanitizer.sanitizeAndTruncate(input, 100);
-        
+        int maxLength = 100;
+
+        // Act
+        String result = inputSanitizer.sanitizeAndTruncate(input, maxLength);
+
+        // Assert
         assertEquals(input, result);
     }
 
     @Test
-    void shouldValidateStringAfterSanitization() {
+    @DisplayName("Deve validar string após sanitização")
+    void shouldValidateString_AfterSanitization() {
+        // Assert
         assertTrue(inputSanitizer.isValidAfterSanitization("Valid String"));
         assertFalse(inputSanitizer.isValidAfterSanitization("   "));
         assertFalse(inputSanitizer.isValidAfterSanitization(null));
@@ -71,11 +119,42 @@ class InputSanitizerTest {
     }
 
     @Test
-    void shouldPreserveNewlinesAndTabs() {
+    @DisplayName("Deve preservar quebras de linha e tabs")
+    void shouldPreserveNewlinesAndTabs_InString() {
+        // Arrange
         String input = "Line1\nLine2\tTabbed";
+
+        // Act
         String result = inputSanitizer.sanitizeString(input);
-        
+
+        // Assert
         assertTrue(result.contains("\n"));
         assertTrue(result.contains("\t"));
+    }
+
+    @Test
+    @DisplayName("Deve sanitizar string vazia")
+    void shouldSanitizeEmptyString() {
+        // Arrange
+        String input = "";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertEquals("", result);
+    }
+
+    @Test
+    @DisplayName("Deve sanitizar string com apenas espaços")
+    void shouldSanitizeString_WithOnlySpaces() {
+        // Arrange
+        String input = "     ";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertNotNull(result);
     }
 }

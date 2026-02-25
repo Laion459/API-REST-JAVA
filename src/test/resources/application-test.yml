@@ -1,22 +1,40 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:testdb}
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
     username: ${SPRING_DATASOURCE_USERNAME:sa}
     password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.h2.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_DATABASE_PLATFORM:}
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          time_zone: UTC
+  h2:
+    console:
+      enabled: false
   cache:
-    type: simple
+    type: none
   redis:
     host: ${SPRING_REDIS_HOST:localhost}
     port: ${SPRING_REDIS_PORT:6379}
+  flyway:
+    enabled: false
+  r2dbc:
+    enabled: false
+    url: ""
+  data:
+    r2dbc:
+      repositories:
+        enabled: false
   main:
     allow-bean-definition-overriding: true
+    lazy-initialization: false
 
 app:
   metrics:
