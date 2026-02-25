@@ -54,9 +54,6 @@ class TaskServiceTest {
     private TaskRepository taskRepository;
     
     @Mock
-    private CacheService cacheService;
-    
-    @Mock
     private CacheEvictionService cacheEvictionService;
     
     @Mock
@@ -101,7 +98,6 @@ class TaskServiceTest {
         
         taskService = new TaskService(
                 taskRepository,
-                cacheService,
                 cacheEvictionService,
                 taskMapper,
                 taskValidationService,
@@ -144,6 +140,7 @@ class TaskServiceTest {
         // TaskValidationService mocks
         lenient().doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         lenient().doNothing().when(taskValidationService).validateStatusTransition(any(Task.TaskStatus.class), any(Task.TaskStatus.class));
+        lenient().doNothing().when(taskValidationService).validateVersionForOptimisticLocking(any(Task.class), any(TaskRequest.class));
         
         // TaskMapper mocks
         lenient().when(taskMapper.toEntity(any(TaskRequest.class))).thenReturn(task);

@@ -2,6 +2,7 @@ package com.leonardoborges.api.service;
 
 import com.leonardoborges.api.constants.TaskConstants;
 import com.leonardoborges.api.dto.TaskRequest;
+import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.ValidationException;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.util.InputSanitizer;
@@ -77,6 +78,27 @@ public class TaskValidationService {
             String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
                     request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
             request.setDescription(sanitizedDescription);
+        }
+    }
+    
+    /**
+     * Validates version for optimistic locking.
+     * Ensures the version in the request matches the current version of the task.
+     * 
+     * @param task The current task entity
+     * @param request The update request containing the version
+     * @throws OptimisticLockingException if version is missing or mismatched
+     */
+    public void validateVersionForOptimisticLocking(Task task, TaskRequest request) {
+        if (request.getVersion() == null) {
+            throw new OptimisticLockingException(
+                    "Version field is required for optimistic locking. Please include the current version of the task.");
+        }
+        
+        if (!request.getVersion().equals(task.getVersion())) {
+            throw new OptimisticLockingException(
+                    String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
+                            task.getVersion(), request.getVersion()));
         }
     }
 }

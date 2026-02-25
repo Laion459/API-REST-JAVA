@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
     
     private final TaskRepository taskRepository;
-    private final CacheService cacheService;
     private final CacheEvictionService cacheEvictionService;
     private final TaskMapper taskMapper;
     private final TaskValidationService taskValidationService;
@@ -52,26 +51,11 @@ public class TaskService {
         
         try {
             User currentUser = securityUtils.getCurrentUser();
-            taskValidationService.validateAndSanitizeTaskRequest(request);
-            
-            Task task = taskMapper.toEntity(request);
-            task.setUser(currentUser);
-            if (task.getPriority() == null) {
-                task.setPriority(TaskConstants.DEFAULT_PRIORITY);
-            }
-            
+            Task task = prepareTaskForCreation(request, currentUser);
             Task savedTask = taskRepository.save(task);
+            
             log.info("Task created successfully with ID: {}", savedTask.getId());
-            
-            auditService.audit("TASK_CREATED", "Task", savedTask.getId(), 
-                    String.format("Title: %s, Status: %s", savedTask.getTitle(), savedTask.getStatus()));
-            
-            if (isMetricsEnabled()) {
-                taskMetrics.incrementTaskCreated();
-                taskMetrics.incrementTaskStatus(savedTask.getStatus().name());
-            }
-            
-            cacheEvictionService.evictAfterCreate(savedTask.getId(), savedTask.getStatus());
+            handlePostCreateActions(savedTask);
             
             return taskMapper.toResponse(savedTask);
         } finally {
@@ -79,6 +63,38 @@ public class TaskService {
                 taskMetrics.recordTaskCreation(sample);
             }
         }
+    }
+    
+    private Task prepareTaskForCreation(TaskRequest request, User currentUser) {
+        taskValidationService.validateAndSanitizeTaskRequest(request);
+        Task task = taskMapper.toEntity(request);
+        task.setUser(currentUser);
+        if (task.getPriority() == null) {
+            task.setPriority(TaskConstants.DEFAULT_PRIORITY);
+        }
+        return task;
+    }
+    
+    private void handlePostCreateActions(Task savedTask) {
+        recordCreateAudit(savedTask);
+        recordCreateMetrics(savedTask);
+        evictCacheAfterCreate(savedTask.getId(), savedTask.getStatus());
+    }
+    
+    private void recordCreateAudit(Task task) {
+        auditService.audit("TASK_CREATED", "Task", task.getId(), 
+                String.format("Title: %s, Status: %s", task.getTitle(), task.getStatus()));
+    }
+    
+    private void recordCreateMetrics(Task task) {
+        if (isMetricsEnabled()) {
+            taskMetrics.incrementTaskCreated();
+            taskMetrics.incrementTaskStatus(task.getStatus().name());
+        }
+    }
+    
+    private void evictCacheAfterCreate(Long taskId, Task.TaskStatus status) {
+        cacheEvictionService.evictAfterCreate(taskId, status);
     }
     
     @Cacheable(value = "tasks", keyGenerator = "taskCacheKeyGenerator")
@@ -137,34 +153,14 @@ public class TaskService {
         
         try {
             User currentUser = securityUtils.getCurrentUser();
-            Task task = taskRepository.findByIdAndUser(id, currentUser)
-                    .orElseThrow(() -> new TaskNotFoundException(id));
-            
-            validateVersionForOptimisticLocking(task, request);
+            Task task = findTaskForUpdate(id, currentUser);
             Task.TaskStatus oldStatus = task.getStatus();
             
-            taskValidationService.validateAndSanitizeTaskRequest(request);
-            taskValidationService.validateStatusTransition(oldStatus, request.getStatus());
-            taskMapper.updateEntityFromRequest(task, request);
-            
+            prepareTaskForUpdate(task, request, oldStatus);
             Task updatedTask = taskRepository.save(task);
+            
             log.info("Task updated successfully with ID: {}, version: {}", updatedTask.getId(), updatedTask.getVersion());
-            
-            Task oldTaskSnapshot = createTaskSnapshot(task, oldStatus);
-            taskHistoryService.recordTaskChanges(id, oldTaskSnapshot, updatedTask);
-            
-            auditService.auditWithChanges("TASK_UPDATED", "Task", updatedTask.getId(), 
-                    String.format("Title: %s", updatedTask.getTitle()), 
-                    oldStatus.toString(), updatedTask.getStatus().toString());
-            
-            if (isMetricsEnabled()) {
-                taskMetrics.incrementTaskUpdated();
-                if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
-                    taskMetrics.incrementTaskStatus(request.getStatus().name());
-                }
-            }
-            
-            cacheEvictionService.evictAfterUpdate(id, oldStatus, request.getStatus());
+            handlePostUpdateActions(id, task, oldStatus, updatedTask, request);
             
             return taskMapper.toResponse(updatedTask);
         } catch (OptimisticLockingFailureException e) {
@@ -178,31 +174,48 @@ public class TaskService {
         }
     }
     
-    private void validateVersionForOptimisticLocking(Task task, TaskRequest request) {
-        if (request.getVersion() == null) {
-            throw new OptimisticLockingException(
-                    "Version field is required for optimistic locking. Please include the current version of the task.");
-        }
-        
-        if (!request.getVersion().equals(task.getVersion())) {
-            throw new OptimisticLockingException(
-                    String.format("Task version mismatch. Expected: %d, but was: %d. Please refresh and try again.",
-                            task.getVersion(), request.getVersion()));
+    private Task findTaskForUpdate(Long id, User currentUser) {
+        return taskRepository.findByIdAndUser(id, currentUser)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+    }
+    
+    private void prepareTaskForUpdate(Task task, TaskRequest request, Task.TaskStatus oldStatus) {
+        taskValidationService.validateVersionForOptimisticLocking(task, request);
+        taskValidationService.validateAndSanitizeTaskRequest(request);
+        taskValidationService.validateStatusTransition(oldStatus, request.getStatus());
+        taskMapper.updateEntityFromRequest(task, request);
+    }
+    
+    private void handlePostUpdateActions(Long taskId, Task oldTask, Task.TaskStatus oldStatus, 
+                                        Task updatedTask, TaskRequest request) {
+        recordTaskHistory(taskId, oldTask, oldStatus, updatedTask);
+        recordAudit(updatedTask, oldStatus);
+        recordMetrics(request, oldStatus);
+        evictCacheAfterUpdate(taskId, oldStatus, request.getStatus());
+    }
+    
+    private void recordTaskHistory(Long taskId, Task oldTask, Task.TaskStatus oldStatus, Task updatedTask) {
+        Task oldTaskSnapshot = createTaskSnapshot(oldTask, oldStatus);
+        taskHistoryService.recordTaskChanges(taskId, oldTaskSnapshot, updatedTask);
+    }
+    
+    private void recordAudit(Task updatedTask, Task.TaskStatus oldStatus) {
+        auditService.auditWithChanges("TASK_UPDATED", "Task", updatedTask.getId(), 
+                String.format("Title: %s", updatedTask.getTitle()), 
+                oldStatus.toString(), updatedTask.getStatus().toString());
+    }
+    
+    private void recordMetrics(TaskRequest request, Task.TaskStatus oldStatus) {
+        if (isMetricsEnabled()) {
+            taskMetrics.incrementTaskUpdated();
+            if (request.getStatus() != null && !oldStatus.equals(request.getStatus())) {
+                taskMetrics.incrementTaskStatus(request.getStatus().name());
+            }
         }
     }
     
     private void evictCacheAfterUpdate(Long taskId, Task.TaskStatus oldStatus, Task.TaskStatus newStatus) {
-        cacheService.evictTask(taskId);
-        cacheService.evictTaskLists();
-        cacheService.evictTasksByStatus(oldStatus.name());
-        
-        if (newStatus != null && !oldStatus.equals(newStatus)) {
-            cacheService.evictTasksByStatus(newStatus.name());
-            cacheService.evictTaskStats(oldStatus.name());
-            cacheService.evictTaskStats(newStatus.name());
-        } else {
-            cacheService.evictTaskStats(oldStatus.name());
-        }
+        cacheEvictionService.evictAfterUpdate(taskId, oldStatus, newStatus);
     }
     
     @Transactional
@@ -210,26 +223,45 @@ public class TaskService {
         log.info("Deleting task with ID: {}", id);
         
         User currentUser = securityUtils.getCurrentUser();
-        Task task = taskRepository.findByIdAndUser(id, currentUser)
-                .orElseThrow(() -> new TaskNotFoundException(id));
-        
+        Task task = findTaskForDeletion(id, currentUser);
         Task.TaskStatus status = task.getStatus();
         String taskTitle = task.getTitle();
         
-        // Soft delete
-        task.softDelete(currentUser.getUsername());
-        taskRepository.save(task);
-        
+        performSoftDelete(task, currentUser);
         log.info("Task soft deleted successfully with ID: {}", id);
         
-        auditService.audit("TASK_DELETED", "Task", id, 
+        handlePostDeleteActions(id, taskTitle, status);
+    }
+    
+    private Task findTaskForDeletion(Long id, User currentUser) {
+        return taskRepository.findByIdAndUser(id, currentUser)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+    }
+    
+    private void performSoftDelete(Task task, User currentUser) {
+        task.softDelete(currentUser.getUsername());
+        taskRepository.save(task);
+    }
+    
+    private void handlePostDeleteActions(Long taskId, String taskTitle, Task.TaskStatus status) {
+        recordDeleteAudit(taskId, taskTitle, status);
+        recordDeleteMetrics();
+        evictCacheAfterDelete(taskId, status);
+    }
+    
+    private void recordDeleteAudit(Long taskId, String taskTitle, Task.TaskStatus status) {
+        auditService.audit("TASK_DELETED", "Task", taskId, 
                 String.format("Title: %s, Status: %s", taskTitle, status));
-        
+    }
+    
+    private void recordDeleteMetrics() {
         if (isMetricsEnabled()) {
             taskMetrics.incrementTaskDeleted();
         }
-        
-        cacheEvictionService.evictAfterDelete(id, status);
+    }
+    
+    private void evictCacheAfterDelete(Long taskId, Task.TaskStatus status) {
+        cacheEvictionService.evictAfterDelete(taskId, status);
     }
     
     @Transactional
@@ -237,6 +269,15 @@ public class TaskService {
         log.info("Restoring task with ID: {}", id);
         
         User currentUser = securityUtils.getCurrentUser();
+        Task task = findTaskForRestore(id, currentUser);
+        
+        performRestore(task);
+        log.info("Task restored successfully with ID: {}", id);
+        
+        handlePostRestoreActions(id, task);
+    }
+    
+    private Task findTaskForRestore(Long id, User currentUser) {
         Task task = taskRepository.findByIdAndUserIncludingDeleted(id, currentUser)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         
@@ -244,15 +285,22 @@ public class TaskService {
             throw new BusinessException("Task is not deleted");
         }
         
+        return task;
+    }
+    
+    private void performRestore(Task task) {
         task.restore();
         taskRepository.save(task);
-        
-        log.info("Task restored successfully with ID: {}", id);
-        
-        auditService.audit("TASK_RESTORED", "Task", id, 
+    }
+    
+    private void handlePostRestoreActions(Long taskId, Task task) {
+        recordRestoreAudit(taskId, task);
+        evictCacheAfterCreate(taskId, task.getStatus());
+    }
+    
+    private void recordRestoreAudit(Long taskId, Task task) {
+        auditService.audit("TASK_RESTORED", "Task", taskId, 
                 String.format("Title: %s", task.getTitle()));
-        
-        cacheEvictionService.evictAfterCreate(id, task.getStatus());
     }
     
     /**
