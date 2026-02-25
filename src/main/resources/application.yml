@@ -17,16 +17,22 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  
   cache:
     type: ${CACHE_TYPE:simple}
-    cache-names: tasks, taskStats
+    cache-names: tasks, taskStats, taskLists
     redis:
       time-to-live: 600000
   
@@ -34,6 +40,11 @@ spring:
     host: localhost
     port: 6379
     timeout: 2000ms
+  
+  # R2DBC Configuration (Reactive Database Access)
+  # Habilitado apenas para endpoints reativos de alta performance
+  r2dbc:
+    enabled: ${SPRING_R2DBC_ENABLED:true}
 
 server:
   port: 8081
@@ -62,6 +73,9 @@ management:
     export:
       prometheus:
         enabled: true
+  tracing:
+    sampling:
+      probability: 1.0 # 100% sampling para desenvolvimento (ajustar para produção)
 
 springdoc:
   api-docs:
