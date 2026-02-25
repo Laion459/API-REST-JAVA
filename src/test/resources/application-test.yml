@@ -23,15 +23,19 @@ spring:
   redis:
     host: ${SPRING_REDIS_HOST:localhost}
     port: ${SPRING_REDIS_PORT:6379}
+    timeout: 2000ms
+  data:
+    redis:
+      repositories:
+        enabled: false
+    r2dbc:
+      repositories:
+        enabled: false
   flyway:
     enabled: false
   r2dbc:
     enabled: false
     url: ""
-  data:
-    r2dbc:
-      repositories:
-        enabled: false
   main:
     allow-bean-definition-overriding: true
     lazy-initialization: false

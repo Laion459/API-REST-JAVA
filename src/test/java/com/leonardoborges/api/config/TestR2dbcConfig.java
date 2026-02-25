@@ -9,12 +9,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Configuração de teste para desabilitar completamente R2DBC.
+ * Test configuration to completely disable R2DBC.
  * 
- * Boas práticas aplicadas:
- * - Desabilita auto-configuração R2DBC para evitar conflitos com JPA
- * - Usa @Profile("test") para garantir que só carrega em testes
- * - Simples e direto, sem ComponentScan que pode interferir
+ * Excludes R2DBC auto-configurations to avoid conflicts with JPA in tests.
+ * SqlInitializationAutoConfiguration is also excluded to prevent SQL script initialization via R2DBC.
  */
 @TestConfiguration
 @Profile("test")
@@ -25,8 +23,4 @@ import org.springframework.context.annotation.Profile;
     SqlInitializationAutoConfiguration.class
 })
 public class TestR2dbcConfig {
-    // R2DBC is disabled via:
-    // 1. @Profile("!test") in production R2dbcConfig
-    // 2. spring.r2dbc.enabled=false in application-test.yml
-    // 3. Exclusion of auto-configurations above
 }
