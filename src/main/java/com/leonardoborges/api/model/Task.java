@@ -19,7 +19,13 @@ import java.util.Objects;
 @Entity
 @Table(name = "tasks", indexes = {
     @Index(name = "idx_status", columnList = "status"),
-    @Index(name = "idx_created_at", columnList = "created_at")
+    @Index(name = "idx_created_at", columnList = "created_at"),
+    @Index(name = "idx_user_id", columnList = "user_id"),
+    @Index(name = "idx_user_status", columnList = "user_id, status"),
+    @Index(name = "idx_tasks_deleted", columnList = "deleted"),
+    @Index(name = "idx_tasks_deleted_at", columnList = "deleted_at"),
+    @Index(name = "idx_tasks_user_deleted", columnList = "user_id, deleted"),
+    @Index(name = "idx_tasks_status_deleted", columnList = "status, deleted")
 })
 @Getter
 @Setter
@@ -58,6 +64,10 @@ public class Task {
     @Builder.Default
     private Long version = 0L;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -66,8 +76,30 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
+    
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+    
+    @Column(name = "deleted_by", length = 100)
+    private String deletedBy;
+    
     public enum TaskStatus {
         PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+    }
+    
+    public void softDelete(String deletedBy) {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = deletedBy;
+    }
+    
+    public void restore() {
+        this.deleted = false;
+        this.deletedAt = null;
+        this.deletedBy = null;
     }
     
     @Override

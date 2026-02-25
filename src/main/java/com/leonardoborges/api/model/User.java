@@ -17,7 +17,9 @@ import java.util.Set;
 @Entity
 @Table(name = "users", indexes = {
     @Index(name = "idx_user_email", columnList = "email", unique = true),
-    @Index(name = "idx_user_username", columnList = "username", unique = true)
+    @Index(name = "idx_user_username", columnList = "username", unique = true),
+    @Index(name = "idx_users_deleted", columnList = "deleted"),
+    @Index(name = "idx_users_deleted_at", columnList = "deleted_at")
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter
@@ -57,9 +59,31 @@ public class User {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+    
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
+    
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+    
+    @Column(name = "deleted_by", length = 100)
+    private String deletedBy;
 
     public enum Role {
         USER, ADMIN
+    }
+    
+    public void softDelete(String deletedBy) {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = deletedBy;
+    }
+    
+    public void restore() {
+        this.deleted = false;
+        this.deletedAt = null;
+        this.deletedBy = null;
     }
     
     @Override
