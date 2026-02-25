@@ -17,7 +17,8 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
             TaskConstants.CACHE_NAME_TASKS, 
-            TaskConstants.CACHE_NAME_TASK_STATS
+            TaskConstants.CACHE_NAME_TASK_STATS,
+            TaskConstants.CACHE_NAME_TASK_LISTS
         );
     }
 }

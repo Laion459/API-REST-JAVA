@@ -1,27 +1,19 @@
 package com.leonardoborges.api.config;
 
-import com.leonardoborges.api.constants.TaskConstants;
-import com.leonardoborges.api.model.Task;
-import com.leonardoborges.api.repository.TaskRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Configuration for cache warming strategies.
- * Pre-loads frequently accessed data into cache on application startup.
+ * Note: Cache warming is disabled as it requires user context for data isolation.
+ * Cache will be populated naturally as users access their data.
  */
 @Configuration
-@RequiredArgsConstructor
 @Slf4j
 public class CacheWarmingConfig {
-    
-    private final TaskRepository taskRepository;
     
     /**
      * Cache warming on application startup.
@@ -48,35 +40,10 @@ public class CacheWarmingConfig {
     }
     
     private void warmUpTaskStats() {
-        log.debug("Warming up task statistics cache");
-        for (Task.TaskStatus status : Task.TaskStatus.values()) {
-            try {
-                taskRepository.countByStatus(status);
-                log.debug("Warmed up stats for status: {}", status);
-            } catch (Exception e) {
-                log.debug("Could not warm up stats for status {}: {}", status, e.getMessage());
-            }
-        }
+        log.debug("Task statistics cache warming skipped - requires user context");
     }
     
     private void warmUpTaskLists() {
-        log.debug("Warming up task lists cache");
-        try {
-            Pageable firstPage = PageRequest.of(0, TaskConstants.CACHE_WARMING_PAGE_SIZE);
-            taskRepository.findAll(firstPage);
-            log.debug("Warmed up first page of tasks");
-            
-            // Warm up tasks by status
-            for (Task.TaskStatus status : Task.TaskStatus.values()) {
-                try {
-                    taskRepository.findByStatus(status, firstPage);
-                    log.debug("Warmed up tasks with status: {}", status);
-                } catch (Exception e) {
-                    log.debug("Could not warm up tasks for status {}: {}", status, e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            log.debug("Could not warm up task lists: {}", e.getMessage());
-        }
+        log.debug("Task lists cache warming skipped - requires user context");
     }
 }

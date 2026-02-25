@@ -9,11 +9,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -65,5 +69,27 @@ public class RedisConfig {
                 .withCacheConfiguration(TaskConstants.CACHE_NAME_TASK_STATS, taskStatsConfig)
                 .withCacheConfiguration(TaskConstants.CACHE_NAME_TASKS, tasksConfig)
                 .build();
+    }
+    
+    /**
+     * Bean para Redis reativo (WebFlux).
+     * Usado em endpoints reativos para cache não-bloqueante.
+     */
+    @Bean
+    public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
+        return new org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory();
+    }
+    
+    @Bean
+    public ReactiveRedisTemplate<String, Object> reactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
+        RedisSerializationContext<String, Object> serializationContext = 
+                RedisSerializationContext.<String, Object>newSerializationContext()
+                        .key(RedisSerializer.string())
+                        .value(new GenericJackson2JsonRedisSerializer())
+                        .hashKey(RedisSerializer.string())
+                        .hashValue(new GenericJackson2JsonRedisSerializer())
+                        .build();
+        
+        return new ReactiveRedisTemplate<String, Object>(connectionFactory, serializationContext);
     }
 }

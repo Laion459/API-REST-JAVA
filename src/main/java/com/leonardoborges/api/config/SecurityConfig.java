@@ -49,8 +49,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/api/v1/tasks/**").authenticated()
-                        .requestMatchers("/api/v1/reactive/tasks/**").authenticated()
+                        .requestMatchers("/api/v2/reactive/tasks/**").authenticated()
+                        .requestMatchers("/api/v1/tasks/batch/**").authenticated()
                         .requestMatchers("/api/v1/cache/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/audit/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
