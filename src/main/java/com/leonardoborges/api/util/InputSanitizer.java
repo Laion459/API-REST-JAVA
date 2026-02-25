@@ -13,31 +13,6 @@ public class InputSanitizer {
     
     /**
      * Sanitizes a string by trimming whitespace and removing control characters.
-     * Static method for convenience.
-     * 
-     * @param input The input string to sanitize
-     * @return Sanitized string, or null if input is null
-     */
-    public static String sanitize(String input) {
-        if (input == null) {
-            return null;
-        }
-        
-        // Remove leading/trailing whitespace
-        String sanitized = input.trim();
-        
-        // Remove control characters (except newline, tab, carriage return)
-        sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
-        
-        // Replace multiple spaces with single space (but preserve newlines and tabs)
-        sanitized = sanitized.replaceAll("[ ]+", " ");
-        
-        return sanitized;
-    }
-    
-    /**
-     * Sanitizes a string by trimming whitespace and removing control characters.
-     * Instance method for dependency injection.
      * 
      * @param input The input string to sanitize
      * @return Sanitized string, or null if input is null

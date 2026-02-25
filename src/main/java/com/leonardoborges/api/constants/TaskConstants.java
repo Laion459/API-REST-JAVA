@@ -34,6 +34,7 @@ public final class TaskConstants {
     // Cache names
     public static final String CACHE_NAME_TASKS = "tasks";
     public static final String CACHE_NAME_TASK_STATS = "taskStats";
+    public static final String CACHE_NAME_TASK_LISTS = "taskLists";
     
     // Cache key prefixes
     public static final String CACHE_KEY_PREFIX_ALL = "all-";
