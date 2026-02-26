@@ -60,9 +60,8 @@ jobs:
         run: mvn clean test jacoco:report
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/tasksdb_test
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres
+          # Note: Tests use H2 in-memory database (configured in application-test.yml)
+          # PostgreSQL service is available but not used by unit/integration tests
           SPRING_REDIS_HOST: localhost
           SPRING_REDIS_PORT: 6379
 
