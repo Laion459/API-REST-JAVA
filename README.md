@@ -368,7 +368,7 @@ open target/site/jacoco/index.html
 1. **Test** - Runs all tests
    - Configures PostgreSQL and Redis as services
    - Runs tests with coverage
-   - Validates minimum coverage (currently 75% lines, 37% branches - target: 90%/85%)
+   - Validates minimum coverage (currently 85% lines, 58% branches - target: 90%/85%)
    - Uploads results and reports
 
 2. **Build** - Compiles the application
