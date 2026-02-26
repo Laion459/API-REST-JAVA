@@ -10,6 +10,7 @@ import java.time.Duration;
 import static com.leonardoborges.api.constants.TaskConstants.*;
 
 @Configuration
+@org.springframework.context.annotation.Profile("!test")
 public class RateLimitConfig {
 
     @Bean
