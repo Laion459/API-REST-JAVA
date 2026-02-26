@@ -12,33 +12,33 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resposta paginada de tarefas")
+@Schema(description = "Paginated task response")
 public class TaskPageResponse {
     
-    @Schema(description = "Lista de tarefas da página atual")
+    @Schema(description = "List of tasks in the current page")
     private List<TaskResponse> content;
     
-    @Schema(description = "Número total de páginas")
+    @Schema(description = "Total number of pages")
     private Integer totalPages;
     
-    @Schema(description = "Número total de elementos")
+    @Schema(description = "Total number of elements")
     private Long totalElements;
     
-    @Schema(description = "Tamanho da página")
+    @Schema(description = "Page size")
     private Integer size;
     
-    @Schema(description = "Número da página atual (0-indexed)")
+    @Schema(description = "Current page number (0-indexed)")
     private Integer number;
     
-    @Schema(description = "Número de elementos na página atual")
+    @Schema(description = "Number of elements in the current page")
     private Integer numberOfElements;
     
-    @Schema(description = "Se é a primeira página")
+    @Schema(description = "Whether this is the first page")
     private Boolean first;
     
-    @Schema(description = "Se é a última página")
+    @Schema(description = "Whether this is the last page")
     private Boolean last;
     
-    @Schema(description = "Se a página está vazia")
+    @Schema(description = "Whether the page is empty")
     private Boolean empty;
 }

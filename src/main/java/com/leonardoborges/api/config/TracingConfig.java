@@ -7,15 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuração para distributed tracing.
- * Integra com Micrometer Tracing para observabilidade completa.
+ * Configuration for distributed tracing.
+ * Integrates with Micrometer Tracing for complete observability.
  */
 @Configuration
 public class TracingConfig {
     
     /**
-     * Bean para adicionar trace ID aos logs.
-     * Permite correlacionar logs de diferentes serviços.
+     * Bean to add trace ID to logs.
+     * Allows correlating logs from different services.
      */
     @Bean
     public TraceIdLoggingFilter traceIdLoggingFilter() {

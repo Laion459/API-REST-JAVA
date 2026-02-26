@@ -3,17 +3,17 @@ package com.leonardoborges.api.service.strategy;
 import com.leonardoborges.api.model.Task;
 
 /**
- * Strategy interface para diferentes estratégias de eviction de cache.
- * Permite diferentes abordagens baseadas no tipo de operação.
+ * Strategy interface for different cache eviction strategies.
+ * Allows different approaches based on operation type.
  */
 public interface CacheEvictionStrategy {
     
     /**
-     * Executa a estratégia de eviction após uma operação.
+     * Executes the eviction strategy after an operation.
      * 
-     * @param taskId ID da task afetada
-     * @param oldStatus Status anterior (pode ser null para criação)
-     * @param newStatus Status novo (pode ser null para deleção)
+     * @param taskId ID of the affected task
+     * @param oldStatus Previous status (can be null for creation)
+     * @param newStatus New status (can be null for deletion)
      */
     void evict(Long taskId, Task.TaskStatus oldStatus, Task.TaskStatus newStatus);
 }

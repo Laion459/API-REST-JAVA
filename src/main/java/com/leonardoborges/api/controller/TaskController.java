@@ -33,7 +33,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Tasks", description = "API para gerenciamento de tarefas de alta performance")
+@Tag(name = "Tasks", description = "High-performance task management API")
 public class TaskController {
     
     private final TaskService taskService;
@@ -41,44 +41,44 @@ public class TaskController {
     
     @PostMapping
     @Operation(
-            summary = "Criar nova tarefa",
-            description = "Cria uma nova tarefa no sistema. Requer autenticação JWT.",
+            summary = "Create new task",
+            description = "Creates a new task in the system. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Tarefa criada com sucesso",
+                    description = "Task created successfully",
                     content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados de entrada inválidos",
+                    description = "Invalid input data",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Erro de validação de negócio",
+                    description = "Business validation error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
@@ -90,44 +90,44 @@ public class TaskController {
     
     @GetMapping("/{id}")
     @Operation(
-            summary = "Buscar tarefa por ID",
-            description = "Retorna uma tarefa específica pelo ID. Requer autenticação JWT.",
+            summary = "Get task by ID",
+            description = "Returns a specific task by ID. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Tarefa encontrada com sucesso",
+                    description = "Task found successfully",
                     content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "Tarefa não encontrada",
+                    description = "Task not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     public ResponseEntity<TaskResponse> getTaskById(
-            @Parameter(description = "ID da tarefa") @PathVariable Long id) {
+            @Parameter(description = "Task ID") @PathVariable Long id) {
         log.debug("GET /api/v1/tasks/{} - Fetching task", id);
         TaskResponse response = taskService.getTaskById(id);
         return ResponseEntity.ok(response);
@@ -135,44 +135,44 @@ public class TaskController {
     
     @GetMapping
     @Operation(
-            summary = "Listar todas as tarefas",
-            description = "Retorna lista paginada de todas as tarefas. Suporta paginação e ordenação. Requer autenticação JWT.\n\n" +
-                    "**Parâmetros de paginação:**\n" +
-                    "- `page`: Número da página (começa em 0, padrão: 0)\n" +
-                    "- `size`: Tamanho da página (padrão: 20, recomendado: 10-50)\n" +
-                    "- `sort`: Campo para ordenação (ex: `createdAt`, `title`, `priority`). Use `,desc` para ordem decrescente (ex: `createdAt,desc`)\n\n" +
-                    "**Exemplo:** `?page=0&size=20&sort=createdAt,desc`",
+            summary = "List all tasks",
+            description = "Returns a paginated list of all tasks. Supports pagination and sorting. Requires JWT authentication.\n\n" +
+                    "**Pagination parameters:**\n" +
+                    "- `page`: Page number (starts at 0, default: 0)\n" +
+                    "- `size`: Page size (default: 20, recommended: 10-50)\n" +
+                    "- `sort`: Field for sorting (e.g., `createdAt`, `title`, `priority`). Use `,desc` for descending order (e.g., `createdAt,desc`)\n\n" +
+                    "**Example:** `?page=0&size=20&sort=createdAt,desc`",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Lista de tarefas retornada com sucesso",
+                    description = "Task list returned successfully",
                     content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     public ResponseEntity<TaskPageResponse> getAllTasks(
-            @Parameter(description = "Parâmetros de paginação. Exemplo: ?page=0&size=20&sort=createdAt,desc. Padrão: page=0, size=20, sort=createdAt") 
+            @Parameter(description = "Pagination parameters. Example: ?page=0&size=20&sort=createdAt,desc. Default: page=0, size=20, sort=createdAt") 
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "createdAt") Pageable pageable) {
         log.debug("GET /api/v1/tasks - Fetching all tasks with pagination: page={}, size={}", 
                 pageable.getPageNumber(), pageable.getPageSize());
@@ -199,50 +199,50 @@ public class TaskController {
     
     @GetMapping("/status/{status}")
     @Operation(
-            summary = "Listar tarefas por status",
-            description = "Retorna lista paginada de tarefas filtradas por status. Valores possíveis: PENDING, IN_PROGRESS, COMPLETED, CANCELLED. Requer autenticação JWT.\n\n" +
-                    "**Parâmetros de paginação:**\n" +
-                    "- `page`: Número da página (começa em 0, padrão: 0)\n" +
-                    "- `size`: Tamanho da página (padrão: 20, recomendado: 10-50)\n" +
-                    "- `sort`: Campo para ordenação (ex: `priority`, `createdAt`, `title`). Use `,desc` para ordem decrescente\n\n" +
-                    "**Exemplo:** `/api/v1/tasks/status/PENDING?page=0&size=20&sort=priority,desc`",
+            summary = "List tasks by status",
+            description = "Returns a paginated list of tasks filtered by status. Possible values: PENDING, IN_PROGRESS, COMPLETED, CANCELLED. Requires JWT authentication.\n\n" +
+                    "**Pagination parameters:**\n" +
+                    "- `page`: Page number (starts at 0, default: 0)\n" +
+                    "- `size`: Page size (default: 20, recommended: 10-50)\n" +
+                    "- `sort`: Field for sorting (e.g., `priority`, `createdAt`, `title`). Use `,desc` for descending order\n\n" +
+                    "**Example:** `/api/v1/tasks/status/PENDING?page=0&size=20&sort=priority,desc`",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Lista de tarefas filtradas por status retornada com sucesso",
+                    description = "Filtered task list by status returned successfully",
                     content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Status inválido",
+                    description = "Invalid status",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     public ResponseEntity<TaskPageResponse> getTasksByStatus(
-            @Parameter(description = "Status da tarefa (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)") @PathVariable Task.TaskStatus status,
-            @Parameter(description = "Parâmetros de paginação. Exemplo: ?page=0&size=20&sort=priority,desc. Padrão: page=0, size=20, sort=priority") 
+            @Parameter(description = "Task status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)") @PathVariable Task.TaskStatus status,
+            @Parameter(description = "Pagination parameters. Example: ?page=0&size=20&sort=priority,desc. Default: page=0, size=20, sort=priority") 
             @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "priority") Pageable pageable) {
         log.debug("GET /api/v1/tasks/status/{} - Fetching tasks by status", status);
         
@@ -268,9 +268,9 @@ public class TaskController {
     
     @GetMapping("/stats/count")
     @Operation(
-            summary = "Estatísticas de tarefas",
-            description = "Retorna contagem de tarefas por status. Requer autenticação JWT.\n\n" +
-                    "**Exemplo de resposta:**\n" +
+            summary = "Task statistics",
+            description = "Returns task count by status. Requires JWT authentication.\n\n" +
+                    "**Response example:**\n" +
                     "```json\n" +
                     "{\n" +
                     "  \"pending\": 5,\n" +
@@ -284,27 +284,27 @@ public class TaskController {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Estatísticas retornadas com sucesso",
+                    description = "Statistics returned successfully",
                     content = @Content(schema = @Schema(implementation = Map.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
@@ -321,54 +321,54 @@ public class TaskController {
     
     @PutMapping("/{id}")
     @Operation(
-            summary = "Atualizar tarefa",
-            description = "Atualiza uma tarefa existente. Suporta optimistic locking através do campo 'version'. Requer autenticação JWT.",
+            summary = "Update task",
+            description = "Updates an existing task. Supports optimistic locking through the 'version' field. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Tarefa atualizada com sucesso",
+                    description = "Task updated successfully",
                     content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados de entrada inválidos",
+                    description = "Invalid input data",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Acesso negado - Token JWT válido mas sem permissão para acessar este recurso",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "Tarefa não encontrada",
+                    description = "Task not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Conflito de versão - A tarefa foi modificada por outro usuário (optimistic locking)",
+                    description = "Version conflict - Task was modified by another user (optimistic locking)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Erro de validação de negócio",
+                    description = "Business validation error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
@@ -382,33 +382,33 @@ public class TaskController {
     
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Deletar tarefa",
-            description = "Remove uma tarefa do sistema. Requer autenticação JWT.",
+            summary = "Delete task",
+            description = "Removes a task from the system. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Tarefa deletada com sucesso"
+                    description = "Task deleted successfully"
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "Tarefa não encontrada",
+                    description = "Task not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })

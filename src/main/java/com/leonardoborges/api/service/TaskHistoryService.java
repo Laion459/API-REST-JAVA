@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service para gerenciar histórico de mudanças de tasks.
- * Registra todas as alterações de campos para auditoria completa.
+ * Service for managing task change history.
+ * Records all field changes for complete auditing.
  */
 @Service
 @RequiredArgsConstructor
@@ -26,12 +26,12 @@ public class TaskHistoryService {
     private final SecurityUtils securityUtils;
     
     /**
-     * Registra uma mudança de campo de forma assíncrona.
+     * Records a field change asynchronously.
      * 
-     * @param taskId ID da task
-     * @param fieldName Nome do campo alterado
-     * @param oldValue Valor anterior
-     * @param newValue Novo valor
+     * @param taskId Task ID
+     * @param fieldName Name of the changed field
+     * @param oldValue Previous value
+     * @param newValue New value
      */
     @Async
     @Transactional
@@ -56,11 +56,11 @@ public class TaskHistoryService {
     }
     
     /**
-     * Registra múltiplas mudanças de uma task.
+     * Records multiple changes of a task.
      * 
-     * @param taskId ID da task
-     * @param oldTask Task antes das mudanças
-     * @param newTask Task após as mudanças
+     * @param taskId Task ID
+     * @param oldTask Task before changes
+     * @param newTask Task after changes
      */
     @Async
     @Transactional
@@ -99,10 +99,10 @@ public class TaskHistoryService {
     }
     
     /**
-     * Obtém histórico completo de uma task ordenado por data.
+     * Gets complete history of a task ordered by date.
      * 
-     * @param taskId ID da task
-     * @return Lista de histórico ordenada por data (mais recente primeiro)
+     * @param taskId Task ID
+     * @return History list ordered by date (most recent first)
      */
     @Transactional(readOnly = true)
     public List<TaskHistory> getTaskHistory(Long taskId) {

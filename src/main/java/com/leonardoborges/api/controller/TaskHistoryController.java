@@ -25,14 +25,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller para consulta de histórico de mudanças de tasks.
- * Permite rastrear todas as alterações feitas em uma task.
+ * Controller for querying task change history.
+ * Allows tracking all changes made to a task.
  */
 @RestController
 @RequestMapping("/api/v1/tasks/{taskId}/history")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Task History", description = "Histórico de mudanças de tasks")
+@Tag(name = "Task History", description = "Task change history")
 public class TaskHistoryController {
     
     private final TaskHistoryRepository taskHistoryRepository;
@@ -40,24 +40,24 @@ public class TaskHistoryController {
     
     @GetMapping
     @Operation(
-            summary = "Listar histórico de mudanças de uma task",
-            description = "Retorna lista paginada de todas as mudanças feitas em uma task específica. Requer autenticação JWT.",
+            summary = "List task change history",
+            description = "Returns a paginated list of all changes made to a specific task. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Histórico retornado com sucesso",
+                    description = "History returned successfully",
                     content = @Content(schema = @Schema(implementation = Page.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado",
+                    description = "Unauthenticated",
                     content = @Content(schema = @Schema(implementation = com.leonardoborges.api.exception.ErrorResponse.class))
             )
     })
     public ResponseEntity<Page<TaskHistory>> getTaskHistory(
-            @Parameter(description = "ID da task") @PathVariable Long taskId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
             @PageableDefault(size = 50) Pageable pageable) {
         log.debug("GET /api/v1/tasks/{}/history - Fetching task history", taskId);
         Page<TaskHistory> history = taskHistoryRepository.findByTaskId(taskId, pageable);
@@ -66,13 +66,13 @@ public class TaskHistoryController {
     
     @GetMapping("/field/{fieldName}")
     @Operation(
-            summary = "Listar histórico de um campo específico",
-            description = "Retorna histórico de mudanças de um campo específico de uma task. Requer autenticação JWT.",
+            summary = "List history of a specific field",
+            description = "Returns change history of a specific field of a task. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<List<TaskHistory>> getTaskHistoryByField(
-            @Parameter(description = "ID da task") @PathVariable Long taskId,
-            @Parameter(description = "Nome do campo (ex: title, status, priority)") @PathVariable String fieldName) {
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
+            @Parameter(description = "Field name (e.g., title, status, priority)") @PathVariable String fieldName) {
         log.debug("GET /api/v1/tasks/{}/history/field/{} - Fetching field history", taskId, fieldName);
         List<TaskHistory> history = taskHistoryRepository.findByTaskIdAndFieldName(taskId, fieldName);
         return ResponseEntity.ok(history);
@@ -80,8 +80,8 @@ public class TaskHistoryController {
     
     @GetMapping("/all")
     @Operation(
-            summary = "Listar todo o histórico de uma task",
-            description = "Retorna todo o histórico de mudanças de uma task ordenado por data. Requer autenticação JWT.",
+            summary = "List all task history",
+            description = "Returns all change history of a task ordered by date. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<List<TaskHistory>> getAllTaskHistory(
@@ -93,12 +93,12 @@ public class TaskHistoryController {
     
     @GetMapping("/date-range")
     @Operation(
-            summary = "Listar histórico por intervalo de datas",
-            description = "Retorna histórico de mudanças em um intervalo de datas. Requer autenticação JWT.",
+            summary = "List history by date range",
+            description = "Returns change history within a date range. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Page<TaskHistory>> getTaskHistoryByDateRange(
-            @Parameter(description = "ID da task") @PathVariable Long taskId,
+            @Parameter(description = "Task ID") @PathVariable Long taskId,
             @Parameter(description = "Data inicial (formato: yyyy-MM-ddTHH:mm:ss)") 
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @Parameter(description = "Data final (formato: yyyy-MM-ddTHH:mm:ss)") 

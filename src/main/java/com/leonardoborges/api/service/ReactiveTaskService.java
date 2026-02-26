@@ -15,8 +15,8 @@ import java.time.Duration;
 import java.util.Map;
 
 /**
- * Service reativo para operações de leitura de alta performance.
- * Usa programação reativa (Mono/Flux) para melhor escalabilidade.
+ * Reactive service for high-performance read operations.
+ * Uses reactive programming (Mono/Flux) for better scalability.
  */
 @Service
 @RequiredArgsConstructor
@@ -32,8 +32,8 @@ public class ReactiveTaskService {
     private static final Duration CACHE_TTL = Duration.ofMinutes(15);
     
     /**
-     * Busca task por ID de forma reativa (não-bloqueante).
-     * Usa cache Redis reativo para melhor performance.
+     * Retrieves task by ID reactively (non-blocking).
+     * Uses reactive Redis cache for better performance.
      */
     public Mono<TaskResponse> getTaskById(Long id, Long userId) {
         String cacheKey = CACHE_KEY_PREFIX + id + ":" + userId;
@@ -55,8 +55,8 @@ public class ReactiveTaskService {
     }
     
     /**
-     * Lista todas as tasks de forma reativa com paginação.
-     * Otimizado para alta concorrência.
+     * Lists all tasks reactively with pagination.
+     * Optimized for high concurrency.
      */
     public Flux<TaskResponse> getAllTasks(int page, int size, Long userId) {
         long offset = (long) page * size;
@@ -67,7 +67,7 @@ public class ReactiveTaskService {
     }
     
     /**
-     * Lista tasks por status de forma reativa com paginação.
+     * Lists tasks by status reactively with pagination.
      */
     public Flux<TaskResponse> getTasksByStatus(Task.TaskStatus status, int page, int size, Long userId) {
         long offset = (long) page * size;
@@ -79,8 +79,8 @@ public class ReactiveTaskService {
     }
     
     /**
-     * Retorna estatísticas de tasks de forma reativa.
-     * Otimizado para leitura rápida.
+     * Returns task statistics reactively.
+     * Optimized for fast reads.
      */
     public Mono<Map<String, Long>> getTaskStats(Long userId) {
         Mono<Long> pending = reactiveTaskRepository.countByUserIdAndStatus(
@@ -103,7 +103,7 @@ public class ReactiveTaskService {
     }
     
     /**
-     * Invalida cache de uma task específica.
+     * Invalidates cache for a specific task.
      */
     public Mono<Void> evictTaskCache(Long taskId, Long userId) {
         String cacheKey = CACHE_KEY_PREFIX + taskId + ":" + userId;

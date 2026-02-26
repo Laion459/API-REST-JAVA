@@ -19,8 +19,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Service para operações em lote (batch) de tasks.
- * Otimizado para processar múltiplas operações de forma eficiente.
+ * Service for batch operations on tasks.
+ * Optimized to process multiple operations efficiently.
  */
 @Service
 @RequiredArgsConstructor
@@ -35,10 +35,10 @@ public class BatchTaskService {
     private final AuditService auditService;
     
     /**
-     * Cria múltiplas tasks em uma única transação.
+     * Creates multiple tasks in a single transaction.
      * 
-     * @param requests Lista de requests para criação
-     * @return Lista de tasks criadas
+     * @param requests List of requests for creation
+     * @return List of created tasks
      */
     @Transactional
     public List<TaskResponse> createBatch(List<TaskRequest> requests) {
@@ -99,10 +99,10 @@ public class BatchTaskService {
     }
     
     /**
-     * Atualiza múltiplas tasks em uma única transação.
+     * Updates multiple tasks in a single transaction.
      * 
-     * @param updates Map de taskId -> TaskRequest
-     * @return Lista de tasks atualizadas
+     * @param updates Map of taskId -> TaskRequest
+     * @return List of updated tasks
      */
     @Transactional
     public List<TaskResponse> updateBatch(java.util.Map<Long, TaskRequest> updates) {
@@ -159,9 +159,9 @@ public class BatchTaskService {
     }
     
     /**
-     * Deleta múltiplas tasks em uma única transação (soft delete).
+     * Deletes multiple tasks in a single transaction (soft delete).
      * 
-     * @param taskIds Lista de IDs de tasks para deletar
+     * @param taskIds List of task IDs to delete
      */
     @Transactional
     public void deleteBatch(List<Long> taskIds) {

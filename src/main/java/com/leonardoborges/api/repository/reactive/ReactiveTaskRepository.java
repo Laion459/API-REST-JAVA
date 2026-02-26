@@ -10,23 +10,23 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Repository reativo para operações de leitura de alta performance.
- * Usa R2DBC para acesso não-bloqueante ao PostgreSQL.
+ * Reactive repository for high-performance read operations.
+ * Uses R2DBC for non-blocking access to PostgreSQL.
  */
 @Repository
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "spring.r2dbc.enabled", havingValue = "true", matchIfMissing = false)
 public interface ReactiveTaskRepository extends R2dbcRepository<Task, Long> {
     
     /**
-     * Busca task por ID e user (não deletadas).
-     * Retorna Mono.empty() se não encontrada.
+     * Finds task by ID and user (not deleted).
+     * Returns Mono.empty() if not found.
      */
     @Query("SELECT * FROM tasks WHERE id = :id AND user_id = :userId AND deleted = false")
     Mono<Task> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
     
     /**
-     * Lista todas as tasks de um usuário (não deletadas) com paginação.
-     * Ordenado por createdAt DESC.
+     * Lists all tasks of a user (not deleted) with pagination.
+     * Ordered by createdAt DESC.
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND deleted = false " +
            "ORDER BY created_at DESC LIMIT :limit OFFSET :offset")
@@ -35,7 +35,7 @@ public interface ReactiveTaskRepository extends R2dbcRepository<Task, Long> {
                                      @Param("offset") long offset);
     
     /**
-     * Lista tasks por status e usuário (não deletadas) com paginação.
+     * Lists tasks by status and user (not deleted) with pagination.
      */
     @Query("SELECT * FROM tasks WHERE user_id = :userId AND status = :status AND deleted = false " +
            "ORDER BY priority DESC, created_at DESC LIMIT :limit OFFSET :offset")
@@ -45,13 +45,13 @@ public interface ReactiveTaskRepository extends R2dbcRepository<Task, Long> {
                                                @Param("offset") long offset);
     
     /**
-     * Conta tasks por status e usuário (não deletadas).
+     * Counts tasks by status and user (not deleted).
      */
     @Query("SELECT COUNT(*) FROM tasks WHERE user_id = :userId AND status = :status AND deleted = false")
     Mono<Long> countByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
     
     /**
-     * Conta total de tasks de um usuário (não deletadas).
+     * Counts total tasks of a user (not deleted).
      */
     @Query("SELECT COUNT(*) FROM tasks WHERE user_id = :userId AND deleted = false")
     Mono<Long> countByUserId(@Param("userId") Long userId);

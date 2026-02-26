@@ -5,14 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-@Schema(description = "Request DTO para login de usuário")
+@Schema(description = "Request DTO for user login")
 public class LoginRequest {
     
-    @Schema(description = "Username ou email do usuário", example = "johndoe")
+    @Schema(description = "Username or email", example = "johndoe")
     @NotBlank(message = "Username or email is required")
     private String usernameOrEmail;
     
-    @Schema(description = "Senha do usuário", example = "password123")
+    @Schema(description = "User password", example = "password123")
     @NotBlank(message = "Password is required")
     private String password;
 }

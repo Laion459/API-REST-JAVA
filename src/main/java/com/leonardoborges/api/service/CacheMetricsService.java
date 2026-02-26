@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Service para métricas de cache.
- * Coleta e expõe métricas de hit rate, miss rate, tamanho, etc.
+ * Service for cache metrics.
+ * Collects and exposes metrics for hit rate, miss rate, size, etc.
  */
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class CacheMetricsService {
     private final Map<String, Timer> accessTimers = new HashMap<>();
     
     /**
-     * Registra um cache hit.
+     * Records a cache hit.
      */
     public void recordCacheHit(String cacheName) {
         Counter counter = hitCounters.computeIfAbsent(cacheName, 
@@ -43,7 +43,7 @@ public class CacheMetricsService {
     }
     
     /**
-     * Registra um cache miss.
+     * Records a cache miss.
      */
     public void recordCacheMiss(String cacheName) {
         Counter counter = missCounters.computeIfAbsent(cacheName,
@@ -55,7 +55,7 @@ public class CacheMetricsService {
     }
     
     /**
-     * Mede o tempo de acesso ao cache.
+     * Measures cache access time.
      */
     public Timer.Sample startCacheAccessTimer(String cacheName) {
         Timer timer = accessTimers.computeIfAbsent(cacheName,
@@ -67,7 +67,7 @@ public class CacheMetricsService {
     }
     
     /**
-     * Calcula e retorna estatísticas de cache.
+     * Calculates and returns cache statistics.
      */
     public Map<String, Object> getCacheStatistics() {
         Map<String, Object> stats = new HashMap<>();
@@ -103,7 +103,7 @@ public class CacheMetricsService {
     }
     
     /**
-     * Coleta métricas de cache periodicamente (a cada 5 minutos).
+     * Collects cache metrics periodically (every 5 minutes).
      */
     @Scheduled(fixedRate = 300000) // 5 minutos
     public void collectCacheMetrics() {

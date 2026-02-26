@@ -72,8 +72,8 @@ public class RedisConfig {
     }
     
     /**
-     * Bean para Redis reativo (WebFlux).
-     * Usado em endpoints reativos para cache não-bloqueante.
+     * Bean for reactive Redis (WebFlux).
+     * Used in reactive endpoints for non-blocking cache.
      */
     @Bean
     public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {

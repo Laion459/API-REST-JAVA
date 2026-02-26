@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request DTO para renovação de token usando refresh token")
+@Schema(description = "Request DTO for token renewal using refresh token")
 public class RefreshTokenRequest {
     
-    @Schema(description = "Refresh token JWT para renovação", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    @Schema(description = "JWT refresh token for renewal", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     @NotBlank(message = "Refresh token is required")
     private String refreshToken;
 }

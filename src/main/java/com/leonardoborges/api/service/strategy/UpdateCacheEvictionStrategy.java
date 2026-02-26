@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Estratégia de eviction para atualização de tasks.
- * Invalida task individual, listas e estatísticas afetadas.
+ * Cache eviction strategy for task updates.
+ * Invalidates individual task, lists, and affected statistics.
  */
 @Component
 @RequiredArgsConstructor

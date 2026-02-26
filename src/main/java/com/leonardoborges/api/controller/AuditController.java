@@ -38,19 +38,19 @@ public class AuditController {
     
     @GetMapping
     @Operation(
-            summary = "Listar logs de auditoria",
-            description = "Retorna lista paginada de logs de auditoria. Requer role ADMIN.",
+            summary = "List audit logs",
+            description = "Returns a paginated list of audit logs. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Lista de logs retornada com sucesso",
+                    description = "Log list returned successfully",
                     content = @Content(schema = @Schema(implementation = Page.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado",
+                    description = "Unauthenticated",
                     content = @Content(schema = @Schema(implementation = com.leonardoborges.api.exception.ErrorResponse.class))
             ),
             @ApiResponse(
@@ -68,12 +68,12 @@ public class AuditController {
     
     @GetMapping("/action/{action}")
     @Operation(
-            summary = "Buscar logs por ação",
-            description = "Retorna logs de auditoria filtrados por ação específica. Requer role ADMIN.",
+            summary = "Get logs by action",
+            description = "Returns audit logs filtered by specific action. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Page<AuditLog>> getAuditLogsByAction(
-            @Parameter(description = "Ação a filtrar (ex: TASK_CREATED, LOGIN_SUCCESS)") 
+            @Parameter(description = "Action to filter (e.g., TASK_CREATED, LOGIN_SUCCESS)") 
             @PathVariable String action,
             @PageableDefault(size = 50) Pageable pageable) {
         log.debug("GET /api/v1/audit/action/{} - Fetching audit logs by action", action);
@@ -83,14 +83,14 @@ public class AuditController {
     
     @GetMapping("/entity/{entityType}/{entityId}")
     @Operation(
-            summary = "Buscar logs por entidade",
-            description = "Retorna logs de auditoria para uma entidade específica. Requer role ADMIN.",
+            summary = "Get logs by entity",
+            description = "Returns audit logs for a specific entity. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Page<AuditLog>> getAuditLogsByEntity(
-            @Parameter(description = "Tipo da entidade (ex: Task, User)") 
+            @Parameter(description = "Entity type (e.g., Task, User)") 
             @PathVariable String entityType,
-            @Parameter(description = "ID da entidade") 
+            @Parameter(description = "Entity ID") 
             @PathVariable Long entityId,
             @PageableDefault(size = 50) Pageable pageable) {
         log.debug("GET /api/v1/audit/entity/{}/{} - Fetching audit logs by entity", entityType, entityId);
@@ -100,8 +100,8 @@ public class AuditController {
     
     @GetMapping("/user/{username}")
     @Operation(
-            summary = "Buscar logs por usuário",
-            description = "Retorna logs de auditoria para um usuário específico. Requer role ADMIN.",
+            summary = "Get logs by user",
+            description = "Returns audit logs for a specific user. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Page<AuditLog>> getAuditLogsByUser(
@@ -115,14 +115,14 @@ public class AuditController {
     
     @GetMapping("/date-range")
     @Operation(
-            summary = "Buscar logs por intervalo de datas",
-            description = "Retorna logs de auditoria em um intervalo de datas. Requer role ADMIN.",
+            summary = "Get logs by date range",
+            description = "Returns audit logs within a date range. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Page<AuditLog>> getAuditLogsByDateRange(
-            @Parameter(description = "Data inicial (formato: yyyy-MM-ddTHH:mm:ss)") 
+            @Parameter(description = "Start date (format: yyyy-MM-ddTHH:mm:ss)") 
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @Parameter(description = "Data final (formato: yyyy-MM-ddTHH:mm:ss)") 
+            @Parameter(description = "End date (format: yyyy-MM-ddTHH:mm:ss)") 
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @PageableDefault(size = 50) Pageable pageable) {
         log.debug("GET /api/v1/audit/date-range - Fetching audit logs by date range");
@@ -132,12 +132,12 @@ public class AuditController {
     
     @GetMapping("/stats/failed")
     @Operation(
-            summary = "Estatísticas de ações falhadas",
-            description = "Retorna contagem de ações falhadas desde uma data. Requer role ADMIN.",
+            summary = "Failed actions statistics",
+            description = "Returns count of failed actions since a date. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     public ResponseEntity<Long> getFailedActionsCount(
-            @Parameter(description = "Data inicial (formato: yyyy-MM-ddTHH:mm:ss, padrão: 24h atrás)") 
+            @Parameter(description = "Start date (format: yyyy-MM-ddTHH:mm:ss, default: 24h ago)") 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
         if (since == null) {
             since = LocalDateTime.now().minusHours(24);

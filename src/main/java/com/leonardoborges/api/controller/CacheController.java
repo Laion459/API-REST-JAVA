@@ -32,19 +32,19 @@ public class CacheController {
     
     @GetMapping("/stats")
     @Operation(
-            summary = "Obter estatísticas do cache",
-            description = "Retorna informações sobre configuração e status do cache. Requer role ADMIN.",
+            summary = "Get cache statistics",
+            description = "Returns information about cache configuration and status. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Estatísticas do cache retornadas com sucesso",
+                    description = "Cache statistics returned successfully",
                     content = @Content(schema = @Schema(implementation = Map.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -54,7 +54,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -71,19 +71,19 @@ public class CacheController {
     
     @GetMapping("/tasks/{id}/cached")
     @Operation(
-            summary = "Verificar se tarefa está em cache",
-            description = "Retorna se uma tarefa específica está atualmente em cache. Requer role ADMIN.",
+            summary = "Check if task is cached",
+            description = "Returns whether a specific task is currently cached. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Status do cache retornado com sucesso",
+                    description = "Cache status returned successfully",
                     content = @Content(schema = @Schema(implementation = Map.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -93,7 +93,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -110,18 +110,18 @@ public class CacheController {
     
     @DeleteMapping("/tasks/{id}")
     @Operation(
-            summary = "Remover tarefa do cache",
-            description = "Remove manualmente uma tarefa específica do cache. Requer role ADMIN.",
+            summary = "Remove task from cache",
+            description = "Manually removes a specific task from cache. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Tarefa removida do cache com sucesso"
+                    description = "Task removed from cache successfully"
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -131,7 +131,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -148,18 +148,18 @@ public class CacheController {
     
     @DeleteMapping("/stats")
     @Operation(
-            summary = "Limpar cache de estatísticas",
-            description = "Remove todas as estatísticas de tarefas do cache. Requer role ADMIN.",
+            summary = "Clear statistics cache",
+            description = "Removes all task statistics from cache. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Cache de estatísticas limpo com sucesso"
+                    description = "Statistics cache cleared successfully"
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -169,7 +169,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -187,8 +187,8 @@ public class CacheController {
     @DeleteMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Limpar todos os caches",
-            description = "Operação administrativa para limpar todos os caches. Use com cautela. Requer role ADMIN.",
+            summary = "Clear all caches",
+            description = "Administrative operation to clear all caches. Use with caution. Requires ADMIN role.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -198,7 +198,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado - Token JWT inválido ou ausente",
+                    description = "Unauthenticated - Invalid or missing JWT token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -208,7 +208,7 @@ public class CacheController {
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido",
+                    description = "Too many requests - Rate limit exceeded",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(

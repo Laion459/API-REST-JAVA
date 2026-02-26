@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * Service que gerencia estratégias de eviction de cache usando Strategy Pattern.
- * Centraliza a lógica de decisão sobre qual estratégia usar.
+ * Service that manages cache eviction strategies using Strategy Pattern.
+ * Centralizes the decision logic about which strategy to use.
  */
 @Service
 @RequiredArgsConstructor
@@ -21,21 +21,21 @@ public class CacheEvictionService {
     private final DeleteCacheEvictionStrategy deleteStrategy;
     
     /**
-     * Executa eviction após criação de task.
+     * Executes eviction after task creation.
      */
     public void evictAfterCreate(Long taskId, Task.TaskStatus status) {
         createStrategy.evict(taskId, null, status);
     }
     
     /**
-     * Executa eviction após atualização de task.
+     * Executes eviction after task update.
      */
     public void evictAfterUpdate(Long taskId, Task.TaskStatus oldStatus, Task.TaskStatus newStatus) {
         updateStrategy.evict(taskId, oldStatus, newStatus);
     }
     
     /**
-     * Executa eviction após deleção de task.
+     * Executes eviction after task deletion.
      */
     public void evictAfterDelete(Long taskId, Task.TaskStatus status) {
         deleteStrategy.evict(taskId, status, null);

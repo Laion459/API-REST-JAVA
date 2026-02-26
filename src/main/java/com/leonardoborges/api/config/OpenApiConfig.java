@@ -22,7 +22,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("High Performance REST API")
                         .version("2.1.0")
-                        .description("API REST de alta performance desenvolvida com Spring Boot para demonstração de habilidades backend, focada em escalabilidade, performance e boas práticas de engenharia de software.")
+                        .description("High-performance REST API developed with Spring Boot to demonstrate backend skills, focused on scalability, performance, and software engineering best practices.")
                         .contact(new Contact()
                                 .name("Leonardo Borges")
                                 .email("laion459@gmail.com"))

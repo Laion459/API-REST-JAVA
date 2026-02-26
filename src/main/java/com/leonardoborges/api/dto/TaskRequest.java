@@ -14,26 +14,26 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request DTO para criação ou atualização de tarefa")
+@Schema(description = "Request DTO for task creation or update")
 public class TaskRequest {
     
-    @Schema(description = "Título da tarefa", example = "Implementar feature X", minLength = 3, maxLength = 255)
+    @Schema(description = "Task title", example = "Implement feature X", minLength = 3, maxLength = 255)
     @NotBlank(message = "Title is required")
     @Size(min = TaskConstants.TITLE_MIN_LENGTH, max = TaskConstants.TITLE_MAX_LENGTH, 
           message = "Title must be between " + TaskConstants.TITLE_MIN_LENGTH + " and " + TaskConstants.TITLE_MAX_LENGTH + " characters")
     private String title;
     
-    @Schema(description = "Descrição detalhada da tarefa", example = "Implementar nova funcionalidade com testes", maxLength = 1000)
+    @Schema(description = "Detailed task description", example = "Implement new functionality with tests", maxLength = 1000)
     @Size(max = TaskConstants.DESCRIPTION_MAX_LENGTH, 
           message = "Description must not exceed " + TaskConstants.DESCRIPTION_MAX_LENGTH + " characters")
     private String description;
     
-    @Schema(description = "Status da tarefa", example = "PENDING", allowableValues = {"PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"})
+    @Schema(description = "Task status", example = "PENDING", allowableValues = {"PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"})
     private Task.TaskStatus status;
     
-    @Schema(description = "Prioridade da tarefa (quanto maior, mais prioritária)", example = "1", minimum = "0")
+    @Schema(description = "Task priority (higher value means higher priority)", example = "1", minimum = "0")
     private Integer priority;
     
-    @Schema(description = "Versão da tarefa para optimistic locking (opcional)", example = "1")
+    @Schema(description = "Task version for optimistic locking (optional)", example = "1")
     private Long version; // For optimistic locking
 }

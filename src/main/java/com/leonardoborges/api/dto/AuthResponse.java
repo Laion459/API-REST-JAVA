@@ -12,28 +12,28 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Response DTO com informações de autenticação e token JWT")
+@Schema(description = "Response DTO with authentication information and JWT token")
 public class AuthResponse {
     
-    @Schema(description = "Token JWT de acesso para autenticação", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    @Schema(description = "JWT access token for authentication", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;
     
-    @Schema(description = "Token JWT de refresh para renovação do token de acesso", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    @Schema(description = "JWT refresh token for access token renewal", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String refreshToken;
     
-    @Schema(description = "Tipo do token", example = "Bearer")
+    @Schema(description = "Token type", example = "Bearer")
     @Builder.Default
     private String type = "Bearer";
     
-    @Schema(description = "ID do usuário", example = "1")
+    @Schema(description = "User ID", example = "1")
     private Long id;
     
-    @Schema(description = "Username do usuário", example = "johndoe")
+    @Schema(description = "Username", example = "johndoe")
     private String username;
     
-    @Schema(description = "Email do usuário", example = "john.doe@example.com")
+    @Schema(description = "User email", example = "john.doe@example.com")
     private String email;
     
-    @Schema(description = "Roles do usuário", example = "[\"USER\"]")
+    @Schema(description = "User roles", example = "[\"USER\"]")
     private Set<String> roles;
 }

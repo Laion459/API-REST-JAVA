@@ -30,28 +30,28 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(
-            summary = "Registrar novo usuário",
-            description = "Cria uma nova conta de usuário e retorna um token JWT. Endpoint público, não requer autenticação."
+            summary = "Register new user",
+            description = "Creates a new user account and returns a JWT token. Public endpoint, does not require authentication."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Usuário registrado com sucesso",
+                    description = "User registered successfully",
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados de entrada inválidos ou usuário/email já existe",
+                    description = "Invalid input data or user/email already exists",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Erro de validação de negócio",
+                    description = "Business validation error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido (limite: 5 req/min para auth)",
+                    description = "Too many requests - Rate limit exceeded (limit: 5 req/min for auth)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -68,33 +68,33 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(
-            summary = "Login de usuário",
-            description = "Autentica um usuário e retorna um token JWT. Aceita username ou email. Endpoint público, não requer autenticação."
+            summary = "User login",
+            description = "Authenticates a user and returns a JWT token. Accepts username or email. Public endpoint, does not require authentication."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Login realizado com sucesso",
+                    description = "Login successful",
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados de entrada inválidos",
+                    description = "Invalid input data",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Credenciais inválidas",
+                    description = "Invalid credentials",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Erro de validação de negócio (ex: conta desabilitada)",
+                    description = "Business validation error (e.g., account disabled)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido (limite: 5 req/min para auth)",
+                    description = "Too many requests - Rate limit exceeded (limit: 5 req/min for auth)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
@@ -111,33 +111,33 @@ public class AuthController {
     
     @PostMapping("/refresh")
     @Operation(
-            summary = "Renovar token de acesso",
-            description = "Renova o token de acesso usando um refresh token válido. Endpoint público, não requer autenticação."
+            summary = "Refresh access token",
+            description = "Refreshes the access token using a valid refresh token. Public endpoint, does not require authentication."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Token renovado com sucesso",
+                    description = "Token refreshed successfully",
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Refresh token inválido ou ausente",
+                    description = "Invalid or missing refresh token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Refresh token inválido ou expirado",
+                    description = "Invalid or expired refresh token",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Erro de validação de negócio",
+                    description = "Business validation error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "429",
-                    description = "Muitas requisições - Rate limit excedido (limite: 5 req/min para auth)",
+                    description = "Too many requests - Rate limit exceeded (limit: 5 req/min for auth)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(

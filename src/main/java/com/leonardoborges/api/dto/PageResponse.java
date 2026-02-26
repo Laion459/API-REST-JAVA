@@ -13,42 +13,42 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Resposta paginada genérica")
+@Schema(description = "Generic paginated response")
 public class PageResponse<T> {
     
-    @Schema(description = "Lista de itens da página atual")
+    @Schema(description = "List of items in the current page")
     @JsonProperty("content")
     private List<T> content;
     
-    @Schema(description = "Número total de páginas")
+    @Schema(description = "Total number of pages")
     @JsonProperty("totalPages")
     private Integer totalPages;
     
-    @Schema(description = "Número total de elementos")
+    @Schema(description = "Total number of elements")
     @JsonProperty("totalElements")
     private Long totalElements;
     
-    @Schema(description = "Tamanho da página")
+    @Schema(description = "Page size")
     @JsonProperty("size")
     private Integer size;
     
-    @Schema(description = "Número da página atual (0-indexed)")
+    @Schema(description = "Current page number (0-indexed)")
     @JsonProperty("number")
     private Integer number;
     
-    @Schema(description = "Número de elementos na página atual")
+    @Schema(description = "Number of elements in the current page")
     @JsonProperty("numberOfElements")
     private Integer numberOfElements;
     
-    @Schema(description = "Se é a primeira página")
+    @Schema(description = "Whether this is the first page")
     @JsonProperty("first")
     private Boolean first;
     
-    @Schema(description = "Se é a última página")
+    @Schema(description = "Whether this is the last page")
     @JsonProperty("last")
     private Boolean last;
     
-    @Schema(description = "Se a página está vazia")
+    @Schema(description = "Whether the page is empty")
     @JsonProperty("empty")
     private Boolean empty;
 }

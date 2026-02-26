@@ -10,8 +10,8 @@ import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 /**
- * Configuração R2DBC para programação reativa com PostgreSQL.
- * Usado apenas para endpoints reativos de alta performance.
+ * R2DBC configuration for reactive programming with PostgreSQL.
+ * Used only for high-performance reactive endpoints.
  */
 @Configuration
 @EnableR2dbcRepositories(basePackages = "com.leonardoborges.api.repository.reactive")

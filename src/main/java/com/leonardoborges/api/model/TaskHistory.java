@@ -10,8 +10,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Entidade para histórico de mudanças de tasks.
- * Armazena todas as alterações de campos para auditoria completa.
+ * Entity for task change history.
+ * Stores all field changes for complete auditing.
  */
 @Entity
 @Table(name = "task_history", indexes = {

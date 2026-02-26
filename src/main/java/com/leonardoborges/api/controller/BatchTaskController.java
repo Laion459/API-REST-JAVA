@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller para operações em lote (batch) de tasks.
- * Otimizado para processar múltiplas operações de forma eficiente.
+ * Controller for batch operations on tasks.
+ * Optimized to process multiple operations efficiently.
  */
 @RestController
 @RequestMapping("/api/v1/tasks/batch")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Batch Tasks", description = "Operações em lote para alta performance")
+@Tag(name = "Batch Tasks", description = "Batch operations for high performance")
 public class BatchTaskController {
     
     private final BatchTaskService batchTaskService;
@@ -60,24 +60,24 @@ public class BatchTaskController {
     
     @PostMapping("/create")
     @Operation(
-            summary = "Criar múltiplas tasks em lote",
-            description = "Cria múltiplas tasks em uma única transação. Máximo de 100 tasks por lote. Requer autenticação JWT.",
+            summary = "Create multiple tasks in batch",
+            description = "Creates multiple tasks in a single transaction. Maximum of 100 tasks per batch. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Tasks criadas com sucesso",
+                    description = "Tasks created successfully",
                     content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados inválidos ou batch muito grande",
+                    description = "Invalid data or batch too large",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado",
+                    description = "Unauthenticated",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
@@ -89,24 +89,24 @@ public class BatchTaskController {
     
     @PutMapping("/update")
     @Operation(
-            summary = "Atualizar múltiplas tasks em lote",
-            description = "Atualiza múltiplas tasks em uma única transação. Máximo de 100 tasks por lote. Requer autenticação JWT.",
+            summary = "Update multiple tasks in batch",
+            description = "Updates multiple tasks in a single transaction. Maximum of 100 tasks per batch. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Tasks atualizadas com sucesso",
+                    description = "Tasks updated successfully",
                     content = @Content(schema = @Schema(implementation = TaskResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados inválidos ou batch muito grande",
+                    description = "Invalid data or batch too large",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado",
+                    description = "Unauthenticated",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
@@ -118,23 +118,23 @@ public class BatchTaskController {
     
     @DeleteMapping("/delete")
     @Operation(
-            summary = "Deletar múltiplas tasks em lote",
-            description = "Deleta múltiplas tasks (soft delete) em uma única transação. Máximo de 100 tasks por lote. Requer autenticação JWT.",
+            summary = "Delete multiple tasks in batch",
+            description = "Deletes multiple tasks (soft delete) in a single transaction. Maximum of 100 tasks per batch. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
-                    description = "Tasks deletadas com sucesso"
+                    description = "Tasks deleted successfully"
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Dados inválidos ou batch muito grande",
+                    description = "Invalid data or batch too large",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Não autenticado",
+                    description = "Unauthenticated",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
