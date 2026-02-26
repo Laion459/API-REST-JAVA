@@ -3,7 +3,6 @@ package com.leonardoborges.api.config;
 import com.leonardoborges.api.security.JwtAuthenticationFilter;
 import com.leonardoborges.api.security.RateLimitFilter;
 import com.leonardoborges.api.security.SecurityHeadersFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,16 +27,30 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 @org.springframework.context.annotation.Profile("!test")
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final RateLimitFilter rateLimitFilter;
     private final SecurityHeadersFilter securityHeadersFilter;
     private final CorsProperties corsProperties;
+    
+    // Optional dependency - only injected if RateLimitFilter bean exists
+    private RateLimitFilter rateLimitFilter;
+    
+    public SecurityConfig(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            SecurityHeadersFilter securityHeadersFilter,
+            CorsProperties corsProperties) {
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.securityHeadersFilter = securityHeadersFilter;
+        this.corsProperties = corsProperties;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -59,11 +72,22 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(securityHeadersFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(rateLimitFilter, securityHeadersFilter.getClass())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(securityHeadersFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+        
+        // Only add rate limit filter if it exists (conditional bean)
+        if (rateLimitFilter != null) {
+            http.addFilterAfter(rateLimitFilter, securityHeadersFilter.getClass());
+        }
+        
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+    
+    // Optional setter injection for RateLimitFilter (only if bean exists)
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setRateLimitFilter(RateLimitFilter rateLimitFilter) {
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean

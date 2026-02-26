@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Slf4j
 @org.springframework.context.annotation.Profile("!test")
+@ConditionalOnBean(name = {"defaultBucket", "authBucket", "adminBucket"})
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Bucket defaultBucket;
