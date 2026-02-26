@@ -337,8 +337,9 @@ mvn test jacoco:report
 ### Test Coverage
 
 - **65+ automated tests** (100% passing)
-- **Current coverage: 86.59%** (lines) and **59.85%** (branches)
-- **Target coverage: 90%** (lines) and **85%** (branches) - CI/CD validation planned
+- **Current coverage: 91.49%** (lines) and **71.06%** (branches)
+- **Target coverage: 90%** (lines) and **85%** (branches) - CI/CD validation
+- **CI/CD minimum: 90%** (lines) and **70%** (branches) - Currently enforced
 - Unit tests (Service, Repository, Controller, Cache, Utils)
 - Integration tests (end-to-end)
 - Authentication tests (JWT, login, registration, refresh tokens)
@@ -368,7 +369,7 @@ open target/site/jacoco/index.html
 1. **Test** - Runs all tests
    - Configures PostgreSQL and Redis as services
    - Runs tests with coverage
-   - Validates minimum coverage (currently 85% lines, 58% branches - target: 90%/85%)
+   - Validates minimum coverage (currently 90% lines, 70% branches - target: 90%/85%)
    - Uploads results and reports
 
 2. **Build** - Compiles the application
@@ -498,7 +499,7 @@ SERVER_PORT=8081
 - **Constants for Magic Numbers** - Clean code
 - **API Versioning** - Controlled compatibility
 - **Documentation (Swagger)** - Complete documentation
-- **Code Coverage** - Comprehensive tests (current: 86.59% lines, 59.85% branches - target: 90%/85%)
+- **Code Coverage** - Comprehensive tests (current: 91.49% lines, 71.06% branches - target: 90%/85%)
 - **CI/CD Pipeline** - Continuous integration
 
 ## CI/CD (Planned)
