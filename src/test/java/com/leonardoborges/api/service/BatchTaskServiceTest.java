@@ -27,17 +27,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para BatchTaskService.
+ * Unit tests for BatchTaskService.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Uso de builders para criar objetos de teste
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de casos de sucesso e erro
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Use of builders to create test objects
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Tests for success and error cases
  */
 @ExtendWith(MockitoExtension.class)
 class BatchTaskServiceTest {
@@ -83,7 +83,7 @@ class BatchTaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve criar múltiplas tarefas em lote com sucesso")
+    @DisplayName("Should create multiple tasks in batch successfully")
     void shouldCreateBatchTasks_WhenValidRequests() {
         // Arrange
         List<TaskRequest> requests = Arrays.asList(
@@ -117,7 +117,7 @@ class BatchTaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar lote vazio ou nulo")
+    @DisplayName("Should reject empty or null batch")
     void shouldRejectEmptyBatch_WhenNullOrEmpty() {
         // Act & Assert
         assertThrows(BusinessException.class, () -> {
@@ -130,7 +130,7 @@ class BatchTaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar lote muito grande")
+    @DisplayName("Should reject batch that is too large")
     void shouldRejectBatchTooLarge_WhenExceedsLimit() {
         // Arrange
         List<TaskRequest> largeBatch = Arrays.asList(new TaskRequest[101]);
@@ -143,7 +143,7 @@ class BatchTaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve atualizar múltiplas tarefas em lote com sucesso")
+    @DisplayName("Should update multiple tasks in batch successfully")
     void shouldUpdateBatchTasks_WhenValidUpdates() {
         // Arrange
         Map<Long, TaskRequest> updates = new HashMap<>();
@@ -179,7 +179,7 @@ class BatchTaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve deletar múltiplas tarefas em lote com sucesso")
+    @DisplayName("Should delete multiple tasks in batch successfully")
     void shouldDeleteBatchTasks_WhenValidIds() {
         // Arrange
         List<Long> taskIds = Arrays.asList(1L, 2L);

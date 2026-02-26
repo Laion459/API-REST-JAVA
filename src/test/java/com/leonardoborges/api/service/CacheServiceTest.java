@@ -14,16 +14,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para CacheService.
+ * Unit tests for CacheService.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de casos de sucesso e erro (null cache)
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Tests for success and error cases (null cache)
  */
 @ExtendWith(MockitoExtension.class)
 class CacheServiceTest {
@@ -46,7 +46,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve invalidar cache de tarefa individual")
+    @DisplayName("Should evict individual task cache")
     void shouldEvictTask_WhenTaskIdProvided() {
         // Arrange
         Long taskId = 1L;
@@ -60,7 +60,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve invalidar cache de estatísticas por status")
+    @DisplayName("Should evict statistics cache by status")
     void shouldEvictTaskStats_WhenStatusProvided() {
         // Arrange
         String status = "PENDING";
@@ -74,7 +74,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve limpar todas as estatísticas de cache")
+    @DisplayName("Should clear all statistics cache")
     void shouldEvictAllTaskStats_WhenCalled() {
         // Arrange
         when(cacheManager.getCache("taskStats")).thenReturn(statsCache);
@@ -87,7 +87,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lidar com cache nulo sem lançar exceção")
+    @DisplayName("Should handle null cache without throwing exception")
     void shouldHandleNullCache_WithoutThrowingException() {
         // Arrange
         when(cacheManager.getCache("tasks")).thenReturn(null);
@@ -97,7 +97,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve verificar se tarefa está em cache")
+    @DisplayName("Should check if task is cached")
     void shouldCheckIfTaskIsCached_WhenTaskExists() {
         // Arrange
         Long taskId = 1L;
@@ -114,7 +114,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar false quando tarefa não está em cache")
+    @DisplayName("Should return false when task is not cached")
     void shouldReturnFalse_WhenTaskNotCached() {
         // Arrange
         Long taskId = 1L;
@@ -129,7 +129,7 @@ class CacheServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar estatísticas de cache")
+    @DisplayName("Should return cache statistics")
     void shouldGetCacheStatistics_WhenCachesExist() {
         // Arrange
         when(cacheManager.getCacheNames()).thenReturn(java.util.Set.of("tasks", "taskStats"));

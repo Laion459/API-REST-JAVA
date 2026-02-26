@@ -11,13 +11,13 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
- * Builders utilitários para facilitar a criação de objetos de teste.
- * Segue o padrão Builder para tornar os testes mais legíveis e manuteníveis.
+ * Utility builders to facilitate creation of test objects.
+ * Follows the Builder pattern to make tests more readable and maintainable.
  * 
- * Boas práticas aplicadas:
- * - Métodos estáticos para criação rápida
- * - Valores padrão sensatos
- * - Métodos para customização quando necessário
+ * Best practices applied:
+ * - Static methods for quick creation
+ * - Sensible default values
+ * - Methods for customization when needed
  */
 public class TestBuilders {
 

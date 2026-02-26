@@ -21,17 +21,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para RefreshTokenService.
+ * Unit tests for RefreshTokenService.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Uso de builders para criar objetos de teste
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de casos de sucesso e erro
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Use of builders to create test objects
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Tests for success and error cases
  */
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenServiceTest {
@@ -74,7 +74,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve criar refresh token com sucesso")
+    @DisplayName("Should create refresh token successfully")
     void shouldCreateRefreshToken_WhenValidUser() {
         // Arrange
         when(jwtService.generateRefreshToken(any())).thenReturn("new-token");
@@ -89,7 +89,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve validar e marcar token como usado")
+    @DisplayName("Should validate and mark token as used")
     void shouldValidateAndUseToken_WhenValidToken() {
         // Arrange
         when(jwtService.validateRefreshToken("valid-token")).thenReturn(true);
@@ -108,7 +108,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar token inválido")
+    @DisplayName("Should reject invalid token")
     void shouldRejectInvalidToken_WhenTokenIsInvalid() {
         // Arrange
         when(jwtService.validateRefreshToken("invalid-token")).thenReturn(false);
@@ -122,7 +122,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar token expirado")
+    @DisplayName("Should reject expired token")
     void shouldRejectExpiredToken_WhenTokenIsExpired() {
         // Arrange
         when(jwtService.validateRefreshToken("expired-token")).thenReturn(true);
@@ -136,7 +136,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve revogar token individual")
+    @DisplayName("Should revoke individual token")
     void shouldRevokeToken_WhenTokenExists() {
         // Arrange
         String tokenToRevoke = "token-to-revoke-12345678901234567890"; // Token with more than 20 characters
@@ -163,7 +163,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve revogar todos os tokens de um usuário")
+    @DisplayName("Should revoke all tokens of a user")
     void shouldRevokeAllUserTokens_WhenUserProvided() {
         // Arrange
         when(refreshTokenRepository.revokeAllUserTokens(eq(testUser), any(LocalDateTime.class), anyString()))
@@ -178,7 +178,7 @@ class RefreshTokenServiceTest {
     }
     
     @Test
-    @DisplayName("Deve contar tokens válidos de um usuário")
+    @DisplayName("Should count valid tokens of a user")
     void shouldCountValidTokens_WhenUserProvided() {
         // Arrange
         when(refreshTokenRepository.countValidTokensByUser(eq(testUser), any(LocalDateTime.class)))

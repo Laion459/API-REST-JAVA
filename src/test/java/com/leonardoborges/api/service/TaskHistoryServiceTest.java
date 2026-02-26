@@ -19,16 +19,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para TaskHistoryService.
+ * Unit tests for TaskHistoryService.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de casos de sucesso e erro
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Tests for success and error cases
  */
 @ExtendWith(MockitoExtension.class)
 class TaskHistoryServiceTest {
@@ -52,7 +52,7 @@ class TaskHistoryServiceTest {
     }
     
     @Test
-    @DisplayName("Deve registrar mudança de campo individual")
+    @DisplayName("Should record individual field change")
     void shouldRecordFieldChange_WhenFieldChanged() {
         // Arrange
         when(taskHistoryRepository.save(any(TaskHistory.class)))
@@ -66,7 +66,7 @@ class TaskHistoryServiceTest {
     }
     
     @Test
-    @DisplayName("Deve registrar múltiplas mudanças de campos")
+    @DisplayName("Should record multiple field changes")
     void shouldRecordTaskChanges_WhenMultipleFieldsChanged() {
         // Arrange
         Task oldTask = createTask(1L, "Old Title", "Old Description", Task.TaskStatus.PENDING, 1);
@@ -82,7 +82,7 @@ class TaskHistoryServiceTest {
     }
     
     @Test
-    @DisplayName("Não deve registrar histórico quando campos não mudaram")
+    @DisplayName("Should not record history when fields did not change")
     void shouldNotRecordUnchangedFields_WhenNoChanges() {
         // Arrange
         Task task = createTask(1L, "Same Title", "Same Description", Task.TaskStatus.PENDING, 1);
@@ -94,7 +94,7 @@ class TaskHistoryServiceTest {
     }
     
     @Test
-    @DisplayName("Deve buscar histórico de tarefa ordenado por data")
+    @DisplayName("Should get task history ordered by date")
     void shouldGetTaskHistory_OrderedByDate() {
         // Arrange
         TaskHistory history1 = TaskHistory.builder()
@@ -125,7 +125,7 @@ class TaskHistoryServiceTest {
     }
     
     /**
-     * Helper method para criar objetos Task de teste.
+     * Helper method to create Task test objects.
      */
     private Task createTask(Long id, String title, String description, Task.TaskStatus status, Integer priority) {
         Task task = new Task();

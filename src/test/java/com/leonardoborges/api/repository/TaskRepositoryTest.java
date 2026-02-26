@@ -8,25 +8,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
+import com.leonardoborges.api.config.JpaAuditingConfig;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Testes de integração para TaskRepository usando @DataJpaTest.
+ * Integration tests for TaskRepository using @DataJpaTest.
  * 
- * Boas práticas aplicadas:
- * - @DataJpaTest carrega apenas camada JPA (rápido e focado)
- * - Usa repositórios diretamente para evitar problemas com detached entities
- * - Testa queries customizadas do repositório
- * - Isolamento completo entre testes
- * - Nomes descritivos com @DisplayName
+ * Best practices applied:
+ * - @DataJpaTest loads only JPA layer (fast and focused)
+ * - Uses repositories directly to avoid detached entity issues
+ * - Tests custom repository queries
+ * - Complete isolation between tests
+ * - Descriptive names with @DisplayName
  */
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 @ActiveProfiles("test")
 @DisplayName("TaskRepository Tests")
 class TaskRepositoryTest {
@@ -52,7 +55,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve encontrar tarefa por ID e usuário")
+    @DisplayName("Should find task by ID and user")
     void shouldFindTaskByIdAndUser() {
         // When
         Optional<Task> found = taskRepository.findByIdAndUser(testTask.getId(), testUser);
@@ -64,7 +67,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    @DisplayName("Não deve encontrar tarefa deletada")
+    @DisplayName("Should not find deleted task")
     void shouldNotFindDeletedTask() {
         // Given
         Task deletedTask = TestBuilders.defaultTask()
@@ -81,7 +84,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve encontrar tarefas por usuário paginadas")
+    @DisplayName("Should find tasks by user paginated")
     void shouldFindTasksByUserPaginated() {
         // Given
         Task task2 = TestBuilders.defaultTask()
@@ -99,7 +102,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve contar tarefas por usuário")
+    @DisplayName("Should count tasks by user")
     void shouldCountTasksByUser() {
         // Given
         Task task2 = TestBuilders.defaultTask()
@@ -116,7 +119,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve encontrar tarefas por status")
+    @DisplayName("Should find tasks by status")
     void shouldFindTasksByStatus() {
         // Given
         Task completedTask = TestBuilders.defaultTask()

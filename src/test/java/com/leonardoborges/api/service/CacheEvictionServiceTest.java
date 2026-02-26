@@ -15,16 +15,16 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para CacheEvictionService usando Strategy Pattern.
+ * Unit tests for CacheEvictionService using Strategy Pattern.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de Strategy Pattern
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Strategy Pattern tests
  */
 @ExtendWith(MockitoExtension.class)
 class CacheEvictionServiceTest {
@@ -50,7 +50,7 @@ class CacheEvictionServiceTest {
     }
     
     @Test
-    @DisplayName("Deve usar estratégia de criação para operações de create")
+    @DisplayName("Should use create strategy for create operations")
     void shouldUseCreateStrategy_ForCreateOperations() {
         // Arrange
         Long taskId = 1L;
@@ -66,7 +66,7 @@ class CacheEvictionServiceTest {
     }
     
     @Test
-    @DisplayName("Deve usar estratégia de atualização para operações de update")
+    @DisplayName("Should use update strategy for update operations")
     void shouldUseUpdateStrategy_ForUpdateOperations() {
         // Arrange
         Long taskId = 1L;
@@ -83,7 +83,7 @@ class CacheEvictionServiceTest {
     }
     
     @Test
-    @DisplayName("Deve usar estratégia de deleção para operações de delete")
+    @DisplayName("Should use delete strategy for delete operations")
     void shouldUseDeleteStrategy_ForDeleteOperations() {
         // Arrange
         Long taskId = 1L;

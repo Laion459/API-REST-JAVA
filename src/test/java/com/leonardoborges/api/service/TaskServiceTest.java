@@ -34,18 +34,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Testes unitários para TaskService.
+ * Unit tests for TaskService.
  * 
- * Usa @ExtendWith(MockitoExtension.class) para testes puros com mocks.
- * Não carrega contexto Spring, tornando os testes mais rápidos e isolados.
+ * Uses @ExtendWith(MockitoExtension.class) for pure tests with mocks.
+ * Does not load Spring context, making tests faster and isolated.
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Uso de builders para criar objetos de teste
- * - Nomes descritivos de testes com @DisplayName
- * - Verificação de comportamento (verify)
- * - Testes de casos de sucesso e erro
- * - Limpeza do contexto de segurança após cada teste
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Use of builders to create test objects
+ * - Descriptive test names with @DisplayName
+ * - Behavior verification (verify)
+ * - Tests for success and error cases
+ * - Security context cleanup after each test
  */
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
@@ -156,7 +156,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve criar tarefa com sucesso quando dados são válidos")
+    @DisplayName("Should create task successfully when data is valid")
     void shouldCreateTask_WhenValidRequest() {
         // Arrange
         when(taskRepository.save(any(Task.class))).thenReturn(task);
@@ -175,7 +175,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve buscar tarefa por ID quando tarefa existe")
+    @DisplayName("Should get task by ID when task exists")
     void shouldGetTaskById_WhenTaskExists() {
         // Arrange
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
@@ -191,7 +191,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando tarefa não é encontrada")
+    @DisplayName("Should throw exception when task is not found")
     void shouldThrowException_WhenTaskNotFound() {
         // Arrange
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.empty());
@@ -202,7 +202,7 @@ class TaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve listar todas as tarefas com paginação")
+    @DisplayName("Should list all tasks with pagination")
     void shouldGetAllTasks_WithPagination() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
@@ -229,7 +229,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve atualizar tarefa com sucesso quando dados são válidos")
+    @DisplayName("Should update task successfully when data is valid")
     void shouldUpdateTask_WhenValidRequest() {
         // Arrange
         TaskRequest updateRequest = TestBuilders.defaultTaskRequest()
@@ -277,7 +277,7 @@ class TaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve lançar exceção ao tentar atualizar tarefa inexistente")
+    @DisplayName("Should throw exception when trying to update non-existent task")
     void shouldThrowException_WhenUpdatingNonExistentTask() {
         // Arrange
         TaskRequest updateRequest = TestBuilders.defaultTaskRequest()
@@ -292,7 +292,7 @@ class TaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve deletar tarefa com soft delete")
+    @DisplayName("Should delete task with soft delete")
     void shouldDeleteTask_WithSoftDelete() {
         // Arrange
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
@@ -311,7 +311,7 @@ class TaskServiceTest {
     }
     
     @Test
-    @DisplayName("Deve lançar exceção ao tentar deletar tarefa inexistente")
+    @DisplayName("Should throw exception when trying to delete non-existent task")
     void shouldThrowException_WhenDeletingNonExistentTask() {
         // Arrange
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.empty());
@@ -322,7 +322,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve filtrar tarefas por status")
+    @DisplayName("Should filter tasks by status")
     void shouldGetTasksByStatus_WhenStatusProvided() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
@@ -352,7 +352,7 @@ class TaskServiceTest {
     }
 
     @Test
-    @DisplayName("Deve contar tarefas por status")
+    @DisplayName("Should count tasks by status")
     void shouldGetTaskCountByStatus_WhenStatusProvided() {
         // Arrange
         when(taskRepository.countByUserAndStatus(testUser, Task.TaskStatus.PENDING)).thenReturn(5L);

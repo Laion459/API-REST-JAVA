@@ -7,20 +7,20 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Testes unitários para SqlInjectionValidator.
+ * Unit tests for SqlInjectionValidator.
  * 
- * Valida proteção contra SQL Injection:
- * - Detecção de padrões de SQL injection
- * - Detecção de palavras-chave perigosas
- * - Sanitização de inputs perigosos
- * - Validação de campos de ordenação
- * - Validação de identificadores
+ * Validates SQL Injection protection:
+ * - Detection of SQL injection patterns
+ * - Detection of dangerous keywords
+ * - Sanitization of dangerous inputs
+ * - Validation of sort fields
+ * - Validation of identifiers
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Nomes descritivos de testes
- * - Cobertura de casos de ataque conhecidos
- * - Validação de casos válidos e inválidos
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Descriptive test names
+ * - Coverage of known attack cases
+ * - Validation of valid and invalid cases
  */
 class SqlInjectionValidatorTest {
     
@@ -32,7 +32,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve aceitar inputs seguros")
+    @DisplayName("Should accept safe inputs")
     void shouldAcceptSafeInput_WhenNoInjectionPatterns() {
         // Assert
         assertTrue(validator.isSafe("Normal task title"));
@@ -43,7 +43,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve detectar padrões de SQL injection")
+    @DisplayName("Should detect SQL injection patterns")
     void shouldDetectSqlInjectionPatterns_WhenPresent() {
         // Assert
         assertFalse(validator.isSafe("'; DROP TABLE tasks; --"));
@@ -54,7 +54,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve detectar palavras-chave perigosas")
+    @DisplayName("Should detect dangerous keywords")
     void shouldDetectDangerousKeywords_WhenPresent() {
         // Assert
         assertFalse(validator.isSafe("SELECT * FROM tasks"));
@@ -65,7 +65,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve sanitizar inputs perigosos")
+    @DisplayName("Should sanitize dangerous inputs")
     void shouldSanitizeDangerousInput_WhenInjectionDetected() {
         // Arrange
         String dangerousInput = "'; DROP TABLE tasks; --";
@@ -80,7 +80,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve validar campos de ordenação seguros")
+    @DisplayName("Should validate safe sort fields")
     void shouldValidateSortFields_WhenSafe() {
         // Assert
         assertTrue(validator.isValidSortField("id"));
@@ -90,7 +90,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar campos de ordenação perigosos")
+    @DisplayName("Should reject dangerous sort fields")
     void shouldRejectSortFields_WhenDangerous() {
         // Assert
         assertFalse(validator.isValidSortField("'; DROP TABLE --"));
@@ -101,7 +101,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve validar identificadores seguros")
+    @DisplayName("Should validate safe identifiers")
     void shouldValidateIdentifiers_WhenSafe() {
         // Assert
         assertTrue(validator.isValidIdentifier("tasks"));
@@ -110,7 +110,7 @@ class SqlInjectionValidatorTest {
     }
     
     @Test
-    @DisplayName("Deve rejeitar identificadores perigosos")
+    @DisplayName("Should reject dangerous identifiers")
     void shouldRejectIdentifiers_WhenDangerous() {
         // Assert
         assertFalse(validator.isValidIdentifier("123tasks"));

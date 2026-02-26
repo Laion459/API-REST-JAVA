@@ -7,19 +7,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Testes unitários para InputSanitizer.
+ * Unit tests for InputSanitizer.
  * 
- * Valida a sanitização de inputs do usuário:
- * - Remoção de espaços em branco
- * - Remoção de caracteres de controle
- * - Normalização de espaços múltiplos
- * - Truncamento de strings longas
- * - Validação após sanitização
+ * Validates user input sanitization:
+ * - Removal of whitespace
+ * - Removal of control characters
+ * - Normalization of multiple spaces
+ * - Truncation of long strings
+ * - Validation after sanitization
  * 
- * Boas práticas aplicadas:
- * - Testes isolados e independentes
- * - Nomes descritivos de testes
- * - Cobertura de casos de borda (null, vazio, muito longo)
+ * Best practices applied:
+ * - Isolated and independent tests
+ * - Descriptive test names
+ * - Coverage of edge cases (null, empty, too long)
  */
 class InputSanitizerTest {
 
@@ -31,7 +31,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve remover espaços em branco no início e fim")
+    @DisplayName("Should remove leading and trailing whitespace")
     void shouldSanitizeString_WithLeadingAndTrailingWhitespace() {
         // Arrange
         String input = "  Test String  ";
@@ -44,7 +44,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve remover caracteres de controle")
+    @DisplayName("Should remove control characters")
     void shouldRemoveControlCharacters_FromString() {
         // Arrange
         String input = "Test\u0000String\u0001";
@@ -57,7 +57,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve normalizar múltiplos espaços em um único espaço")
+    @DisplayName("Should normalize multiple spaces into a single space")
     void shouldReplaceMultipleSpaces_WithSingleSpace() {
         // Arrange
         String input = "Test    String";
@@ -70,7 +70,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null quando input é null")
+    @DisplayName("Should return null when input is null")
     void shouldReturnNull_WhenInputIsNull() {
         // Act
         String result = inputSanitizer.sanitizeString(null);
@@ -80,7 +80,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve truncar string muito longa")
+    @DisplayName("Should truncate very long string")
     void shouldTruncateLongString_WhenExceedsMaxLength() {
         // Arrange
         String input = "A".repeat(2000);
@@ -95,7 +95,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Não deve truncar string curta")
+    @DisplayName("Should not truncate short string")
     void shouldNotTruncateShortString_WhenWithinMaxLength() {
         // Arrange
         String input = "Short string";
@@ -109,7 +109,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve validar string após sanitização")
+    @DisplayName("Should validate string after sanitization")
     void shouldValidateString_AfterSanitization() {
         // Assert
         assertTrue(inputSanitizer.isValidAfterSanitization("Valid String"));
@@ -119,7 +119,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve preservar quebras de linha e tabs")
+    @DisplayName("Should preserve newlines and tabs")
     void shouldPreserveNewlinesAndTabs_InString() {
         // Arrange
         String input = "Line1\nLine2\tTabbed";
@@ -133,7 +133,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve sanitizar string vazia")
+    @DisplayName("Should sanitize empty string")
     void shouldSanitizeEmptyString() {
         // Arrange
         String input = "";
@@ -146,7 +146,7 @@ class InputSanitizerTest {
     }
 
     @Test
-    @DisplayName("Deve sanitizar string com apenas espaços")
+    @DisplayName("Should sanitize string with only spaces")
     void shouldSanitizeString_WithOnlySpaces() {
         // Arrange
         String input = "     ";
