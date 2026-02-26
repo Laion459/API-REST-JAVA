@@ -42,7 +42,7 @@ spring:
     timeout: 2000ms
   
   # R2DBC Configuration (Reactive Database Access)
-  # Habilitado apenas para endpoints reativos de alta performance
+  # Enabled only for high-performance reactive endpoints
   r2dbc:
     enabled: ${SPRING_R2DBC_ENABLED:true}
 
@@ -75,7 +75,7 @@ management:
         enabled: true
   tracing:
     sampling:
-      probability: 1.0 # 100% sampling para desenvolvimento (ajustar para produção)
+      probability: 1.0 # 100% sampling for development (adjust for production)
 
 springdoc:
   api-docs:

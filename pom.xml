@@ -16,7 +16,7 @@
     <artifactId>high-performance-api</artifactId>
     <version>1.0.0</version>
     <name>High Performance REST API</name>
-    <description>API REST de alta performance com Spring Boot para demonstração de habilidades backend</description>
+    <description>High-performance REST API with Spring Boot for backend skills demonstration</description>
     
     <properties>
         <java.version>21</java.version>
@@ -32,13 +32,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         
-        <!-- Spring WebFlux (Reativo) -->
+        <!-- Spring WebFlux (Reactive) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         
-        <!-- R2DBC PostgreSQL (Driver reativo) -->
+        <!-- R2DBC PostgreSQL (Reactive driver) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-r2dbc</artifactId>
@@ -68,7 +68,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         
-        <!-- Redis Reactive (para WebFlux) -->
+        <!-- Redis Reactive (for WebFlux) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
@@ -127,19 +127,19 @@
             <version>8.10.1</version>
         </dependency>
         
-        <!-- Actuator (Métricas e Monitoramento) -->
+        <!-- Actuator (Metrics and Monitoring) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
-        <!-- Micrometer Prometheus (Métricas) -->
+        <!-- Micrometer Prometheus (Metrics) -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         
-        <!-- Logstash Logback Encoder (Logs estruturados JSON) -->
+        <!-- Logstash Logback Encoder (Structured JSON logs) -->
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
@@ -176,7 +176,7 @@
             <optional>true</optional>
         </dependency>
         
-        <!-- Testes -->
+        <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -189,21 +189,28 @@
             </exclusions>
         </dependency>
         
-        <!-- H2 Database (para testes) -->
+        <!-- H2 Database (for tests) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
         
-        <!-- Mockito Core (explicito para evitar problemas de classpath) -->
+        <!-- Mockito Core (explicit to avoid classpath issues) -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         
-        <!-- Mockito JUnit Jupiter (explicito para garantir compatibilidade) -->
+        <!-- Reactor Test (for reactive tests) -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Mockito JUnit Jupiter (explicit to ensure compatibility) -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -217,7 +224,7 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- Testcontainers (para testes de integração) -->
+        <!-- Testcontainers (for integration tests) -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
@@ -276,7 +283,7 @@
                                 <limit>
                                     <counter>LINE</counter>
                                     <value>COVEREDRATIO</value>
-                                    <minimum>0.65</minimum>
+                                    <minimum>0.75</minimum>
                                 </limit>
                                 <limit>
                                     <counter>BRANCH</counter>
