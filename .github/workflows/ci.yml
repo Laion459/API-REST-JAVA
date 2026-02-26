@@ -57,17 +57,15 @@ jobs:
         run: mvn validate
 
       - name: Run tests with coverage
-        run: mvn clean test jacoco:report
+        run: mvn clean test jacoco:report jacoco:check
         env:
           SPRING_PROFILES_ACTIVE: test
           # Note: Tests use H2 in-memory database (configured in application-test.yml)
           # PostgreSQL service is available but not used by unit/integration tests
           SPRING_REDIS_HOST: localhost
           SPRING_REDIS_PORT: 6379
-
-      - name: Check code coverage (90% minimum)
-        run: mvn jacoco:check
-        continue-on-error: false
+          # JWT secret for tests (application-test.yml has a default, but this ensures it's set)
+          JWT_SECRET: test-secret-key-for-testing-purposes-only-minimum-32-chars
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -77,6 +75,8 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # Token is optional - upload will be skipped if not set but won't fail the build
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
