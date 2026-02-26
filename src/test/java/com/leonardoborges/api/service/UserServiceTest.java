@@ -271,4 +271,76 @@ class UserServiceTest {
             userService.findUserByUsernameOrEmail("nonexistent");
         });
     }
+
+    @Test
+    @DisplayName("Should handle empty email sanitization during registration")
+    void shouldHandleEmptyEmailSanitization_DuringRegistration() {
+        authRequest.setEmail("   ");
+        when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
+        when(inputSanitizer.sanitizeString("   ")).thenReturn("");
+        when(userRepository.existsByUsername("testuser")).thenReturn(false);
+        when(userRepository.existsByEmail("")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
+        when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
+
+        AuthResponse response = userService.register(authRequest);
+
+        assertNotNull(response);
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle login with email instead of username")
+    void shouldHandleLogin_WithEmailInsteadOfUsername() {
+        when(userRepository.findByUsername("test@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
+        when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
+
+        AuthResponse response = userService.login("test@example.com", "password123");
+
+        assertNotNull(response);
+        assertEquals("testuser", response.getUsername());
+        verify(userRepository).findByEmail("test@example.com");
+        verify(auditService).auditAuthentication(eq("LOGIN_SUCCESS"), eq("testuser"), anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle disabled user when loading by email")
+    void shouldHandleDisabledUser_WhenLoadingByEmail() {
+        user.setEnabled(false);
+        when(userRepository.findByUsername("test@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+
+        assertThrows(BusinessException.class, () -> {
+            userService.loadUserByUsername("test@example.com");
+        });
+    }
+
+    @Test
+    @DisplayName("Should handle user with multiple roles")
+    void shouldHandleUser_WithMultipleRoles() {
+        User adminUser = User.builder()
+                .id(2L)
+                .username("admin")
+                .email("admin@example.com")
+                .password("encodedPassword")
+                .enabled(true)
+                .roles(Set.of(User.Role.USER, User.Role.ADMIN))
+                .build();
+
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+
+        UserDetails userDetails = userService.loadUserByUsername("admin");
+
+        assertNotNull(userDetails);
+        assertTrue(userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
+        assertTrue(userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+    }
 }

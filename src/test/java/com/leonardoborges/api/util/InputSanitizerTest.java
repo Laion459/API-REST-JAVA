@@ -234,4 +234,49 @@ class InputSanitizerTest {
         // Assert
         assertEquals("TestString", result);
     }
+
+    @Test
+    @DisplayName("Should not log when input does not need sanitization")
+    void shouldNotLog_WhenInputDoesNotNeedSanitization() {
+        // Arrange - Input that doesn't need sanitization (no changes)
+        String input = "CleanString";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert - Input unchanged, no log should be triggered
+        assertEquals("CleanString", result);
+        assertEquals(input, result);
+    }
+
+    @Test
+    @DisplayName("Should handle string with only newlines and tabs")
+    void shouldHandleString_WithOnlyNewlinesAndTabs() {
+        // Arrange
+        String input = "\n\t\n";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("\n"));
+        assertTrue(result.contains("\t"));
+    }
+
+    @Test
+    @DisplayName("Should handle string with mixed whitespace and control characters")
+    void shouldHandleString_WithMixedWhitespaceAndControlCharacters() {
+        // Arrange
+        String input = "  Test\u0000String  \t\n";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.contains("Test"));
+        assertTrue(result.contains("String"));
+        assertFalse(result.contains("\u0000"));
+    }
 }
