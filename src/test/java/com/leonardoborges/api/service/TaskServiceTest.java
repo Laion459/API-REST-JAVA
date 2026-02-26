@@ -564,7 +564,7 @@ class TaskServiceTest {
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
         doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
 
         TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
 
@@ -598,7 +598,7 @@ class TaskServiceTest {
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
         doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
 
         TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
 
@@ -618,7 +618,7 @@ class TaskServiceTest {
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
         doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
@@ -639,7 +639,7 @@ class TaskServiceTest {
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
         doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
