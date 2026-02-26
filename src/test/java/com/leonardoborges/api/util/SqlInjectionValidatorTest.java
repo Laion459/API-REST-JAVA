@@ -119,4 +119,52 @@ class SqlInjectionValidatorTest {
         assertFalse(validator.isValidIdentifier(null));
         assertFalse(validator.isValidIdentifier(""));
     }
+
+    @Test
+    @DisplayName("Should handle dangerous characters in long strings")
+    void shouldHandleDangerousCharacters_WhenLongString() {
+        String longStringWithDangerousChars = "A".repeat(15) + "'; DROP TABLE tasks; --";
+        
+        boolean result = validator.isSafe(longStringWithDangerousChars);
+        
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should handle dangerous characters in short strings")
+    void shouldHandleDangerousCharacters_WhenShortString() {
+        String shortStringWithDangerousChars = "test'";
+        
+        boolean result = validator.isSafe(shortStringWithDangerousChars);
+        
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should sanitize input when not safe")
+    void shouldSanitizeInput_WhenNotSafe() {
+        String dangerousInput = "SELECT * FROM tasks";
+        
+        String sanitized = validator.sanitize(dangerousInput);
+        
+        assertNotNull(sanitized);
+        assertNotEquals(dangerousInput, sanitized);
+    }
+
+    @Test
+    @DisplayName("Should return input when safe in sanitize")
+    void shouldReturnInput_WhenSafeInSanitize() {
+        String safeInput = "Normal task title";
+        
+        String result = validator.sanitize(safeInput);
+        
+        assertEquals(safeInput, result);
+    }
+
+    @Test
+    @DisplayName("Should handle empty string in isSafe")
+    void shouldHandleEmptyString_InIsSafe() {
+        assertTrue(validator.isSafe(""));
+        assertTrue(validator.isSafe("   "));
+    }
 }

@@ -339,25 +339,24 @@ class BatchTaskServiceTest {
         updates.put(2L, null);
 
         Task task1 = TestBuilders.defaultTask().id(1L).build();
-        Task task2 = TestBuilders.defaultTask().id(2L).build();
         task1.setUser(testUser);
+        Task task2 = TestBuilders.defaultTask().id(2L).build();
         task2.setUser(testUser);
 
-        when(taskRepository.findAllById(argThat(list -> {
-            java.util.List<Long> ids = new java.util.ArrayList<>();
-            list.forEach(ids::add);
-            return ids.contains(1L) && ids.contains(2L);
-        }))).thenReturn(Arrays.asList(task1, task2));
-        when(taskRepository.saveAll(anyList())).thenReturn(Arrays.asList(task1, task2));
+        when(taskRepository.findAllById(anyIterable())).thenReturn(List.of(task1, task2));
+        when(taskRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         when(taskMapper.toResponse(any(Task.class))).thenAnswer(invocation -> {
             Task t = invocation.getArgument(0);
             return TestBuilders.defaultTaskResponse().id(t.getId()).build();
         });
-        lenient().doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
 
         List<TaskResponse> responses = batchTaskService.updateBatch(updates);
 
         assertEquals(2, responses.size());
-        verify(taskValidationService, atMost(1)).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        verify(taskValidationService, times(1)).validateAndSanitizeTaskRequest(any(TaskRequest.class));
     }
 }

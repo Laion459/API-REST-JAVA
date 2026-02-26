@@ -647,4 +647,38 @@ class TaskServiceTest {
         verify(taskMetrics).incrementTaskUpdated();
         verify(taskMetrics, never()).incrementTaskStatus(anyString());
     }
+
+    @Test
+    @DisplayName("Should create task snapshot with null oldStatus")
+    void shouldCreateTaskSnapshot_WithNullOldStatus() {
+        Task taskWithNullStatus = TestBuilders.defaultTask()
+                .id(1L)
+                .status(Task.TaskStatus.PENDING)
+                .user(testUser)
+                .build();
+
+        TaskRequest updateRequest = TestBuilders.defaultTaskRequest()
+                .title("Updated Task")
+                .status(Task.TaskStatus.IN_PROGRESS)
+                .version(0L)
+                .build();
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(taskWithNullStatus));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            t.setStatus(Task.TaskStatus.IN_PROGRESS);
+            return t;
+        });
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        doNothing().when(taskHistoryService).recordTaskChanges(anyLong(), any(Task.class), any(Task.class));
+
+        TaskResponse result = taskService.updateTask(1L, updateRequest);
+
+        assertNotNull(result);
+        verify(taskHistoryService).recordTaskChanges(eq(1L), any(Task.class), any(Task.class));
+    }
 }
