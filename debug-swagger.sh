@@ -9,11 +9,11 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   grep -o '"token":"[^"]*' | cut -d'"' -f4)
 
 if [ -z "$TOKEN" ]; then
-  echo "❌ Erro ao obter token"
+  echo "Error getting token"
   exit 1
 fi
 
-echo "✓ Token obtido: ${TOKEN:0:30}..."
+echo "✓ Token obtained: ${TOKEN:0:30}..."
 echo ""
 
 echo "2. Testando GET /api/v1/tasks:"
@@ -27,9 +27,9 @@ TIME=$(echo "$RESPONSE" | grep "TIME" | cut -d: -f2)
 BODY=$(echo "$RESPONSE" | grep -v "HTTP_CODE\|TIME" | head -1)
 
 echo "  HTTP Code: $HTTP_CODE"
-echo "  Tempo: ${TIME}s"
-echo "  Tamanho resposta: $(echo "$BODY" | wc -c) bytes"
-echo "  Primeiros 200 chars: ${BODY:0:200}..."
+echo "  Time: ${TIME}s"
+echo "  Response size: $(echo "$BODY" | wc -c) bytes"
+echo "  First 200 chars: ${BODY:0:200}..."
 echo ""
 
 echo "3. Testando com diferentes headers (simulando Swagger UI):"
@@ -50,11 +50,11 @@ curl -s -w "\nHTTP_CODE:%{http_code}\n" \
   -H "Access-Control-Request-Headers: authorization" | tail -2
 
 echo ""
-echo "5. Verificando se há tasks no banco:"
+echo "5. Checking if there are tasks in the database:"
 curl -s -X GET "http://localhost:8080/api/v1/tasks?page=0&size=1" \
   -H "Authorization: Bearer $TOKEN" | jq '.totalElements' 2>/dev/null || \
   curl -s -X GET "http://localhost:8080/api/v1/tasks?page=0&size=1" \
   -H "Authorization: Bearer $TOKEN" | grep -o '"totalElements":[0-9]*' | cut -d: -f2
 
 echo ""
-echo "=== FIM DEBUG ==="
+echo "=== END DEBUG ==="
