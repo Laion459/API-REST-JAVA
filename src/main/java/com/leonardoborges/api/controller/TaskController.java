@@ -373,7 +373,7 @@ public class TaskController {
             )
     })
     public ResponseEntity<TaskResponse> updateTask(
-            @Parameter(description = "ID da tarefa") @PathVariable Long id,
+            @Parameter(description = "Task ID") @PathVariable Long id,
             @Valid @RequestBody TaskRequest request) {
         log.info("PUT /api/v1/tasks/{} - Updating task", id);
         TaskResponse response = taskService.updateTask(id, request);
@@ -413,7 +413,7 @@ public class TaskController {
             )
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTask(@Parameter(description = "ID da tarefa") @PathVariable Long id) {
+    public void deleteTask(@Parameter(description = "Task ID") @PathVariable Long id) {
         log.info("DELETE /api/v1/tasks/{} - Deleting task", id);
         taskService.deleteTask(id);
     }
