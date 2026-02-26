@@ -229,7 +229,7 @@ test-report: test-coverage ## Open test coverage report in browser
 		echo "$(YELLOW)Open manually: target/site/jacoco/index.html$(NC)"; \
 	fi
 
-test-verify: ## Verify test coverage meets requirements (90% line, 85% branch)
+test-verify: ## Verify test coverage meets requirements (85% line, 75% branch)
 	@echo "$(GREEN)Verifying test coverage...$(NC)"
 	mvn clean test jacoco:report jacoco:check
 	@echo "$(GREEN)Coverage verification complete!$(NC)"
