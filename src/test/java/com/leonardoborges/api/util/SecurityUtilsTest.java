@@ -168,4 +168,32 @@ class SecurityUtilsTest {
             securityUtils.getCurrentUsername();
         });
     }
+
+    @Test
+    @DisplayName("Should throw exception when authentication exists but is not authenticated for getCurrentUser")
+    void shouldThrowException_WhenAuthenticationExistsButNotAuthenticated_ForGetCurrentUser() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Act & Assert
+        assertThrows(BusinessException.class, () -> {
+            securityUtils.getCurrentUser();
+        });
+    }
+
+    @Test
+    @DisplayName("Should throw exception when authentication exists but is not authenticated for getCurrentUsername")
+    void shouldThrowException_WhenAuthenticationExistsButNotAuthenticated_ForGetCurrentUsername() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.isAuthenticated()).thenReturn(false);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Act & Assert
+        assertThrows(BusinessException.class, () -> {
+            securityUtils.getCurrentUsername();
+        });
+    }
 }

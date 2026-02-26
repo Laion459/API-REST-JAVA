@@ -84,6 +84,34 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("Should handle ValidationException with validation errors")
+    void shouldHandleValidationExceptionWithValidationErrors() {
+        Map<String, String> errors = Map.of("title", "Title is required", "status", "Invalid status");
+        ValidationException ex = new ValidationException("Validation failed", errors);
+        
+        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleValidationException(ex, request);
+        
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(400, response.getBody().get("status"));
+        assertEquals("Validation Failed", response.getBody().get("error"));
+        assertNotNull(response.getBody().get("errors"));
+        assertEquals(errors, response.getBody().get("errors"));
+    }
+
+    @Test
+    @DisplayName("Should handle ValidationException with null validation errors")
+    void shouldHandleValidationExceptionWithNullValidationErrors() {
+        ValidationException ex = new ValidationException("Validation failed", null);
+        
+        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleValidationException(ex, request);
+        
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().containsKey("errors"));
+    }
+
+    @Test
     @DisplayName("Should handle BusinessException correctly")
     void shouldHandleBusinessException() {
         BusinessException ex = new BusinessException("Business rule violated");

@@ -148,6 +148,21 @@ class CacheServiceTest {
     }
 
     @Test
+    @DisplayName("Should handle null cache when getting statistics")
+    void shouldHandleNullCache_WhenGettingStatistics() {
+        // Arrange
+        when(cacheManager.getCacheNames()).thenReturn(java.util.Set.of("tasks", "taskStats"));
+        when(cacheManager.getCache("tasks")).thenReturn(null);
+        when(cacheManager.getCache("taskStats")).thenReturn(null);
+
+        // Act
+        String stats = cacheService.getCacheStatistics();
+
+        // Assert
+        assertNotNull(stats);
+    }
+
+    @Test
     @DisplayName("Should evict all task lists from cache")
     void shouldEvictAllTaskLists_WhenCalled() {
         // Arrange

@@ -214,6 +214,70 @@ class TaskHistoryServiceTest {
         // Assert
         verify(taskHistoryRepository, times(2)).save(any(TaskHistory.class));
     }
+
+    @Test
+    @DisplayName("Should handle equalsOrNull when both values are null")
+    void shouldHandleEqualsOrNull_WhenBothValuesAreNull() {
+        Task oldTask = createTask(1L, "Title", "Description", null, null);
+        Task newTask = createTask(1L, "Title", "Description", null, null);
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, never()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should handle equalsOrNull when first value is null and second is not")
+    void shouldHandleEqualsOrNull_WhenFirstValueIsNull() {
+        Task oldTask = createTask(1L, "Title", "Description", null, null);
+        Task newTask = createTask(1L, "Title", "Description", null, 1);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should handle equalsOrNull when second value is null and first is not")
+    void shouldHandleEqualsOrNull_WhenSecondValueIsNull() {
+        Task oldTask = createTask(1L, "Title", "Description", null, 1);
+        Task newTask = createTask(1L, "Title", "Description", null, null);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should handle equalsOrNull when both values are equal and not null")
+    void shouldHandleEqualsOrNull_WhenBothValuesAreEqual() {
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, never()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should handle equalsOrNull when both values are different and not null")
+    void shouldHandleEqualsOrNull_WhenBothValuesAreDifferent() {
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 2);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
     
     /**
      * Helper method to create Task test objects.

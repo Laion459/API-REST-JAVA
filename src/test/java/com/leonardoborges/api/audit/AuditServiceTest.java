@@ -208,4 +208,143 @@ class AuditServiceTest {
 
         verify(auditLogRepository).save(any(AuditLog.class));
     }
+
+    @Test
+    @DisplayName("Should handle exception when saving audit log with changes")
+    void shouldHandleExceptionWhenSavingAuditLogWithChanges() {
+        when(auditLogRepository.save(any(AuditLog.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertDoesNotThrow(() -> {
+            auditService.auditWithChanges("TASK_UPDATED", "Task", 1L, 
+                    "Task updated", "Old Value", "New Value");
+        });
+
+        verify(auditLogRepository).save(any(AuditLog.class));
+    }
+
+    @Test
+    @DisplayName("Should handle exception when saving authentication audit log")
+    void shouldHandleExceptionWhenSavingAuthenticationAuditLog() {
+        when(auditLogRepository.save(any(AuditLog.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertDoesNotThrow(() -> {
+            auditService.auditAuthentication("LOGIN_SUCCESS", "testuser", "User logged in");
+        });
+
+        verify(auditLogRepository).save(any(AuditLog.class));
+    }
+
+    @Test
+    @DisplayName("Should handle exception when saving security audit log")
+    void shouldHandleExceptionWhenSavingSecurityAuditLog() {
+        when(auditLogRepository.save(any(AuditLog.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertDoesNotThrow(() -> {
+            auditService.auditSecurity("RATE_LIMIT_EXCEEDED", "Rate limit exceeded");
+        });
+
+        verify(auditLogRepository).save(any(AuditLog.class));
+    }
+
+    @Test
+    @DisplayName("Should handle null request context")
+    void shouldHandleNullRequestContext() {
+        RequestContextHolder.resetRequestAttributes();
+
+        assertDoesNotThrow(() -> {
+            auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+        });
+
+        verify(auditLogRepository).save(any(AuditLog.class));
+    }
+
+    @Test
+    @DisplayName("Should return UNKNOWN IP when request is null")
+    void shouldReturnUnknownIpWhenRequestIsNull() {
+        RequestContextHolder.resetRequestAttributes();
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertEquals("UNKNOWN", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("Should return null User-Agent when request is null")
+    void shouldReturnNullUserAgentWhenRequestIsNull() {
+        RequestContextHolder.resetRequestAttributes();
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertNull(captor.getValue().getUserAgent());
+    }
+
+    @Test
+    @DisplayName("Should mark as success when event contains REFRESHED")
+    void shouldMarkAsSuccess_WhenEventContainsRefreshed() {
+        auditService.auditAuthentication("TOKEN_REFRESHED", "testuser", "Token refreshed");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertTrue(captor.getValue().getSuccess());
+    }
+
+    @Test
+    @DisplayName("Should handle empty X-Forwarded-For header")
+    void shouldHandleEmptyXForwardedForHeader() {
+        when(request.getHeader("X-Forwarded-For")).thenReturn("");
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertEquals("192.168.1.1", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("Should handle empty X-Real-IP header")
+    void shouldHandleEmptyXRealIpHeader() {
+        when(request.getHeader("X-Real-IP")).thenReturn("");
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertEquals("192.168.1.1", captor.getValue().getIpAddress());
+    }
+
+    @Test
+    @DisplayName("Should handle null User-Agent header")
+    void shouldHandleNullUserAgentHeader() {
+        when(request.getHeader("User-Agent")).thenReturn(null);
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertNull(captor.getValue().getUserAgent());
+    }
+
+    @Test
+    @DisplayName("Should not truncate User-Agent when length is exactly 500")
+    void shouldNotTruncateUserAgent_WhenLengthIsExactly500() {
+        String userAgent = "A".repeat(500);
+        when(request.getHeader("User-Agent")).thenReturn(userAgent);
+
+        auditService.audit("TASK_CREATED", "Task", 1L, "Details");
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(captor.capture());
+
+        assertEquals(500, captor.getValue().getUserAgent().length());
+    }
 }

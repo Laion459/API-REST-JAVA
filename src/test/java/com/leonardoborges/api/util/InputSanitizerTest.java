@@ -157,4 +157,81 @@ class InputSanitizerTest {
         // Assert
         assertNotNull(result);
     }
+
+    @Test
+    @DisplayName("Should return null when sanitizeAndTruncate receives null input")
+    void shouldReturnNull_WhenSanitizeAndTruncateReceivesNullInput() {
+        // Act
+        String result = inputSanitizer.sanitizeAndTruncate(null, 100);
+
+        // Assert
+        assertNull(result);
+    }
+
+    @Test
+    @DisplayName("Should handle string that does not need sanitization")
+    void shouldHandleString_ThatDoesNotNeedSanitization() {
+        // Arrange
+        String input = "CleanString";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertEquals("CleanString", result);
+    }
+
+    @Test
+    @DisplayName("Should handle string exactly at max length")
+    void shouldHandleString_ExactlyAtMaxLength() {
+        // Arrange
+        String input = "A".repeat(100);
+        int maxLength = 100;
+
+        // Act
+        String result = inputSanitizer.sanitizeAndTruncate(input, maxLength);
+
+        // Assert
+        assertEquals(maxLength, result.length());
+        assertEquals(input, result);
+    }
+
+    @Test
+    @DisplayName("Should handle string with carriage return")
+    void shouldHandleString_WithCarriageReturn() {
+        // Arrange
+        String input = "Line1\rLine2";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertTrue(result.contains("\r"));
+    }
+
+    @Test
+    @DisplayName("Should remove form feed and vertical tab")
+    void shouldRemoveFormFeedAndVerticalTab() {
+        // Arrange
+        String input = "Test\u000C\u000BString";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertEquals("TestString", result);
+    }
+
+    @Test
+    @DisplayName("Should handle string with DEL character")
+    void shouldHandleString_WithDelCharacter() {
+        // Arrange
+        String input = "Test\u007FString";
+
+        // Act
+        String result = inputSanitizer.sanitizeString(input);
+
+        // Assert
+        assertEquals("TestString", result);
+    }
 }

@@ -201,4 +201,163 @@ class BatchTaskServiceTest {
         assertTrue(task1.getDeleted());
         assertTrue(task2.getDeleted());
     }
+
+    @Test
+    @DisplayName("Should reject empty batch update")
+    void shouldRejectEmptyBatchUpdate_WhenEmpty() {
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.updateBatch(new HashMap<>());
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch update that is too large")
+    void shouldRejectBatchUpdateTooLarge_WhenExceedsLimit() {
+        Map<Long, TaskRequest> largeBatch = new HashMap<>();
+        for (int i = 0; i < 101; i++) {
+            largeBatch.put((long) i, TestBuilders.buildDefaultTaskRequest());
+        }
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.updateBatch(largeBatch);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch update when tasks not found")
+    void shouldRejectBatchUpdate_WhenTasksNotFound() {
+        Map<Long, TaskRequest> updates = new HashMap<>();
+        updates.put(1L, TestBuilders.buildDefaultTaskRequest());
+
+        when(taskRepository.findAllById(argThat(list -> {
+            java.util.List<Long> ids = new java.util.ArrayList<>();
+            list.forEach(ids::add);
+            return ids.contains(1L);
+        }))).thenReturn(List.of());
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.updateBatch(updates);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch update when task belongs to different user")
+    void shouldRejectBatchUpdate_WhenTaskBelongsToDifferentUser() {
+        Map<Long, TaskRequest> updates = new HashMap<>();
+        updates.put(1L, TestBuilders.buildDefaultTaskRequest());
+
+        User otherUser = TestBuilders.buildDefaultUser();
+        otherUser.setId(999L);
+        Task task = TestBuilders.defaultTask().id(1L).build();
+        task.setUser(otherUser);
+
+        when(taskRepository.findAllById(argThat(list -> {
+            java.util.List<Long> ids = new java.util.ArrayList<>();
+            list.forEach(ids::add);
+            return ids.contains(1L);
+        }))).thenReturn(List.of(task));
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.updateBatch(updates);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject empty batch delete")
+    void shouldRejectEmptyBatchDelete_WhenEmpty() {
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.deleteBatch(List.of());
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch delete that is too large")
+    void shouldRejectBatchDeleteTooLarge_WhenExceedsLimit() {
+        List<Long> largeBatch = new java.util.ArrayList<>();
+        for (long i = 0; i < 101; i++) {
+            largeBatch.add(i);
+        }
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.deleteBatch(largeBatch);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch delete when tasks not found")
+    void shouldRejectBatchDelete_WhenTasksNotFound() {
+        List<Long> taskIds = Arrays.asList(1L, 2L);
+
+        when(taskRepository.findAllById(taskIds)).thenReturn(List.of());
+        lenient().when(securityUtils.getCurrentUser()).thenReturn(testUser);
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.deleteBatch(taskIds);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch delete when task belongs to different user")
+    void shouldRejectBatchDelete_WhenTaskBelongsToDifferentUser() {
+        List<Long> taskIds = Arrays.asList(1L);
+
+        User otherUser = TestBuilders.buildDefaultUser();
+        otherUser.setId(999L);
+        Task task = TestBuilders.defaultTask().id(1L).build();
+        task.setUser(otherUser);
+
+        when(taskRepository.findAllById(taskIds)).thenReturn(List.of(task));
+        lenient().when(securityUtils.getCurrentUser()).thenReturn(testUser);
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.deleteBatch(taskIds);
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject batch delete when task is already deleted")
+    void shouldRejectBatchDelete_WhenTaskAlreadyDeleted() {
+        List<Long> taskIds = Arrays.asList(1L);
+
+        Task task = TestBuilders.defaultTask().id(1L).build();
+        task.setUser(testUser);
+        task.setDeleted(true);
+
+        when(taskRepository.findAllById(taskIds)).thenReturn(List.of(task));
+        lenient().when(securityUtils.getCurrentUser()).thenReturn(testUser);
+
+        assertThrows(BusinessException.class, () -> {
+            batchTaskService.deleteBatch(taskIds);
+        });
+    }
+
+    @Test
+    @DisplayName("Should handle batch update when request is null for a task")
+    void shouldHandleBatchUpdate_WhenRequestIsNullForTask() {
+        Map<Long, TaskRequest> updates = new HashMap<>();
+        updates.put(1L, TestBuilders.buildDefaultTaskRequest());
+        updates.put(2L, null);
+
+        Task task1 = TestBuilders.defaultTask().id(1L).build();
+        Task task2 = TestBuilders.defaultTask().id(2L).build();
+        task1.setUser(testUser);
+        task2.setUser(testUser);
+
+        when(taskRepository.findAllById(argThat(list -> {
+            java.util.List<Long> ids = new java.util.ArrayList<>();
+            list.forEach(ids::add);
+            return ids.contains(1L) && ids.contains(2L);
+        }))).thenReturn(Arrays.asList(task1, task2));
+        when(taskRepository.saveAll(anyList())).thenReturn(Arrays.asList(task1, task2));
+        when(taskMapper.toResponse(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            return TestBuilders.defaultTaskResponse().id(t.getId()).build();
+        });
+        lenient().doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+
+        List<TaskResponse> responses = batchTaskService.updateBatch(updates);
+
+        assertEquals(2, responses.size());
+        verify(taskValidationService, atMost(1)).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+    }
 }

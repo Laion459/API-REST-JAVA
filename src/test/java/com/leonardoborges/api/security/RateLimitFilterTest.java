@@ -266,4 +266,40 @@ class RateLimitFilterTest {
         assertTrue(responseBody.contains("\"retryAfter\""));
         verify(response).setStatus(429);
     }
+
+    @Test
+    @DisplayName("Should use remote address when X-Forwarded-For is empty string")
+    void shouldUseRemoteAddressWhenXForwardedForIsEmptyString() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn("");
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        verify(response).setStatus(429);
+        verify(request, atLeastOnce()).getHeader("X-Forwarded-For");
+        verify(request, atLeastOnce()).getHeader("X-Real-IP");
+        verify(request, atLeastOnce()).getRemoteAddr();
+    }
+
+    @Test
+    @DisplayName("Should use remote address when X-Real-IP is empty string")
+    void shouldUseRemoteAddressWhenXRealIpIsEmptyString() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn("");
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        verify(response).setStatus(429);
+        verify(request, atLeastOnce()).getHeader("X-Forwarded-For");
+        verify(request, atLeastOnce()).getHeader("X-Real-IP");
+        verify(request, atLeastOnce()).getRemoteAddr();
+    }
 }

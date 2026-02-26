@@ -304,4 +304,40 @@ class TaskMetricsTest {
 
         assertNotNull(sample);
     }
+
+    @Test
+    @DisplayName("Should not record task creation time when timer is not initialized")
+    void shouldNotRecordTaskCreationTimeWhenTimerIsNotInitialized() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        Timer.Sample sample = metrics.startTaskCreationTimer();
+        
+        assertDoesNotThrow(() -> metrics.recordTaskCreation(sample));
+    }
+
+    @Test
+    @DisplayName("Should not record task update time when timer is not initialized")
+    void shouldNotRecordTaskUpdateTimeWhenTimerIsNotInitialized() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        Timer.Sample sample = metrics.startTaskUpdateTimer();
+        
+        assertDoesNotThrow(() -> metrics.recordTaskUpdate(sample));
+    }
+
+    @Test
+    @DisplayName("Should not record task retrieval time when timer is not initialized")
+    void shouldNotRecordTaskRetrievalTimeWhenTimerIsNotInitialized() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        Timer.Sample sample = metrics.startTaskRetrievalTimer();
+        
+        assertDoesNotThrow(() -> metrics.recordTaskRetrieval(sample));
+    }
 }

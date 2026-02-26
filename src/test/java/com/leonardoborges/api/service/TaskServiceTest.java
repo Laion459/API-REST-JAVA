@@ -364,4 +364,245 @@ class TaskServiceTest {
         assertEquals(5L, count);
         verify(taskRepository, times(1)).countByUserAndStatus(testUser, Task.TaskStatus.PENDING);
     }
+
+    @Test
+    @DisplayName("Should restore task successfully when task is deleted")
+    void shouldRestoreTask_WhenTaskIsDeleted() {
+        // Arrange
+        Task deletedTask = TestBuilders.defaultTask().id(1L).deleted(true).build();
+        deletedTask.setUser(testUser);
+        deletedTask.softDelete("testuser");
+
+        when(taskRepository.findByIdAndUserIncludingDeleted(1L, testUser)).thenReturn(Optional.of(deletedTask));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+
+        // Act
+        taskService.restoreTask(1L);
+
+        // Assert
+        verify(taskRepository, times(1)).save(argThat(t -> !t.getDeleted()));
+        verify(cacheEvictionService, times(1)).evictAfterCreate(eq(1L), any(Task.TaskStatus.class));
+        verify(auditService, times(1)).audit(anyString(), anyString(), anyLong(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to restore non-existent task")
+    void shouldThrowException_WhenRestoringNonExistentTask() {
+        // Arrange
+        when(taskRepository.findByIdAndUserIncludingDeleted(1L, testUser)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(TaskNotFoundException.class, () -> taskService.restoreTask(1L));
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to restore task that is not deleted")
+    void shouldThrowException_WhenRestoringNonDeletedTask() {
+        // Arrange
+        Task activeTask = TestBuilders.defaultTask().id(1L).deleted(false).build();
+        activeTask.setUser(testUser);
+
+        when(taskRepository.findByIdAndUserIncludingDeleted(1L, testUser)).thenReturn(Optional.of(activeTask));
+
+        // Act & Assert
+        assertThrows(com.leonardoborges.api.exception.BusinessException.class, () -> taskService.restoreTask(1L));
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should update task without changing status")
+    void shouldUpdateTask_WithoutChangingStatus() {
+        // Arrange
+        TaskRequest updateRequest = TestBuilders.defaultTaskRequest()
+                .title("Updated Task")
+                .status(Task.TaskStatus.PENDING)
+                .version(0L)
+                .build();
+
+        Task updatedTask = TestBuilders.defaultTask()
+                .title("Updated Task")
+                .status(Task.TaskStatus.PENDING)
+                .version(1L)
+                .user(testUser)
+                .build();
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
+        when(taskMapper.toResponse(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            return TestBuilders.defaultTaskResponse()
+                    .id(t.getId())
+                    .title(t.getTitle())
+                    .status(t.getStatus())
+                    .version(t.getVersion())
+                    .build();
+        });
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(Task.TaskStatus.class), any(Task.TaskStatus.class));
+
+        // Act
+        TaskResponse response = taskService.updateTask(1L, updateRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals("Updated Task", response.getTitle());
+        assertEquals(Task.TaskStatus.PENDING, response.getStatus());
+        verify(taskRepository, times(1)).save(any(Task.class));
+        verify(cacheEvictionService, times(1)).evictAfterUpdate(
+                eq(1L), eq(Task.TaskStatus.PENDING), eq(Task.TaskStatus.PENDING));
+    }
+
+    @Test
+    @DisplayName("Should create task with null priority and set default")
+    void shouldCreateTask_WithNullPriorityAndSetDefault() {
+        // Arrange
+        TaskRequest requestWithoutPriority = TestBuilders.defaultTaskRequest()
+                .priority(null)
+                .build();
+
+        Task taskWithoutPriority = TestBuilders.defaultTask()
+                .priority(null)
+                .user(testUser)
+                .build();
+
+        when(taskMapper.toEntity(any(TaskRequest.class))).thenReturn(taskWithoutPriority);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            if (t.getPriority() == null) {
+                t.setPriority(com.leonardoborges.api.constants.TaskConstants.DEFAULT_PRIORITY);
+            }
+            return t;
+        });
+        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+
+        // Act
+        TaskResponse response = taskService.createTask(requestWithoutPriority);
+
+        // Assert
+        assertNotNull(response);
+        verify(taskRepository, times(1)).save(argThat(t -> 
+            t.getPriority() != null && t.getPriority().equals(com.leonardoborges.api.constants.TaskConstants.DEFAULT_PRIORITY)
+        ));
+    }
+
+    @Test
+    @DisplayName("Should handle null taskMetrics gracefully when creating task")
+    void shouldHandleNullTaskMetrics_WhenCreatingTask() {
+        com.leonardoborges.api.util.SecurityUtils securityUtils = 
+                new com.leonardoborges.api.util.SecurityUtils(userRepository);
+        
+        TaskService serviceWithoutMetrics = new TaskService(
+                taskRepository,
+                cacheEvictionService,
+                taskMapper,
+                taskValidationService,
+                null,
+                auditService,
+                securityUtils,
+                taskHistoryService
+        );
+
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+
+        TaskResponse result = serviceWithoutMetrics.createTask(taskRequest);
+
+        assertNotNull(result);
+        verify(taskRepository).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should handle null taskMetrics gracefully when retrieving task")
+    void shouldHandleNullTaskMetrics_WhenRetrievingTask() {
+        com.leonardoborges.api.util.SecurityUtils securityUtils = 
+                new com.leonardoborges.api.util.SecurityUtils(userRepository);
+        
+        TaskService serviceWithoutMetrics = new TaskService(
+                taskRepository,
+                cacheEvictionService,
+                taskMapper,
+                taskValidationService,
+                null,
+                auditService,
+                securityUtils,
+                taskHistoryService
+        );
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+
+        TaskResponse result = serviceWithoutMetrics.getTaskById(1L);
+
+        assertNotNull(result);
+        verify(taskRepository).findByIdAndUser(1L, testUser);
+    }
+
+    @Test
+    @DisplayName("Should handle null taskMetrics gracefully when updating task")
+    void shouldHandleNullTaskMetrics_WhenUpdatingTask() {
+        com.leonardoborges.api.util.SecurityUtils securityUtils = 
+                new com.leonardoborges.api.util.SecurityUtils(userRepository);
+        
+        TaskService serviceWithoutMetrics = new TaskService(
+                taskRepository,
+                cacheEvictionService,
+                taskMapper,
+                taskValidationService,
+                null,
+                auditService,
+                securityUtils,
+                taskHistoryService
+        );
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+
+        TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
+
+        assertNotNull(result);
+        verify(taskRepository).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should handle null taskMetrics gracefully when status changes")
+    void shouldHandleNullTaskMetrics_WhenStatusChanges() {
+        com.leonardoborges.api.util.SecurityUtils securityUtils = 
+                new com.leonardoborges.api.util.SecurityUtils(userRepository);
+        
+        TaskService serviceWithoutMetrics = new TaskService(
+                taskRepository,
+                cacheEvictionService,
+                taskMapper,
+                taskValidationService,
+                null,
+                auditService,
+                securityUtils,
+                taskHistoryService
+        );
+
+        taskRequest.setStatus(Task.TaskStatus.IN_PROGRESS);
+        task.setStatus(Task.TaskStatus.PENDING);
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+
+        TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
+
+        assertNotNull(result);
+        verify(taskRepository).save(any(Task.class));
+    }
 }

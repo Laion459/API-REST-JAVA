@@ -71,6 +71,14 @@ class SortParameterValidatorTest {
     }
 
     @Test
+    @DisplayName("Should return original Pageable when pageable is null")
+    void shouldReturnOriginalPageableWhenPageableIsNull() {
+        Pageable result = validator.validateAndNormalizeTaskSort(null, "createdAt", Sort.Direction.DESC);
+        
+        assertNull(result);
+    }
+
+    @Test
     @DisplayName("Should return Pageable with default sort when SQL injection is detected")
     void shouldReturnPageableWithDefaultSortWhenSqlInjectionIsDetected() {
         when(sqlInjectionValidator.isValidSortField("'; DROP TABLE tasks; --")).thenReturn(false);

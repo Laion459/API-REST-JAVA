@@ -260,4 +260,137 @@ class TaskValidationServiceTest {
         assertTrue(exception.getMessage().contains("Expected: 1"));
         assertTrue(exception.getMessage().contains("but was: 2"));
     }
+
+    @Test
+    @DisplayName("Should handle null description in validation")
+    void shouldHandleNullDescriptionInValidation() {
+        validTaskRequest.setDescription(null);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+        verify(sqlInjectionValidator, times(1)).isSafe(anyString());
+        verify(inputSanitizer, times(1)).sanitizeAndTruncate(anyString(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Should handle empty description in validation")
+    void shouldHandleEmptyDescriptionInValidation() {
+        validTaskRequest.setDescription("");
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+        verify(sqlInjectionValidator, times(2)).isSafe(anyString());
+        verify(inputSanitizer, times(2)).sanitizeAndTruncate(anyString(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Should handle null priority in validation")
+    void shouldHandleNullPriorityInValidation() {
+        validTaskRequest.setPriority(null);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+    }
+
+    @Test
+    @DisplayName("Should handle zero priority in validation")
+    void shouldHandleZeroPriorityInValidation() {
+        validTaskRequest.setPriority(0);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+    }
+
+    @Test
+    @DisplayName("Should allow all valid status transitions from PENDING")
+    void shouldAllowAllValidStatusTransitionsFromPending() {
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.PENDING, Task.TaskStatus.IN_PROGRESS);
+        });
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.PENDING, Task.TaskStatus.COMPLETED);
+        });
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.PENDING, Task.TaskStatus.CANCELLED);
+        });
+    }
+
+    @Test
+    @DisplayName("Should allow all valid status transitions from IN_PROGRESS")
+    void shouldAllowAllValidStatusTransitionsFromInProgress() {
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.IN_PROGRESS, Task.TaskStatus.COMPLETED);
+        });
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.IN_PROGRESS, Task.TaskStatus.CANCELLED);
+        });
+        assertDoesNotThrow(() -> {
+            validationService.validateStatusTransition(Task.TaskStatus.IN_PROGRESS, Task.TaskStatus.PENDING);
+        });
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to change from COMPLETED to PENDING")
+    void shouldThrowExceptionWhenTryingToChangeFromCompletedToPending() {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            validationService.validateStatusTransition(Task.TaskStatus.COMPLETED, Task.TaskStatus.PENDING);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot change status from COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to change from COMPLETED to IN_PROGRESS")
+    void shouldThrowExceptionWhenTryingToChangeFromCompletedToInProgress() {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            validationService.validateStatusTransition(Task.TaskStatus.COMPLETED, Task.TaskStatus.IN_PROGRESS);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot change status from COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to change from CANCELLED to IN_PROGRESS")
+    void shouldThrowExceptionWhenTryingToChangeFromCancelledToInProgress() {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            validationService.validateStatusTransition(Task.TaskStatus.CANCELLED, Task.TaskStatus.IN_PROGRESS);
+        });
+
+        assertEquals("Cannot change status of a CANCELLED task", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to change from CANCELLED to COMPLETED")
+    void shouldThrowExceptionWhenTryingToChangeFromCancelledToCompleted() {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            validationService.validateStatusTransition(Task.TaskStatus.CANCELLED, Task.TaskStatus.COMPLETED);
+        });
+
+        assertEquals("Cannot change status of a CANCELLED task", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should handle null title in validateSqlInjection")
+    void shouldHandleNullTitleInValidateSqlInjection() {
+        TaskRequest request = TaskRequest.builder()
+                .title("Valid Title")
+                .description(null)
+                .build();
+        
+        when(sqlInjectionValidator.isSafe("Valid Title")).thenReturn(true);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(request));
+        verify(sqlInjectionValidator, times(1)).isSafe("Valid Title");
+        verify(sqlInjectionValidator, never()).isSafe((String) isNull());
+    }
+
+    @Test
+    @DisplayName("Should handle null description in validateSqlInjection")
+    void shouldHandleNullDescriptionInValidateSqlInjection() {
+        TaskRequest request = TaskRequest.builder()
+                .title("Valid Title")
+                .description(null)
+                .build();
+        
+        when(sqlInjectionValidator.isSafe("Valid Title")).thenReturn(true);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(request));
+        verify(sqlInjectionValidator, times(1)).isSafe("Valid Title");
+    }
 }

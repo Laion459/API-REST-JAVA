@@ -143,6 +143,27 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Should convert email to lowercase during registration")
+    void shouldConvertEmailToLowerCase_DuringRegistration() {
+        authRequest.setEmail("TEST@EXAMPLE.COM");
+        when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
+        when(inputSanitizer.sanitizeString("TEST@EXAMPLE.COM")).thenReturn("TEST@EXAMPLE.COM");
+        when(userRepository.existsByUsername("testuser")).thenReturn(false);
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(userRepository.save(argThat(user -> "test@example.com".equals(user.getEmail())))).thenReturn(user);
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
+        when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
+
+        AuthResponse response = userService.register(authRequest);
+
+        assertNotNull(response);
+        assertEquals("test@example.com", response.getEmail());
+        verify(userRepository).existsByEmail("test@example.com");
+    }
+
+    @Test
     @DisplayName("Should throw exception when username already exists")
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
@@ -238,5 +259,16 @@ class UserServiceTest {
 
         assertNotNull(found);
         assertEquals("test@example.com", found.getEmail());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user not found by username or email")
+    void shouldThrowException_WhenUserNotFoundByUsernameOrEmail() {
+        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("nonexistent")).thenReturn(Optional.empty());
+
+        assertThrows(UsernameNotFoundException.class, () -> {
+            userService.findUserByUsernameOrEmail("nonexistent");
+        });
     }
 }
