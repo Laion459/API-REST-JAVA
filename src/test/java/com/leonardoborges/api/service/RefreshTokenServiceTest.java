@@ -192,4 +192,58 @@ class RefreshTokenServiceTest {
         verify(refreshTokenRepository, times(1))
                 .countValidTokensByUser(eq(testUser), any(LocalDateTime.class));
     }
+
+    @Test
+    @DisplayName("Should delete expired tokens")
+    void shouldDeleteExpiredTokens_WhenCalled() {
+        // Arrange
+        when(refreshTokenRepository.deleteExpiredTokens(any(LocalDateTime.class)))
+                .thenReturn(5);
+
+        // Act
+        refreshTokenService.deleteExpiredTokens();
+
+        // Assert
+        verify(refreshTokenRepository, times(1)).deleteExpiredTokens(any(LocalDateTime.class));
+    }
+
+    @Test
+    @DisplayName("Should handle revoke token when token not found")
+    void shouldHandleRevokeToken_WhenTokenNotFound() {
+        // Arrange
+        when(refreshTokenRepository.findByToken("non-existent-token"))
+                .thenReturn(Optional.empty());
+
+        // Act
+        refreshTokenService.revokeToken("non-existent-token", "admin");
+
+        // Assert
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
+    }
+
+    @Test
+    @DisplayName("Should handle short token preview in revoke")
+    void shouldHandleShortTokenPreview_WhenRevokingToken() {
+        // Arrange
+        String shortToken = "short";
+        RefreshToken token = RefreshToken.builder()
+                .id(1L)
+                .token(shortToken)
+                .user(testUser)
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .revoked(false)
+                .used(false)
+                .build();
+
+        when(refreshTokenRepository.findByToken(shortToken))
+                .thenReturn(Optional.of(token));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(token);
+
+        // Act
+        refreshTokenService.revokeToken(shortToken, "admin");
+
+        // Assert
+        assertTrue(token.getRevoked());
+        verify(refreshTokenRepository, times(1)).save(token);
+    }
 }

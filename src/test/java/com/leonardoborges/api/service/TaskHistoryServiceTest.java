@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -122,6 +122,97 @@ class TaskHistoryServiceTest {
         // Assert
         assertEquals(2, history.size());
         verify(taskHistoryRepository, times(1)).findByTaskIdOrderByChangedAtDesc(1L);
+    }
+
+    @Test
+    @DisplayName("Should handle exception when recording field change")
+    void shouldHandleException_WhenRecordingFieldChange() {
+        // Arrange
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenThrow(new RuntimeException("Database error"));
+        when(securityUtils.getCurrentUsername()).thenReturn("testuser");
+
+        // Act - Should not throw exception
+        try {
+            taskHistoryService.recordFieldChange(1L, "title", "Old", "New");
+        } catch (Exception e) {
+            fail("Should not throw exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Should not record history when oldTask is null")
+    void shouldNotRecordHistory_WhenOldTaskIsNull() {
+        // Arrange
+        Task newTask = createTask(1L, "New Title", "New Description", Task.TaskStatus.PENDING, 1);
+
+        // Act
+        taskHistoryService.recordTaskChanges(1L, null, newTask);
+
+        // Assert
+        verify(taskHistoryRepository, never()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should not record history when newTask is null")
+    void shouldNotRecordHistory_WhenNewTaskIsNull() {
+        // Arrange
+        Task oldTask = createTask(1L, "Old Title", "Old Description", Task.TaskStatus.PENDING, 1);
+
+        // Act
+        taskHistoryService.recordTaskChanges(1L, oldTask, null);
+
+        // Assert
+        verify(taskHistoryRepository, never()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record status change when status is null in old task")
+    void shouldRecordStatusChange_WhenStatusIsNullInOldTask() {
+        // Arrange
+        Task oldTask = createTask(1L, "Title", "Description", null, 1);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        // Assert
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record priority change when priority is null")
+    void shouldRecordPriorityChange_WhenPriorityIsNull() {
+        // Arrange
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, null);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        // Assert
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record field change with null values")
+    void shouldRecordFieldChange_WithNullValues() {
+        // Arrange
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        taskHistoryService.recordFieldChange(1L, "title", null, "New Title");
+        taskHistoryService.recordFieldChange(1L, "description", "Old Description", null);
+
+        // Assert
+        verify(taskHistoryRepository, times(2)).save(any(TaskHistory.class));
     }
     
     /**

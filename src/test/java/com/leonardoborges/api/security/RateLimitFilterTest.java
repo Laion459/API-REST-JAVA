@@ -231,4 +231,39 @@ class RateLimitFilterTest {
         verify(request, atLeastOnce()).getHeader("X-Real-IP");
         verify(request, atLeastOnce()).getRemoteAddr();
     }
+
+    @Test
+    @DisplayName("Should return retry after when bucket has available tokens")
+    void shouldReturnRetryAfter_WhenBucketHasAvailableTokens() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(5L);
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        String responseBody = stringWriter.toString();
+        assertTrue(responseBody.contains("\"retryAfter\""));
+        verify(response).setStatus(429);
+    }
+
+    @Test
+    @DisplayName("Should handle exception in getRetryAfterSeconds")
+    void shouldHandleException_InGetRetryAfterSeconds() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+        when(defaultBucket.tryConsume(0)).thenThrow(new RuntimeException("Bucket error"));
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        String responseBody = stringWriter.toString();
+        assertTrue(responseBody.contains("\"retryAfter\""));
+        verify(response).setStatus(429);
+    }
 }

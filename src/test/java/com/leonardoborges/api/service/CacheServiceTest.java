@@ -146,4 +146,128 @@ class CacheServiceTest {
         assertTrue(stats.contains("tasks"));
         assertTrue(stats.contains("taskStats"));
     }
+
+    @Test
+    @DisplayName("Should evict all task lists from cache")
+    void shouldEvictAllTaskLists_WhenCalled() {
+        // Arrange
+        Cache taskListsCache = mock(Cache.class);
+        when(cacheManager.getCache("taskLists")).thenReturn(taskListsCache);
+
+        // Act
+        cacheService.evictTaskLists();
+
+        // Assert
+        verify(taskListsCache, times(1)).clear();
+    }
+
+    @Test
+    @DisplayName("Should handle null cache when evicting task lists")
+    void shouldHandleNullCache_WhenEvictingTaskLists() {
+        // Arrange
+        when(cacheManager.getCache("taskLists")).thenReturn(null);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> cacheService.evictTaskLists());
+    }
+
+    @Test
+    @DisplayName("Should evict tasks by status from cache")
+    void shouldEvictTasksByStatus_WhenStatusProvided() {
+        // Arrange
+        Cache taskListsCache = mock(Cache.class);
+        String status = "PENDING";
+        when(cacheManager.getCache("taskLists")).thenReturn(taskListsCache);
+
+        // Act
+        cacheService.evictTasksByStatus(status);
+
+        // Assert
+        verify(taskListsCache, times(1)).clear();
+    }
+
+    @Test
+    @DisplayName("Should handle null cache when evicting tasks by status")
+    void shouldHandleNullCache_WhenEvictingTasksByStatus() {
+        // Arrange
+        when(cacheManager.getCache("taskLists")).thenReturn(null);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> cacheService.evictTasksByStatus("PENDING"));
+    }
+
+    @Test
+    @DisplayName("Should clear all caches")
+    void shouldClearAllCaches_WhenCalled() {
+        // Arrange
+        Cache cache1 = mock(Cache.class);
+        Cache cache2 = mock(Cache.class);
+        when(cacheManager.getCacheNames()).thenReturn(java.util.Set.of("tasks", "taskStats"));
+        when(cacheManager.getCache("tasks")).thenReturn(cache1);
+        when(cacheManager.getCache("taskStats")).thenReturn(cache2);
+
+        // Act
+        cacheService.clearAllCaches();
+
+        // Assert
+        verify(cache1, times(1)).clear();
+        verify(cache2, times(1)).clear();
+    }
+
+    @Test
+    @DisplayName("Should handle null cache when clearing all caches")
+    void shouldHandleNullCache_WhenClearingAllCaches() {
+        // Arrange
+        when(cacheManager.getCacheNames()).thenReturn(java.util.Set.of("tasks", "taskStats"));
+        when(cacheManager.getCache("tasks")).thenReturn(null);
+        when(cacheManager.getCache("taskStats")).thenReturn(null);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> cacheService.clearAllCaches());
+    }
+
+    @Test
+    @DisplayName("Should return false when cache is null for isTaskCached")
+    void shouldReturnFalse_WhenCacheIsNullForIsTaskCached() {
+        // Arrange
+        when(cacheManager.getCache("tasks")).thenReturn(null);
+
+        // Act
+        boolean result = cacheService.isTaskCached(1L);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when value wrapper is null")
+    void shouldReturnFalse_WhenValueWrapperIsNull() {
+        // Arrange
+        Long taskId = 1L;
+        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
+        when(tasksCache.get(taskId)).thenReturn(null);
+
+        // Act
+        boolean result = cacheService.isTaskCached(taskId);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when value wrapper contains null")
+    void shouldReturnFalse_WhenValueWrapperContainsNull() {
+        // Arrange
+        Long taskId = 1L;
+        Cache.ValueWrapper wrapper = mock(Cache.ValueWrapper.class);
+        when(wrapper.get()).thenReturn(null);
+        when(cacheManager.getCache("tasks")).thenReturn(tasksCache);
+        when(tasksCache.get(taskId)).thenReturn(wrapper);
+
+        // Act
+        boolean result = cacheService.isTaskCached(taskId);
+
+        // Assert
+        assertFalse(result);
+    }
 }

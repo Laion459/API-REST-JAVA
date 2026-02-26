@@ -161,4 +161,45 @@ class JwtServiceTest {
 
         assertEquals("ADMIN", role);
     }
+
+    @Test
+    @DisplayName("Should return false when isRefreshToken encounters exception")
+    void shouldReturnFalse_WhenIsRefreshTokenEncountersException() {
+        String invalidToken = "invalid.token.here";
+
+        boolean result = jwtService.isRefreshToken(invalidToken);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when validateRefreshToken encounters exception")
+    void shouldReturnFalse_WhenValidateRefreshTokenEncountersException() {
+        String invalidToken = "invalid.token.here";
+
+        boolean result = jwtService.validateRefreshToken(invalidToken);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when validateRefreshToken token is expired")
+    void shouldReturnFalse_WhenValidateRefreshTokenTokenIsExpired() {
+        when(jwtProperties.getRefreshExpiration()).thenReturn(-1000L);
+        String expiredToken = jwtService.generateRefreshToken(userDetails);
+
+        boolean result = jwtService.validateRefreshToken(expiredToken);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when token is not a refresh token but validateRefreshToken is called")
+    void shouldReturnFalse_WhenTokenIsNotRefreshTokenButValidateRefreshTokenIsCalled() {
+        String accessToken = jwtService.generateToken(userDetails);
+
+        boolean result = jwtService.validateRefreshToken(accessToken);
+
+        assertFalse(result);
+    }
 }
