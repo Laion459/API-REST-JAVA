@@ -1,59 +1,59 @@
 # High Performance REST API
 
-API REST de alta performance desenvolvida com Spring Boot para demonstração de habilidades backend, focada em escalabilidade, performance e boas práticas de engenharia de software.
+High-performance REST API developed with Spring Boot for backend skills demonstration, focused on scalability, performance, and software engineering best practices.
 
 ## Status: v3.0.0
 
-Projeto de referência implementando todas as melhores práticas de engenharia de software, segurança e performance. 
-Inclui arquitetura híbrida MVC + WebFlux para máxima performance. Pronto para produção.
+Reference project implementing all software engineering, security, and performance best practices. 
+Includes hybrid MVC + WebFlux architecture for maximum performance. Production-ready.
 
-## Objetivo
+## Objective
 
-Demonstrar experiência prática em desenvolvimento backend com Java/Spring Boot, incluindo:
-- APIs REST de alta performance
-- Programação concorrente e otimização
-- Cache e otimização de consultas
-- Monitoramento e métricas
-- Testes automatizados
-- Docker e CI/CD
+Demonstrate practical experience in backend development with Java/Spring Boot, including:
+- High-performance REST APIs
+- Concurrent programming and optimization
+- Caching and query optimization
+- Monitoring and metrics
+- Automated testing
+- Docker and CI/CD
 
-## Tecnologias
+## Technologies
 
-- **Java 21** (LTS) - Linguagem de programação
-- **Spring Boot 3.2.0** - Framework backend
-- **Spring Data JPA** - Persistência de dados (MVC)
-- **Spring WebFlux + R2DBC** - Programação reativa para alta performance
-- **PostgreSQL** - Banco de dados relacional
-- **Redis** - Cache e otimização (bloqueante e reativo)
-- **Swagger/OpenAPI** - Documentação automática
-- **Prometheus** - Métricas e monitoramento
-- **Docker** - Containerização
-- **Maven** - Gerenciamento de dependências
+- **Java 21** (LTS) - Programming language
+- **Spring Boot 3.2.0** - Backend framework
+- **Spring Data JPA** - Data persistence (MVC)
+- **Spring WebFlux + R2DBC** - Reactive programming for high performance
+- **PostgreSQL** - Relational database
+- **Redis** - Caching and optimization (blocking and reactive)
+- **Swagger/OpenAPI** - Automatic documentation
+- **Prometheus** - Metrics and monitoring
+- **Docker** - Containerization
+- **Maven** - Dependency management
 
-## Funcionalidades
+## Features
 
-- CRUD completo de tarefas
-- **Autenticação JWT com Refresh Tokens** (v1.4.0, v2.1.0)
-- **Autorização baseada em roles** (USER, ADMIN)
-- **Rate Limiting** (v1.5.0) - Proteção contra abuso
-- **Security Headers** (v1.7.0) - Headers HTTP de segurança (OWASP)
-- **Optimistic Locking** (v1.8.0) - Controle de concorrência
-- **CORS Configurável** (v2.1.0) - Segurança aprimorada
-- **Sistema de Auditoria** (v2.1.0) - Log de operações sensíveis
-- **Prevenção de SQL Injection** (v2.1.0) - Validação em múltiplas camadas
-- Paginação e filtros
-- Cache inteligente (Redis)
-- Validação de dados em múltiplas camadas
-- Tratamento de erros padronizado
-- **Documentação Swagger completa** (v1.9.0) - Todos os códigos HTTP documentados
-- **Health Checks Customizados** (v2.0.0) - Monitoramento de DB, Redis e Cache
-- **Métricas Customizadas** (v2.0.0) - Métricas de negócio com Prometheus
-- **Cobertura de Testes 90%+** (v2.0.0) - Validação obrigatória no CI/CD
-- **Testes de Performance** (v2.1.0) - Validação de tempos de resposta
-- Métricas Prometheus
+- Complete task CRUD
+- **JWT Authentication with Refresh Tokens** (v1.4.0, v2.1.0)
+- **Role-based Authorization** (USER, ADMIN)
+- **Rate Limiting** (v1.5.0) - Abuse protection
+- **Security Headers** (v1.7.0) - HTTP security headers (OWASP)
+- **Optimistic Locking** (v1.8.0) - Concurrency control
+- **Configurable CORS** (v2.1.0) - Enhanced security
+- **Audit System** (v2.1.0) - Logging of sensitive operations
+- **SQL Injection Prevention** (v2.1.0) - Multi-layer validation
+- Pagination and filters
+- Intelligent caching (Redis)
+- Multi-layer data validation
+- Standardized error handling
+- **Complete Swagger Documentation** (v1.9.0) - All HTTP codes documented
+- **Custom Health Checks** (v2.0.0) - DB, Redis, and Cache monitoring
+- **Custom Metrics** (v2.0.0) - Business metrics with Prometheus
+- **90%+ Test Coverage** (v2.0.0) - Mandatory validation in CI/CD
+- **Performance Tests** (v2.1.0) - Response time validation
+- Prometheus metrics
 - Health checks
-- Testes automatizados (unitários, integração, performance)
-- Docker e Docker Compose
+- Automated tests (unit, integration, performance)
+- Docker and Docker Compose
 - **CI/CD Pipeline** (v1.6.0) - GitHub Actions
 
 ## Arquitetura
@@ -63,204 +63,204 @@ src/
 ├── main/
 │   ├── java/
 │   │   └── com/leonardoborges/api/
-│   │       ├── audit/           # Sistema de auditoria
-│   │       ├── cache/            # Gerenciamento de cache
-│   │       ├── config/           # Configurações (Cache, Web, Security, etc)
-│   │       ├── constants/        # Constantes do sistema
-│   │       ├── controller/      # Controllers REST
+│   │       ├── audit/           # Audit system
+│   │       ├── cache/            # Cache management
+│   │       ├── config/           # Configurations (Cache, Web, Security, etc)
+│   │       ├── constants/        # System constants
+│   │       ├── controller/      # REST controllers
 │   │       ├── dto/              # Data Transfer Objects
-│   │       ├── exception/        # Tratamento de erros
-│   │       ├── health/           # Health checks customizados
-│   │       ├── mapper/           # Mapeamento DTO ↔ Entity
-│   │       ├── metrics/          # Métricas customizadas
-│   │       ├── model/            # Entidades JPA
-│   │       ├── repository/       # Repositórios JPA e R2DBC
-│   │       ├── security/         # Componentes de segurança
-│   │       ├── service/          # Lógica de negócio
-│   │       └── util/             # Utilitários
+│   │       ├── exception/        # Error handling
+│   │       ├── health/           # Custom health checks
+│   │       ├── mapper/           # DTO ↔ Entity mapping
+│   │       ├── metrics/          # Custom metrics
+│   │       ├── model/            # JPA entities
+│   │       ├── repository/       # JPA and R2DBC repositories
+│   │       ├── security/         # Security components
+│   │       ├── service/          # Business logic
+│   │       └── util/             # Utilities
 │   └── resources/
-│       ├── application.yml       # Configurações
-│       ├── db/migration/         # Migrações Flyway
-│       └── logback-spring.xml    # Configuração de logs
-└── test/                         # Testes automatizados
+│       ├── application.yml       # Configurations
+│       ├── db/migration/         # Flyway migrations
+│       └── logback-spring.xml    # Logging configuration
+└── test/                         # Automated tests
 ```
 
-## Como Executar
+## How to Run
 
-### Pré-requisitos
+### Prerequisites
 
-- **Java 21** (LTS) - Instalar: `sudo apt install openjdk-21-jdk`
-- Maven 3.6+ - Instalar: `sudo apt install maven`
-- Docker e Docker Compose (opcional)
+- **Java 21** (LTS) - Install: `sudo apt install openjdk-21-jdk`
+- Maven 3.6+ - Install: `sudo apt install maven`
+- Docker and Docker Compose (optional)
 
-### Opção 0: Makefile (Mais Fácil - Recomendado)
+### Option 0: Makefile (Easiest - Recommended)
 
-O projeto inclui um **Makefile completo** com comandos úteis para simplificar o desenvolvimento:
+The project includes a **complete Makefile** with useful commands to simplify development:
 
 ```bash
-# Ver todos os comandos disponíveis
+# View all available commands
 make help
 
-# Instalar dependências e iniciar serviços Docker
+# Install dependencies and start Docker services
 make install
 
-# Início rápido completo (Docker + Build + Run)
+# Complete quick start (Docker + Build + Run)
 make quickstart
 
-# Desenvolvimento (Docker + Run aplicação)
+# Development (Docker + Run application)
 make dev
 
-# Executar testes
+# Run tests
 make test
 
-# Testes com cobertura
+# Tests with coverage
 make test-coverage
 
-# Docker - comandos simplificados
-make up      # Iniciar containers
-make down    # Parar containers
-make ps      # Listar containers
-make logs    # Ver logs
+# Docker - simplified commands
+make up      # Start containers
+make down    # Stop containers
+make ps      # List containers
+make logs    # View logs
 
-# Build e execução
-make build   # Compilar projeto
-make run     # Executar aplicação
-make clean   # Limpar artefatos
+# Build and execution
+make build   # Compile project
+make run     # Run application
+make clean   # Clean artifacts
 ```
 
-**Comandos mais usados:**
+**Most used commands:**
 
-| Comando | Descrição |
-|---------|-----------|
-| `make install` | Instala dependências e inicia serviços Docker |
-| `make quickstart` | Início rápido completo (tudo automático) |
-| `make dev` | Desenvolvimento (Docker + aplicação) |
-| `make test` | Executa todos os testes |
-| `make test-coverage` | Testes com relatório de cobertura |
-| `make up` | Inicia containers Docker |
-| `make down` | Para containers Docker |
-| `make ps` | Lista containers em execução |
-| `make logs` | Mostra logs dos containers |
+| Command | Description |
+|---------|-------------|
+| `make install` | Installs dependencies and starts Docker services |
+| `make quickstart` | Complete quick start (everything automatic) |
+| `make dev` | Development (Docker + application) |
+| `make test` | Runs all tests |
+| `make test-coverage` | Tests with coverage report |
+| `make up` | Starts Docker containers |
+| `make down` | Stops Docker containers |
+| `make ps` | Lists running containers |
+| `make logs` | Shows container logs |
 
-Para ver todos os comandos disponíveis: `make help`
+To see all available commands: `make help`
 
-### Opção 1: Docker Compose (Recomendado)
+### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Iniciar todos os serviços (PostgreSQL, Redis, API)
+# Start all services (PostgreSQL, Redis, API)
 docker-compose up -d
 
-# Ver logs
+# View logs
 docker-compose logs -f app
 
-# Parar serviços
+# Stop services
 docker-compose down
 ```
 
-A API estará disponível em: `http://localhost:8081`
+The API will be available at: `http://localhost:8081`
 
-### Opção 2: Execução Local
+### Option 2: Local Execution
 
-1. **Instalar PostgreSQL e Redis** (ou usar Docker apenas para esses serviços)
+1. **Install PostgreSQL and Redis** (or use Docker only for these services)
 
-2. **Configurar banco de dados:**
+2. **Configure database:**
 ```sql
 CREATE DATABASE tasksdb;
 ```
 
-3. **Executar a aplicação:**
+3. **Run the application:**
 ```bash
 mvn spring-boot:run
 ```
 
-### Opção 3: Build e Executar JAR
+### Option 3: Build and Run JAR
 
 ```bash
 # Build
 mvn clean package
 
-# Executar
+# Run
 java -jar target/high-performance-api-1.0.0.jar
 ```
 
-## Documentação da API
+## API Documentation
 
 ### Swagger UI
-Acesse: `http://localhost:8081/swagger-ui.html`
+Access: `http://localhost:8081/swagger-ui.html`
 
-A documentação Swagger está completa com:
-- Todos os endpoints documentados
-- Todos os códigos de status HTTP (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
-- Exemplos de requisição e resposta
-- Descrições detalhadas de cada endpoint
-- Esquemas de autenticação JWT
-- Validações e constraints documentadas
-- DTOs com exemplos e descrições
+The Swagger documentation is complete with:
+- All endpoints documented
+- All HTTP status codes (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
+- Request and response examples
+- Detailed descriptions for each endpoint
+- JWT authentication schemas
+- Documented validations and constraints
+- DTOs with examples and descriptions
 
-### Endpoints Principais
+### Main Endpoints
 
 **Authentication (v1.4.0+):**
-- `POST /api/v1/auth/register` - Registrar novo usuário
-- `POST /api/v1/auth/login` - Login e obter token JWT
-- `POST /api/v1/auth/refresh` - Renovar token de acesso usando refresh token
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login and get JWT token
+- `POST /api/v1/auth/refresh` - Refresh access token using refresh token
 
-**Tasks (MVC - Escritas e operações complexas):** (Requer autenticação)
-- `POST /api/v1/tasks` - Criar nova tarefa
-- `GET /api/v1/tasks` - Listar todas as tarefas (paginado)
-- `GET /api/v1/tasks/{id}` - Buscar tarefa por ID
-- `GET /api/v1/tasks/status/{status}` - Filtrar por status
-- `GET /api/v1/tasks/stats/count` - Estatísticas
-- `PUT /api/v1/tasks/{id}` - Atualizar tarefa
-- `DELETE /api/v1/tasks/{id}` - Deletar tarefa (soft delete)
-- `GET /api/v1/tasks/{taskId}/history` - Histórico de mudanças de uma task (paginado)
-- `GET /api/v1/tasks/{taskId}/history/all` - Todo o histórico de uma task (sem paginação)
-- `GET /api/v1/tasks/{taskId}/history/field/{fieldName}` - Histórico de um campo específico
-- `GET /api/v1/tasks/{taskId}/history/date-range` - Histórico por intervalo de datas
+**Tasks (MVC - Writes and complex operations):** (Requires authentication)
+- `POST /api/v1/tasks` - Create new task
+- `GET /api/v1/tasks` - List all tasks (paginated)
+- `GET /api/v1/tasks/{id}` - Get task by ID
+- `GET /api/v1/tasks/status/{status}` - Filter by status
+- `GET /api/v1/tasks/stats/count` - Statistics
+- `PUT /api/v1/tasks/{id}` - Update task
+- `DELETE /api/v1/tasks/{id}` - Delete task (soft delete)
+- `GET /api/v1/tasks/{taskId}/history` - Task change history (paginated)
+- `GET /api/v1/tasks/{taskId}/history/all` - Complete task history (no pagination)
+- `GET /api/v1/tasks/{taskId}/history/field/{fieldName}` - History of a specific field
+- `GET /api/v1/tasks/{taskId}/history/date-range` - History by date range
 
-**Tasks Reativas (WebFlux - Alta Performance):** (Requer autenticação)
-- `GET /api/v2/reactive/tasks` - Listar tarefas (reativo, alta concorrência)
-- `GET /api/v2/reactive/tasks/{id}` - Buscar tarefa (reativo, baixa latência)
-- `GET /api/v2/reactive/tasks/status/{status}` - Filtrar por status (reativo)
-- `GET /api/v2/reactive/tasks/stats/count` - Estatísticas (reativo)
+**Reactive Tasks (WebFlux - High Performance):** (Requires authentication)
+- `GET /api/v2/reactive/tasks` - List tasks (reactive, high concurrency)
+- `GET /api/v2/reactive/tasks/{id}` - Get task (reactive, low latency)
+- `GET /api/v2/reactive/tasks/status/{status}` - Filter by status (reactive)
+- `GET /api/v2/reactive/tasks/stats/count` - Statistics (reactive)
 
-**Batch Operations (Operações em Lote):** (Requer autenticação)
-- `POST /api/v1/tasks/batch/create` - Criar múltiplas tarefas (até 100)
-- `PUT /api/v1/tasks/batch/update` - Atualizar múltiplas tarefas (até 100)
-- `DELETE /api/v1/tasks/batch/delete` - Deletar múltiplas tarefas (até 100)
+**Batch Operations:** (Requires authentication)
+- `POST /api/v1/tasks/batch/create` - Create multiple tasks (up to 100)
+- `PUT /api/v1/tasks/batch/update` - Update multiple tasks (up to 100)
+- `DELETE /api/v1/tasks/batch/delete` - Delete multiple tasks (up to 100)
 
-**Audit (Admin only):** (Requer role ADMIN)
-- `GET /api/v1/audit` - Listar logs de auditoria
-- `GET /api/v1/audit/action/{action}` - Filtrar por ação
-- `GET /api/v1/audit/entity/{entityType}/{entityId}` - Filtrar por entidade
-- `GET /api/v1/audit/user/{username}` - Filtrar por usuário
-- `GET /api/v1/audit/date-range` - Filtrar por intervalo de datas
-- `GET /api/v1/audit/stats/failed` - Estatísticas de ações falhadas
+**Audit (Admin only):** (Requires ADMIN role)
+- `GET /api/v1/audit` - List audit logs
+- `GET /api/v1/audit/action/{action}` - Filter by action
+- `GET /api/v1/audit/entity/{entityType}/{entityId}` - Filter by entity
+- `GET /api/v1/audit/user/{username}` - Filter by user
+- `GET /api/v1/audit/date-range` - Filter by date range
+- `GET /api/v1/audit/stats/failed` - Failed actions statistics
 
-**Nota:** 
-- Endpoints reativos (`/api/v2/reactive/*`) são otimizados para leitura com alta concorrência (10.000+ req/s)
-- Use endpoints MVC (`/api/v1/*`) para operações de escrita que requerem transações complexas
-- Batch operations são ideais para processar múltiplas operações de forma eficiente
+**Note:** 
+- Reactive endpoints (`/api/v2/reactive/*`) are optimized for high-concurrency reads (10,000+ req/s)
+- Use MVC endpoints (`/api/v1/*`) for write operations that require complex transactions
+- Batch operations are ideal for efficiently processing multiple operations
 
-**Cache Management (v1.2.0+):** (Requer role ADMIN)
-- `GET /api/v1/cache/stats` - Estatísticas do cache
-- `GET /api/v1/cache/tasks/{id}/cached` - Verificar se tarefa está em cache
-- `DELETE /api/v1/cache/tasks/{id}` - Remover tarefa do cache
-- `DELETE /api/v1/cache/stats` - Limpar cache de estatísticas
-- `DELETE /api/v1/cache/all` - Limpar todos os caches (administrativo)
+**Cache Management (v1.2.0+):** (Requires ADMIN role)
+- `GET /api/v1/cache/stats` - Cache statistics
+- `GET /api/v1/cache/tasks/{id}/cached` - Check if task is cached
+- `DELETE /api/v1/cache/tasks/{id}` - Remove task from cache
+- `DELETE /api/v1/cache/stats` - Clear statistics cache
+- `DELETE /api/v1/cache/all` - Clear all caches (administrative)
 
 ### Rate Limiting (v1.5.0+)
 
-A API implementa rate limiting para proteger contra abuso:
-- **Endpoints padrão**: 60 requisições por minuto
-- **Endpoints de autenticação**: 5 requisições por minuto (proteção contra brute force)
-- **Endpoints administrativos**: 200 requisições por minuto (para admins)
+The API implements rate limiting to protect against abuse:
+- **Default endpoints**: 60 requests per minute
+- **Authentication endpoints**: 5 requests per minute (brute force protection)
+- **Administrative endpoints**: 200 requests per minute (for admins)
 
-Quando o limite é excedido, a API retorna `429 Too Many Requests` com informações sobre quando tentar novamente.
+When the limit is exceeded, the API returns `429 Too Many Requests` with information about when to try again.
 
-### Exemplo de Requisição
+### Request Example
 
 ```bash
-# 1. Registrar novo usuário
+# 1. Register new user
 curl -X POST http://localhost:8081/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
@@ -269,7 +269,7 @@ curl -X POST http://localhost:8081/api/v1/auth/register \
     "password": "password123"
   }'
 
-# 2. Login e obter token
+# 2. Login and get token
 RESPONSE=$(curl -X POST http://localhost:8081/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
@@ -280,169 +280,169 @@ RESPONSE=$(curl -X POST http://localhost:8081/api/v1/auth/login \
 TOKEN=$(echo $RESPONSE | jq -r '.token')
 REFRESH_TOKEN=$(echo $RESPONSE | jq -r '.refreshToken')
 
-# 2.1. Renovar token (opcional)
+# 2.1. Refresh token (optional)
 # TOKEN=$(curl -X POST http://localhost:8081/api/v1/auth/refresh \
 #   -H "Content-Type: application/json" \
 #   -d "{\"refreshToken\": \"$REFRESH_TOKEN\"}" | jq -r '.token')
 
-# 3. Criar tarefa (com autenticação)
+# 3. Create task (with authentication)
 curl -X POST http://localhost:8081/api/v1/tasks \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
-    "title": "Implementar feature X",
-    "description": "Descrição da tarefa",
+    "title": "Implement feature X",
+    "description": "Task description",
     "status": "PENDING",
     "priority": 1
   }'
 
-# 4. Listar tarefas (com autenticação)
+# 4. List tasks (with authentication)
 curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:8081/api/v1/tasks?page=0&size=20
 
-# 5. Buscar por ID (com autenticação)
+# 5. Get by ID (with authentication)
 curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:8081/api/v1/tasks/1
 ```
 
-## Monitoramento e Métricas
+## Monitoring and Metrics
 
 ### Health Check
 `GET http://localhost:8081/actuator/health`
 
-### Métricas Prometheus
+### Prometheus Metrics
 `GET http://localhost:8081/actuator/prometheus`
 
-### Métricas Disponíveis
-- `http_server_requests_seconds` - Latência de requisições
-- `jvm_memory_used_bytes` - Uso de memória
+### Available Metrics
+- `http_server_requests_seconds` - Request latency
+- `jvm_memory_used_bytes` - Memory usage
 - `jvm_gc_pause_seconds` - Garbage Collection
-- `process_cpu_usage` - Uso de CPU
+- `process_cpu_usage` - CPU usage
 
-## Testes
+## Tests
 
-### Executar Testes
+### Run Tests
 
 ```bash
-# Executar todos os testes
+# Run all tests
 mvn test
 
-# Executar teste específico
+# Run specific test
 mvn test -Dtest=TaskServiceTest
 
-# Executar com cobertura
+# Run with coverage
 mvn test jacoco:report
 ```
 
-### Cobertura de Testes
+### Test Coverage
 
-- **65+ testes** automatizados (100% passando)
-- **Cobertura mínima: 90%** (linhas) e **85%** (branches)
-- **Validação obrigatória no CI/CD** - Build falha se cobertura < 90%
-- Testes unitários (Service, Repository, Controller, Cache, Utils)
-- Testes de integração (end-to-end)
-- Testes de autenticação (JWT, login, registro, refresh tokens)
-- Testes de segurança (OWASP Top 10, SQL Injection, XSS, Rate Limiting)
-- Testes de batch operations
-- Testes de Strategy Pattern (cache eviction)
-- Testes com H2 (banco em memória)
-- Testcontainers para testes de integração
-- JaCoCo configurado para relatórios de cobertura
+- **65+ automated tests** (100% passing)
+- **Minimum coverage: 90%** (lines) and **85%** (branches)
+- **Mandatory validation in CI/CD** - Build fails if coverage < 90%
+- Unit tests (Service, Repository, Controller, Cache, Utils)
+- Integration tests (end-to-end)
+- Authentication tests (JWT, login, registration, refresh tokens)
+- Security tests (OWASP Top 10, SQL Injection, XSS, Rate Limiting)
+- Batch operations tests
+- Strategy Pattern tests (cache eviction)
+- Tests with H2 (in-memory database)
+- Testcontainers for integration tests
+- JaCoCo configured for coverage reports
 
-### Executar Testes com Cobertura
+### Run Tests with Coverage
 
 ```bash
-# Executar testes e gerar relatório de cobertura
+# Run tests and generate coverage report
 mvn clean test jacoco:report
 
-# Ver relatório (HTML)
+# View report (HTML)
 open target/site/jacoco/index.html
 ```
 
 ## CI/CD Pipeline (v1.6.0+)
 
-> **Nota:** O pipeline de CI/CD está planejado para implementação. A estrutura abaixo descreve o pipeline que será configurado usando GitHub Actions.
+> **Note:** The CI/CD pipeline is planned for implementation. The structure below describes the pipeline that will be configured using GitHub Actions.
 
-### Jobs do Pipeline
+### Pipeline Jobs
 
-1. **Test** - Executa todos os testes
-   - Configura PostgreSQL e Redis como serviços
-   - Roda testes com cobertura
-   - Valida cobertura mínima (90% linhas, 85% branches)
-   - Upload de resultados e relatórios
+1. **Test** - Runs all tests
+   - Configures PostgreSQL and Redis as services
+   - Runs tests with coverage
+   - Validates minimum coverage (90% lines, 85% branches)
+   - Uploads results and reports
 
-2. **Build** - Compila a aplicação
-   - Build do JAR
-   - Upload do artefato
+2. **Build** - Compiles the application
+   - JAR build
+   - Artifact upload
 
-3. **Docker Build** - Constrói imagem Docker
-   - Build da imagem Docker
-   - Cache otimizado
+3. **Docker Build** - Builds Docker image
+   - Docker image build
+   - Optimized cache
 
 ### Triggers
 
-- Push para `main` ou `develop`
-- Pull requests para `main`
-- Tags de versão (`v*`)
+- Push to `main` or `develop`
+- Pull requests to `main`
+- Version tags (`v*`)
 
 ### Status Badge
 
-Adicione ao seu README:
+Add to your README:
 ```markdown
 ![CI/CD](https://github.com/Laion459/API-REST-JAVA/workflows/CI%2FCD%20Pipeline/badge.svg)
 ```
 
 ## Performance
 
-### Otimizações Implementadas
+### Implemented Optimizations
 
-- **Cache Redis** - Reduz consultas ao banco
-  - Evict seletivo (v1.2.0) - Invalida apenas caches afetados
-  - TTLs otimizados por tipo de cache
-  - Cache warming em produção
-- **Índices no banco** - Otimização de queries
-- **Paginação** - Reduz transferência de dados
-- **Compressão HTTP** - Reduz tamanho de respostas
-- **Connection Pool** - Reutilização de conexões
-- **Lazy Loading** - Carregamento otimizado
+- **Redis Cache** - Reduces database queries
+  - Selective evict (v1.2.0) - Invalidates only affected caches
+  - Optimized TTLs by cache type
+  - Cache warming in production
+- **Database indexes** - Query optimization
+- **Pagination** - Reduces data transfer
+- **HTTP compression** - Reduces response size
+- **Connection Pool** - Connection reuse
+- **Lazy Loading** - Optimized loading
 
-### Estratégia de Cache (v1.2.0+)
+### Cache Strategy (v1.2.0+)
 
-- **Individual Tasks**: TTL de 15 minutos
-- **Task Statistics**: TTL de 5 minutos
-- **Task Lists**: TTL de 10 minutos (padrão)
-- **Evict Seletivo**: Apenas caches afetados são invalidados
-- **Cache Warming**: Pré-carrega dados frequentes na inicialização (perfil prod)
+- **Individual Tasks**: 15-minute TTL
+- **Task Statistics**: 5-minute TTL
+- **Task Lists**: 10-minute TTL (default)
+- **Selective Evict**: Only affected caches are invalidated
+- **Cache Warming**: Pre-loads frequent data on startup (prod profile)
 
-### Testes de Carga
+### Load Tests
 
 ```bash
-# Usando Apache Bench
+# Using Apache Bench
 ab -n 10000 -c 100 http://localhost:8081/api/v1/tasks
 
-# Usando wrk
+# Using wrk
 wrk -t12 -c400 -d30s http://localhost:8081/api/v1/tasks
 ```
 
-## Métricas de Performance
+## Performance Metrics
 
-### Resultados em Ambiente Local (Testado)
-- **Throughput**: ~991 requisições/segundo (10.000 requisições, 100 concorrentes)
-- **Latência P95**: ~369ms
-- **Latência P99**: ~641ms
-- **Taxa de erro**: 0% (10.000 requisições, 0 falhas)
+### Local Environment Results (Tested)
+- **Throughput**: ~991 requests/second (10,000 requests, 100 concurrent)
+- **P95 Latency**: ~369ms
+- **P99 Latency**: ~641ms
+- **Error rate**: 0% (10,000 requests, 0 failures)
 
-### Objetivos para Ambiente de Produção Otimizado
-- **Throughput**: 10.000+ requisições/segundo
-- **Latência P95**: < 50ms
-- **Latência P99**: < 100ms
-- **Taxa de erro**: < 0.1%
+### Goals for Optimized Production Environment
+- **Throughput**: 10,000+ requests/second
+- **P95 Latency**: < 50ms
+- **P99 Latency**: < 100ms
+- **Error rate**: < 0.1%
 
-*Nota: Valores de produção requerem otimizações adicionais como load balancing, cache distribuído, e infraestrutura dedicada.*
+*Note: Production values require additional optimizations such as load balancing, distributed cache, and dedicated infrastructure.*
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
 ```bash
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tasksdb
@@ -453,59 +453,59 @@ SPRING_REDIS_PORT=6379
 SERVER_PORT=8081
 ```
 
-## Boas Práticas Implementadas
+## Implemented Best Practices
 
-### Arquitetura e Design
-- **Clean Architecture** - Separação clara de responsabilidades
-- **SOLID Principles** - Código extensível e manutenível
-- **Strategy Pattern** - Cache eviction estratégico
-- **DTO Pattern** - Transferência de dados otimizada
-- **Arquitetura Híbrida** - MVC + WebFlux para máxima performance
+### Architecture and Design
+- **Clean Architecture** - Clear separation of responsibilities
+- **SOLID Principles** - Extensible and maintainable code
+- **Strategy Pattern** - Strategic cache eviction
+- **DTO Pattern** - Optimized data transfer
+- **Hybrid Architecture** - MVC + WebFlux for maximum performance
 
-### Segurança
-- **JWT Authentication & Authorization** - Autenticação stateless
-- **Refresh Tokens Persistidos** - Revogação e controle completo
-- **Role-Based Access Control (RBAC)** - Controle de acesso granular
-- **Password Encryption (BCrypt)** - Senhas seguras
-- **Rate Limiting (Bucket4j)** - Proteção contra abuso
-- **Rate Limiting por IP** - Camada adicional de proteção
-- **Security Headers (OWASP)** - Headers HTTP de segurança
-- **Input Sanitization** - Prevenção de injection attacks
-- **SQL Injection Prevention** - Validação em múltiplas camadas
+### Security
+- **JWT Authentication & Authorization** - Stateless authentication
+- **Persisted Refresh Tokens** - Revocation and complete control
+- **Role-Based Access Control (RBAC)** - Granular access control
+- **Password Encryption (BCrypt)** - Secure passwords
+- **Rate Limiting (Bucket4j)** - Abuse protection
+- **IP-based Rate Limiting** - Additional protection layer
+- **Security Headers (OWASP)** - HTTP security headers
+- **Input Sanitization** - Injection attack prevention
+- **SQL Injection Prevention** - Multi-layer validation
 
 ### Performance
-- **WebFlux (Programação Reativa)** - Alta concorrência (10.000+ req/s)
-- **R2DBC** - Acesso não-bloqueante ao PostgreSQL
-- **Cache Inteligente** - Redis com estratégias otimizadas
-- **Cache Metrics** - Monitoramento de hit rate e performance
-- **Batch Operations** - Processamento eficiente em lote
-- **Connection Pooling** - HikariCP otimizado
-- **Database Indexing** - Queries otimizadas
-- **Soft Delete** - Recuperação de dados
+- **WebFlux (Reactive Programming)** - High concurrency (10,000+ req/s)
+- **R2DBC** - Non-blocking access to PostgreSQL
+- **Intelligent Cache** - Redis with optimized strategies
+- **Cache Metrics** - Hit rate and performance monitoring
+- **Batch Operations** - Efficient batch processing
+- **Connection Pooling** - Optimized HikariCP
+- **Database Indexing** - Optimized queries
+- **Soft Delete** - Data recovery
 
-### Observabilidade
-- **Distributed Tracing** - Micrometer Tracing integrado
-- **Logs Estruturados JSON** - Logback configurado para produção
-- **Métricas Prometheus** - Monitoramento completo
-- **Health Checks Customizados** - DB, Redis, Cache
-- **Auditoria Persistente** - Logs de todas as operações sensíveis
+### Observability
+- **Distributed Tracing** - Integrated Micrometer Tracing
+- **Structured JSON Logs** - Logback configured for production
+- **Prometheus Metrics** - Complete monitoring
+- **Custom Health Checks** - DB, Redis, Cache
+- **Persistent Auditing** - Logs of all sensitive operations
 
-### Qualidade
-- **Exception Handling** - Tratamento robusto de erros
-- **Validation** - Validação em múltiplas camadas
-- **Optimistic Locking** - Controle de concorrência
-- **Structured Logging** - Logs organizados
-- **Constants for Magic Numbers** - Código limpo
-- **API Versioning** - Compatibilidade controlada
-- **Documentation (Swagger)** - Documentação completa
-- **Code Coverage 90%+** - Testes abrangentes
-- **CI/CD Pipeline** - Integração contínua
+### Quality
+- **Exception Handling** - Robust error handling
+- **Validation** - Multi-layer validation
+- **Optimistic Locking** - Concurrency control
+- **Structured Logging** - Organized logs
+- **Constants for Magic Numbers** - Clean code
+- **API Versioning** - Controlled compatibility
+- **Documentation (Swagger)** - Complete documentation
+- **Code Coverage 90%+** - Comprehensive tests
+- **CI/CD Pipeline** - Continuous integration
 
-## CI/CD (Planejado)
+## CI/CD (Planned)
 
-> **Status:** O pipeline de CI/CD está planejado para implementação futura. A configuração abaixo serve como referência.
+> **Status:** The CI/CD pipeline is planned for future implementation. The configuration below serves as a reference.
 
-### GitHub Actions (Exemplo de Configuração)
+### GitHub Actions (Configuration Example)
 
 ```yaml
 name: CI/CD Pipeline
@@ -565,10 +565,10 @@ jobs:
 
 ### Docker
 ```bash
-# Build da imagem
+# Build image
 docker build -t high-performance-api:latest .
 
-# Executar container
+# Run container
 docker run -p 8081:8080 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/tasksdb \
   -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -583,28 +583,28 @@ docker run -p 8081:8080 \
 - Kubernetes
 - Cloud Run / ECS / AKS
 
-## Aprendizados e Diferenciais
+## Learnings and Differentiators
 
-Este projeto demonstra:
-- Experiência prática com Java/Spring Boot
-- Conhecimento em APIs REST de alta performance
-- Programação concorrente e otimização
-- Cache e estratégias de performance
-- Monitoramento e observabilidade
-- Testes automatizados
-- Docker e containerização
-- Boas práticas de engenharia de software
+This project demonstrates:
+- Practical experience with Java/Spring Boot
+- Knowledge in high-performance REST APIs
+- Concurrent programming and optimization
+- Caching and performance strategies
+- Monitoring and observability
+- Automated testing
+- Docker and containerization
+- Software engineering best practices
 
-## Licença
+## License
 
-Este projeto é para fins de demonstração de habilidades técnicas.
+This project is for technical skills demonstration purposes.
 
-## Autor
+## Author
 
 **Leonardo Dario Borges**
 - LinkedIn: [borgesleonardod](https://www.linkedin.com/in/borgesleonardod/)
-- Portfólio: [leonardodborges.com.br](https://leonardodborges.com.br)
+- Portfolio: [leonardodborges.com.br](https://leonardodborges.com.br)
 
 ---
 
-*Desenvolvido com foco em alta performance, escalabilidade e boas práticas de engenharia de software.*
+*Developed with focus on high performance, scalability, and software engineering best practices.*

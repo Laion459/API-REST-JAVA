@@ -9,105 +9,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned Improvements
 
-#### Infraestrutura e DevOps
-- [ ] **CI/CD Pipeline** - Implementar pipeline completo com GitHub Actions
-  - Jobs de teste com cobertura (90% linhas, 85% branches)
-  - Build automatizado do JAR
-  - Build e push de imagem Docker
-  - Deploy automatizado (staging/produção)
-- [ ] **Docker Compose para produção** - Configuração otimizada para ambiente produtivo
-- [ ] **Kubernetes manifests** - Configuração para deploy em K8s
-- [ ] **Scripts de deploy** - Automação de deploy em diferentes ambientes
+#### Infrastructure and DevOps
+- [ ] **CI/CD Pipeline** - Implement complete pipeline with GitHub Actions
+  - Test jobs with coverage (90% lines, 85% branches)
+  - Automated JAR build
+  - Docker image build and push
+  - Automated deployment (staging/production)
+- [ ] **Docker Compose for production** - Optimized configuration for production environment
+- [ ] **Kubernetes manifests** - Configuration for K8s deployment
+- [ ] **Deployment scripts** - Deployment automation for different environments
 
-#### Documentação
-- [ ] **Documentação de Arquitetura** - Criar ARQUITETURA_HIBRIDA.md explicando estratégia MVC vs WebFlux
-- [ ] **Architecture Decision Records (ADRs)** - Documentar decisões arquiteturais importantes
-- [ ] **Guia de Contribuição** - CONTRIBUTING.md com padrões de código e processo
-- [ ] **Guia de Deploy** - DEPLOY.md com instruções detalhadas de deploy
-- [ ] **Diagramas de arquitetura** - Diagramas visuais da arquitetura do sistema
+#### Documentation
+- [ ] **Architecture Documentation** - Create ARQUITETURA_HIBRIDA.md explaining MVC vs WebFlux strategy
+- [ ] **Architecture Decision Records (ADRs)** - Document important architectural decisions
+- [ ] **Contribution Guide** - CONTRIBUTING.md with code standards and process
+- [ ] **Deployment Guide** - DEPLOY.md with detailed deployment instructions
+- [ ] **Architecture diagrams** - Visual diagrams of the system architecture
 
-#### Testes e Qualidade
-- [ ] **Automação de testes de performance** - Integrar testes de carga no CI/CD
-- [ ] **Testes de contrato** - Implementar contract testing (Pact, Spring Cloud Contract)
-- [ ] **Testes de mutação** - Adicionar mutation testing para validar qualidade dos testes
-- [ ] **Análise estática de código** - Integrar SonarQube ou similar no CI/CD
+#### Testing and Quality
+- [ ] **Performance test automation** - Integrate load tests into CI/CD
+- [ ] **Contract testing** - Implement contract testing (Pact, Spring Cloud Contract)
+- [ ] **Mutation testing** - Add mutation testing to validate test quality
+- [ ] **Static code analysis** - Integrate SonarQube or similar into CI/CD
 
-#### Performance e Observabilidade
-- [ ] **Ajustes de produção** - Configurar sampling probability para produção (< 1.0)
-- [ ] **Dashboards de monitoramento** - Configurar Grafana com métricas Prometheus
-- [ ] **Alertas configurados** - Configurar alertas para métricas críticas
-- [ ] **Distributed Tracing completo** - Integração com Jaeger/Zipkin para tracing completo
-- [ ] **Log aggregation** - Configurar ELK Stack ou similar para logs centralizados
+#### Performance and Observability
+- [ ] **Production adjustments** - Configure sampling probability for production (< 1.0)
+- [ ] **Monitoring dashboards** - Configure Grafana with Prometheus metrics
+- [ ] **Configured alerts** - Configure alerts for critical metrics
+- [ ] **Complete Distributed Tracing** - Integration with Jaeger/Zipkin for complete tracing
+- [ ] **Log aggregation** - Configure ELK Stack or similar for centralized logs
 
-#### Segurança
-- [ ] **Rotação de secrets JWT** - Implementar rotação automática de secrets
-- [ ] **Rate limiting por usuário** - Adicionar rate limiting granular por usuário
-- [ ] **Análise de dependências** - Integrar OWASP Dependency Check no CI/CD
-- [ ] **Security scanning** - Adicionar scanning de vulnerabilidades no pipeline
+#### Security
+- [ ] **JWT secret rotation** - Implement automatic secret rotation
+- [ ] **User-based rate limiting** - Add granular rate limiting per user
+- [ ] **Dependency analysis** - Integrate OWASP Dependency Check into CI/CD
+- [ ] **Security scanning** - Add vulnerability scanning to the pipeline
 
-#### Funcionalidades
-- [ ] **Webhooks** - Sistema de webhooks para notificações de eventos
-- [ ] **Exportação de dados** - Endpoints para exportar dados em diferentes formatos (CSV, JSON, PDF)
-- [ ] **Filtros avançados** - Filtros mais complexos nas queries (range de datas, múltiplos status, etc.)
-- [ ] **Busca full-text** - Implementar busca full-text em tasks
-- [ ] **Notificações** - Sistema de notificações (email, push, etc.)
+#### Features
+- [ ] **Webhooks** - Webhook system for event notifications
+- [ ] **Data export** - Endpoints to export data in different formats (CSV, JSON, PDF)
+- [ ] **Advanced filters** - More complex filters in queries (date ranges, multiple statuses, etc.)
+- [ ] **Full-text search** - Implement full-text search in tasks
+- [ ] **Notifications** - Notification system (email, push, etc.)
 
-#### Melhorias Técnicas
-- [ ] **Circuit Breaker** - Implementar circuit breaker para resiliência
-- [ ] **Retry policies** - Políticas de retry mais sofisticadas
-- [ ] **Cache distribuído** - Otimizar cache para ambientes distribuídos
-- [ ] **Database sharding** - Preparar para sharding se necessário
-- [ ] **API Gateway** - Considerar implementação de API Gateway para múltiplas APIs
+#### Technical Improvements
+- [ ] **Circuit Breaker** - Implement circuit breaker for resilience
+- [ ] **Retry policies** - More sophisticated retry policies
+- [ ] **Distributed cache** - Optimize cache for distributed environments
+- [ ] **Database sharding** - Prepare for sharding if necessary
+- [ ] **API Gateway** - Consider API Gateway implementation for multiple APIs
 
 ## [3.0.0] - 2025-02-XX
 
 ### Added
-- **Arquitetura Híbrida MVC + WebFlux** - Implementação estratégica de programação reativa para alta performance
-- **ReactiveTaskController** - Endpoints reativos (`/api/v2/reactive/tasks`) otimizados para leitura com alta concorrência
-- **ReactiveTaskService** - Service reativo usando Mono/Flux para operações não-bloqueantes
-- **ReactiveTaskRepository** - Repository R2DBC para acesso não-bloqueante ao PostgreSQL
-- **R2DBC Config** - Configuração completa de R2DBC para programação reativa
-- **Redis Reativo** - Suporte a cache reativo usando ReactiveRedisTemplate
-- **Persistência de Refresh Tokens** - Refresh tokens agora são persistidos no banco de dados com suporte a revogação
-- **Sistema de Auditoria Persistente** - Todos os logs de auditoria são persistidos no banco de dados com rastreabilidade completa
-- **Soft Delete** - Implementado soft delete para Tasks e Users, permitindo recuperação de dados
-- **Rate Limiting por IP** - Rate limiting adicional baseado em IP usando Redis
-- **AuditController** - Endpoint administrativo para consultar logs de auditoria
-- **RefreshTokenService** - Serviço completo para gerenciamento de refresh tokens com revogação
-- **Métodos de restauração** - Método para restaurar tasks deletadas (soft delete)
-- **Índices otimizados** - Novos índices para melhorar performance de queries com soft delete
-- **Migrações de banco** - V3 (refresh_tokens), V4 (audit_logs), V5 (soft delete)
+- **Hybrid MVC + WebFlux Architecture** - Strategic implementation of reactive programming for high performance
+- **ReactiveTaskController** - Reactive endpoints (`/api/v2/reactive/tasks`) optimized for high-concurrency reads
+- **ReactiveTaskService** - Reactive service using Mono/Flux for non-blocking operations
+- **ReactiveTaskRepository** - R2DBC repository for non-blocking access to PostgreSQL
+- **R2DBC Config** - Complete R2DBC configuration for reactive programming
+- **Reactive Redis** - Reactive cache support using ReactiveRedisTemplate
+- **Refresh Token Persistence** - Refresh tokens are now persisted in the database with revocation support
+- **Persistent Audit System** - All audit logs are persisted in the database with complete traceability
+- **Soft Delete** - Implemented soft delete for Tasks and Users, allowing data recovery
+- **IP-based Rate Limiting** - Additional IP-based rate limiting using Redis
+- **AuditController** - Administrative endpoint to query audit logs
+- **RefreshTokenService** - Complete service for refresh token management with revocation
+- **Restoration methods** - Method to restore deleted tasks (soft delete)
+- **Optimized indexes** - New indexes to improve query performance with soft delete
+- **Database migrations** - V3 (refresh_tokens), V4 (audit_logs), V5 (soft delete)
 
 ### Changed
-- **AuditService** - Agora persiste logs no banco de dados de forma assíncrona
-- **UserService** - Integrado com RefreshTokenService para gerenciamento de tokens
-- **TaskService** - Implementado soft delete ao invés de delete físico
-- **TaskRepository** - Queries atualizadas para filtrar registros deletados (soft delete)
-- **UserRepository** - Queries atualizadas para filtrar usuários deletados
-- **SecurityConfig** - Adicionado endpoint de auditoria com proteção ADMIN
-- **README** - Removidas referências incorretas a WebFlux e ReactiveTaskController
+- **AuditService** - Now persists logs in the database asynchronously
+- **UserService** - Integrated with RefreshTokenService for token management
+- **TaskService** - Implemented soft delete instead of physical delete
+- **TaskRepository** - Updated queries to filter deleted records (soft delete)
+- **UserRepository** - Updated queries to filter deleted users
+- **SecurityConfig** - Added audit endpoint with ADMIN protection
+- **README** - Removed incorrect references to WebFlux and ReactiveTaskController
 
 ### Security
-- Refresh tokens podem ser revogados individualmente ou em massa
-- Auditoria completa de todas as operações sensíveis com persistência
-- Rate limiting por IP adiciona camada extra de proteção
-- Soft delete permite recuperação de dados em caso de exclusão acidental
+- Refresh tokens can be revoked individually or in bulk
+- Complete auditing of all sensitive operations with persistence
+- IP-based rate limiting adds an extra layer of protection
+- Soft delete allows data recovery in case of accidental deletion
 
 ### Performance
-- **Arquitetura Híbrida**: MVC para escritas (JPA/transações) + WebFlux para leituras (alta concorrência)
-- **Endpoints Reativos**: `/api/v2/reactive/*` otimizados para 10.000+ req/s com baixa latência
-- **R2DBC**: Acesso não-bloqueante ao PostgreSQL para operações de leitura
-- **Cache Reativo**: Redis reativo integrado com WebFlux
-- **Batch Operations**: Operações em lote para processar múltiplas tasks eficientemente
-- **Strategy Pattern**: Cache eviction estratégico baseado no tipo de operação
-- **Cache Metrics**: Métricas de hit rate, miss rate e performance de cache
-- Índices otimizados para queries com soft delete
-- Auditoria assíncrona não impacta performance das operações principais
-- Rate limiting por IP usando Redis para alta performance
-- **Throughput esperado**: 
-  - MVC (escritas): 1.000+ req/s
-  - WebFlux (leituras): 10.000+ req/s
-  - Batch operations: 5.000+ req/s (dependendo do tamanho do lote)
+- **Hybrid Architecture**: MVC for writes (JPA/transactions) + WebFlux for reads (high concurrency)
+- **Reactive Endpoints**: `/api/v2/reactive/*` optimized for 10,000+ req/s with low latency
+- **R2DBC**: Non-blocking access to PostgreSQL for read operations
+- **Reactive Cache**: Reactive Redis integrated with WebFlux
+- **Batch Operations**: Batch operations to efficiently process multiple tasks
+- **Strategy Pattern**: Strategic cache eviction based on operation type
+- **Cache Metrics**: Hit rate, miss rate, and cache performance metrics
+- Optimized indexes for queries with soft delete
+- Asynchronous auditing does not impact main operation performance
+- IP-based rate limiting using Redis for high performance
+- **Expected throughput**: 
+  - MVC (writes): 1,000+ req/s
+  - WebFlux (reads): 10,000+ req/s
+  - Batch operations: 5,000+ req/s (depending on batch size)
 
 ### Observability
 - **Logs Estruturados JSON**: Logback configurado para logs JSON em produção
