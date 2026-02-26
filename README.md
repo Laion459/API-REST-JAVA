@@ -337,7 +337,7 @@ mvn test jacoco:report
 ### Test Coverage
 
 - **65+ automated tests** (100% passing)
-- **Current coverage: 75%** (lines) and **37%** (branches)
+- **Current coverage: 86.59%** (lines) and **59.85%** (branches)
 - **Target coverage: 90%** (lines) and **85%** (branches) - CI/CD validation planned
 - Unit tests (Service, Repository, Controller, Cache, Utils)
 - Integration tests (end-to-end)
@@ -498,7 +498,7 @@ SERVER_PORT=8081
 - **Constants for Magic Numbers** - Clean code
 - **API Versioning** - Controlled compatibility
 - **Documentation (Swagger)** - Complete documentation
-- **Code Coverage** - Comprehensive tests (current: 75% lines, 37% branches - target: 90%/85%)
+- **Code Coverage** - Comprehensive tests (current: 86.59% lines, 59.85% branches - target: 90%/85%)
 - **CI/CD Pipeline** - Continuous integration
 
 ## CI/CD (Planned)
