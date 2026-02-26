@@ -681,4 +681,62 @@ class TaskServiceTest {
         assertNotNull(result);
         verify(taskHistoryService).recordTaskChanges(eq(1L), any(Task.class), any(Task.class));
     }
+
+    @Test
+    @DisplayName("Should handle optimistic locking failure exception")
+    void shouldHandleOptimisticLockingFailureException() {
+        TaskRequest updateRequest = TestBuilders.defaultTaskRequest()
+                .title("Updated Task")
+                .version(0L)
+                .build();
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenThrow(new org.springframework.dao.OptimisticLockingFailureException("Version conflict"));
+
+        assertThrows(com.leonardoborges.api.exception.OptimisticLockingException.class, () -> {
+            taskService.updateTask(1L, updateRequest);
+        });
+    }
+
+    @Test
+    @DisplayName("Should handle metrics when sample is null in createTask")
+    void shouldHandleMetrics_WhenSampleIsNullInCreateTask() {
+        when(taskMetrics.startTaskCreationTimer()).thenReturn(null);
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+
+        TaskResponse response = taskService.createTask(taskRequest);
+
+        assertNotNull(response);
+        verify(taskRepository, times(1)).save(any(Task.class));
+    }
+
+    @Test
+    @DisplayName("Should handle metrics when sample is null in getTaskById")
+    void shouldHandleMetrics_WhenSampleIsNullInGetTaskById() {
+        when(taskMetrics.startTaskRetrievalTimer()).thenReturn(null);
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+
+        TaskResponse response = taskService.getTaskById(1L);
+
+        assertNotNull(response);
+        verify(taskRepository, times(1)).findByIdAndUser(1L, testUser);
+    }
+
+    @Test
+    @DisplayName("Should handle metrics when sample is null in updateTask")
+    void shouldHandleMetrics_WhenSampleIsNullInUpdateTask() {
+        when(taskMetrics.startTaskUpdateTimer()).thenReturn(null);
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+
+        TaskResponse response = taskService.updateTask(1L, taskRequest);
+
+        assertNotNull(response);
+        verify(taskRepository, times(1)).save(any(Task.class));
+    }
 }

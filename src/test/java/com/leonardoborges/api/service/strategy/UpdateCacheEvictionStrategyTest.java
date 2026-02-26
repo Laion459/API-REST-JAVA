@@ -96,4 +96,35 @@ class UpdateCacheEvictionStrategyTest {
         verify(cacheService, never()).evictTaskStats(anyString());
         verify(cacheService, never()).evictTasksByStatus(anyString());
     }
+
+    @Test
+    @DisplayName("Should handle new status not null but old status null")
+    void shouldHandleNewStatusNotNullButOldStatusNull() {
+        Long taskId = 1L;
+        Task.TaskStatus newStatus = Task.TaskStatus.IN_PROGRESS;
+
+        strategy.evict(taskId, null, newStatus);
+
+        verify(cacheService, times(1)).evictTask(taskId);
+        verify(cacheService, times(1)).evictTaskLists();
+        verify(cacheService, never()).evictTaskStats(anyString());
+        verify(cacheService, never()).evictTasksByStatus(anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle status change when both statuses are not null and different")
+    void shouldHandleStatusChange_WhenBothStatusesNotNullAndDifferent() {
+        Long taskId = 1L;
+        Task.TaskStatus oldStatus = Task.TaskStatus.PENDING;
+        Task.TaskStatus newStatus = Task.TaskStatus.COMPLETED;
+
+        strategy.evict(taskId, oldStatus, newStatus);
+
+        verify(cacheService, times(1)).evictTask(taskId);
+        verify(cacheService, times(1)).evictTaskLists();
+        verify(cacheService, times(1)).evictTaskStats("PENDING");
+        verify(cacheService, times(1)).evictTasksByStatus("PENDING");
+        verify(cacheService, times(1)).evictTasksByStatus("COMPLETED");
+        verify(cacheService, times(1)).evictTaskStats("COMPLETED");
+    }
 }

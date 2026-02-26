@@ -205,6 +205,46 @@ class TaskMetricsTest {
     }
 
     @Test
+    @DisplayName("Should not increment status counter when counter is null for PENDING")
+    void shouldNotIncrementStatusCounter_WhenCounterIsNullForPending() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        assertDoesNotThrow(() -> metrics.incrementTaskStatus("PENDING"));
+    }
+
+    @Test
+    @DisplayName("Should not increment status counter when counter is null for IN_PROGRESS")
+    void shouldNotIncrementStatusCounter_WhenCounterIsNullForInProgress() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        assertDoesNotThrow(() -> metrics.incrementTaskStatus("IN_PROGRESS"));
+    }
+
+    @Test
+    @DisplayName("Should not increment status counter when counter is null for COMPLETED")
+    void shouldNotIncrementStatusCounter_WhenCounterIsNullForCompleted() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        assertDoesNotThrow(() -> metrics.incrementTaskStatus("COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("Should not increment status counter when counter is null for CANCELLED")
+    void shouldNotIncrementStatusCounter_WhenCounterIsNullForCancelled() {
+        io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        TaskMetrics metrics = new TaskMetrics(simpleRegistry);
+        
+        assertDoesNotThrow(() -> metrics.incrementTaskStatus("CANCELLED"));
+    }
+
+    @Test
     @DisplayName("Should start task creation timer")
     void shouldStartTaskCreationTimer() {
         io.micrometer.core.instrument.simple.SimpleMeterRegistry simpleRegistry = 

@@ -208,4 +208,71 @@ class TaskControllerTest {
         mockMvc.perform(delete("/api/v1/tasks/1"))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    @DisplayName("Should handle pagination with default values")
+    void shouldHandlePagination_WithDefaultValues() throws Exception {
+        List<TaskResponse> tasks = Arrays.asList(taskResponse);
+        Page<TaskResponse> page = new PageImpl<>(tasks, PageRequest.of(0, 20), 1);
+        
+        when(sortParameterValidator.validateAndNormalizeTaskSort(any(Pageable.class), anyString(), any()))
+                .thenReturn(PageRequest.of(0, 20));
+        when(taskService.getAllTasks(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("Should handle pagination with custom sort parameters")
+    void shouldHandlePagination_WithCustomSortParameters() throws Exception {
+        List<TaskResponse> tasks = Arrays.asList(taskResponse);
+        Page<TaskResponse> page = new PageImpl<>(tasks, PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("title").descending()), 1);
+        
+        when(sortParameterValidator.validateAndNormalizeTaskSort(any(Pageable.class), anyString(), any()))
+                .thenReturn(PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("title").descending()));
+        when(taskService.getAllTasks(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/tasks")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "title,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @DisplayName("Should handle status filter with pagination")
+    void shouldHandleStatusFilter_WithPagination() throws Exception {
+        List<TaskResponse> tasks = Arrays.asList(taskResponse);
+        Page<TaskResponse> page = new PageImpl<>(tasks, PageRequest.of(1, 10), 1);
+        
+        when(sortParameterValidator.validateAndNormalizeTaskSort(any(Pageable.class), anyString(), any()))
+                .thenReturn(PageRequest.of(1, 10));
+        when(taskService.getTasksByStatus(eq(Task.TaskStatus.IN_PROGRESS), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/tasks/status/IN_PROGRESS")
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @DisplayName("Should handle all status types in statistics")
+    void shouldHandleAllStatusTypes_InStatistics() throws Exception {
+        when(taskService.getTaskCountByStatus(Task.TaskStatus.PENDING)).thenReturn(5L);
+        when(taskService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS)).thenReturn(3L);
+        when(taskService.getTaskCountByStatus(Task.TaskStatus.COMPLETED)).thenReturn(10L);
+        when(taskService.getTaskCountByStatus(Task.TaskStatus.CANCELLED)).thenReturn(1L);
+
+        mockMvc.perform(get("/api/v1/tasks/stats/count"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pending").value(5))
+                .andExpect(jsonPath("$.in_progress").value(3))
+                .andExpect(jsonPath("$.completed").value(10))
+                .andExpect(jsonPath("$.cancelled").value(1));
+    }
 }

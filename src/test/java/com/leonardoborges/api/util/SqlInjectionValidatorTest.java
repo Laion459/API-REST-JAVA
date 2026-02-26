@@ -131,8 +131,8 @@ class SqlInjectionValidatorTest {
     }
 
     @Test
-    @DisplayName("Should handle dangerous characters in short strings")
-    void shouldHandleDangerousCharacters_WhenShortString() {
+    @DisplayName("Should detect quote character in short strings")
+    void shouldDetectQuoteCharacter_InShortStrings() {
         String shortStringWithDangerousChars = "test'";
         
         boolean result = validator.isSafe(shortStringWithDangerousChars);
@@ -166,5 +166,41 @@ class SqlInjectionValidatorTest {
     void shouldHandleEmptyString_InIsSafe() {
         assertTrue(validator.isSafe(""));
         assertTrue(validator.isSafe("   "));
+    }
+
+    @Test
+    @DisplayName("Should detect quote character as potentially dangerous")
+    void shouldDetectQuoteCharacter_AsPotentiallyDangerous() {
+        String shortStringWithQuote = "test'";
+        
+        boolean result1 = validator.isSafe(shortStringWithQuote);
+        
+        assertFalse(result1);
+    }
+
+    @Test
+    @DisplayName("Should detect dangerous patterns even in short strings")
+    void shouldDetectDangerousPatterns_EvenInShortStrings() {
+        String shortStringWithSemicolon = "test;";
+        String shortStringWithDash = "test--";
+        
+        boolean result1 = validator.isSafe(shortStringWithSemicolon);
+        boolean result2 = validator.isSafe(shortStringWithDash);
+        
+        assertFalse(result1);
+        assertFalse(result2);
+    }
+
+    @Test
+    @DisplayName("Should detect dangerous characters in strings longer than 10")
+    void shouldDetectDangerousCharacters_InLongStrings() {
+        String longStringWithQuote = "A".repeat(11) + "'";
+        String longStringWithSemicolon = "A".repeat(11) + ";";
+        
+        boolean result1 = validator.isSafe(longStringWithQuote);
+        boolean result2 = validator.isSafe(longStringWithSemicolon);
+        
+        assertFalse(result1);
+        assertFalse(result2);
     }
 }

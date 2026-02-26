@@ -148,4 +148,51 @@ class RateLimitServiceTest {
 
         assertFalse(exceeded);
     }
+
+    @Test
+    @DisplayName("Should handle null minute counter correctly")
+    void shouldHandleNullMinuteCounter() {
+        when(valueOperations.get(contains(":minute"))).thenReturn(null);
+        when(valueOperations.get(contains(":hour"))).thenReturn(null);
+
+        boolean exceeded = rateLimitService.isRateLimitExceeded(testIp, testEndpoint);
+
+        assertFalse(exceeded);
+        verify(valueOperations, times(2)).increment(anyString());
+    }
+
+    @Test
+    @DisplayName("Should handle null hour counter correctly")
+    void shouldHandleNullHourCounter() {
+        when(valueOperations.get(contains(":minute"))).thenReturn("10");
+        when(valueOperations.get(contains(":hour"))).thenReturn(null);
+
+        boolean exceeded = rateLimitService.isRateLimitExceeded(testIp, testEndpoint);
+
+        assertFalse(exceeded);
+        verify(valueOperations, times(2)).increment(anyString());
+    }
+
+    @Test
+    @DisplayName("Should check per-minute limit exactly at threshold")
+    void shouldCheckPerMinuteLimit_ExactlyAtThreshold() {
+        when(valueOperations.get(contains(":minute"))).thenReturn("100");
+
+        boolean exceeded = rateLimitService.isRateLimitExceeded(testIp, testEndpoint);
+
+        assertTrue(exceeded);
+        verify(auditService).auditSecurity(eq("RATE_LIMIT_EXCEEDED"), anyString());
+    }
+
+    @Test
+    @DisplayName("Should check per-hour limit exactly at threshold")
+    void shouldCheckPerHourLimit_ExactlyAtThreshold() {
+        when(valueOperations.get(contains(":minute"))).thenReturn("10");
+        when(valueOperations.get(contains(":hour"))).thenReturn("1000");
+
+        boolean exceeded = rateLimitService.isRateLimitExceeded(testIp, testEndpoint);
+
+        assertTrue(exceeded);
+        verify(auditService).auditSecurity(eq("RATE_LIMIT_HOURLY_EXCEEDED"), anyString());
+    }
 }

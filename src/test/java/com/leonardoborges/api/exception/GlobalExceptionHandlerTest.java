@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -253,5 +254,62 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals("Internal Server Error", response.getBody().getError());
         assertEquals("INTERNAL_SERVER_ERROR", response.getBody().getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should handle AuthenticationException correctly")
+    void shouldHandleAuthenticationException() {
+        AuthenticationException ex = mock(AuthenticationException.class);
+        when(ex.getMessage()).thenReturn("Authentication failed");
+        
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleAuthenticationException(ex, request);
+        
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Unauthorized", response.getBody().getError());
+        assertEquals("AUTHENTICATION_ERROR", response.getBody().getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should handle MethodArgumentNotValidException with empty errors")
+    void shouldHandleMethodArgumentNotValidExceptionWithEmptyErrors() {
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getAllErrors()).thenReturn(new ArrayList<>());
+        
+        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleValidationExceptions(ex, request);
+        
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(400, response.getBody().get("status"));
+        assertNotNull(response.getBody().get("errors"));
+    }
+
+    @Test
+    @DisplayName("Should handle MethodArgumentNotValidException with multiple field errors")
+    void shouldHandleMethodArgumentNotValidExceptionWithMultipleFieldErrors() {
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        List<FieldError> fieldErrors = new ArrayList<>();
+        fieldErrors.add(new FieldError("task", "title", "Title is required"));
+        fieldErrors.add(new FieldError("task", "description", "Description is too long"));
+        fieldErrors.add(new FieldError("task", "priority", "Priority must be positive"));
+        
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getAllErrors()).thenReturn(new ArrayList<>(fieldErrors));
+        
+        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleValidationExceptions(ex, request);
+        
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, String> errors = (Map<String, String>) response.getBody().get("errors");
+        assertNotNull(errors);
+        assertEquals(3, errors.size());
+        assertTrue(errors.containsKey("title"));
+        assertTrue(errors.containsKey("description"));
+        assertTrue(errors.containsKey("priority"));
     }
 }

@@ -278,6 +278,62 @@ class TaskHistoryServiceTest {
 
         verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
     }
+
+    @Test
+    @DisplayName("Should record status change when old status is null and new status is not null")
+    void shouldRecordStatusChange_WhenOldStatusIsNullAndNewStatusIsNotNull() {
+        Task oldTask = createTask(1L, "Title", "Description", null, 1);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record status change when new status is null and old status is not null")
+    void shouldRecordStatusChange_WhenNewStatusIsNullAndOldStatusIsNotNull() {
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+        Task newTask = createTask(1L, "Title", "Description", null, 1);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record priority change when old priority is null and new priority is not null")
+    void shouldRecordPriorityChange_WhenOldPriorityIsNullAndNewPriorityIsNotNull() {
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, null);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 2);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should record priority change when new priority is null and old priority is not null")
+    void shouldRecordPriorityChange_WhenNewPriorityIsNullAndOldPriorityIsNotNull() {
+        Task oldTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, 1);
+        Task newTask = createTask(1L, "Title", "Description", Task.TaskStatus.PENDING, null);
+
+        when(taskHistoryRepository.save(any(TaskHistory.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        taskHistoryService.recordTaskChanges(1L, oldTask, newTask);
+
+        verify(taskHistoryRepository, atLeastOnce()).save(any(TaskHistory.class));
+    }
     
     /**
      * Helper method to create Task test objects.

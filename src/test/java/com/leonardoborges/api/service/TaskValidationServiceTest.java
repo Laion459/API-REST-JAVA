@@ -365,4 +365,23 @@ class TaskValidationServiceTest {
         assertEquals("Cannot change status of a CANCELLED task", exception.getMessage());
     }
 
+    @Test
+    @DisplayName("Should not validate SQL injection when description is null")
+    void shouldNotValidateSqlInjection_WhenDescriptionIsNull() {
+        validTaskRequest.setTitle("Valid Title");
+        validTaskRequest.setDescription(null);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+        verify(sqlInjectionValidator, times(1)).isSafe(anyString()); // Only title
+    }
+
+    @Test
+    @DisplayName("Should not sanitize when description is null")
+    void shouldNotSanitize_WhenDescriptionIsNull() {
+        validTaskRequest.setTitle("Valid Title");
+        validTaskRequest.setDescription(null);
+
+        assertDoesNotThrow(() -> validationService.validateAndSanitizeTaskRequest(validTaskRequest));
+        verify(inputSanitizer, times(1)).sanitizeAndTruncate(anyString(), anyInt()); // Only title
+    }
 }

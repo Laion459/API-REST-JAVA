@@ -150,4 +150,41 @@ class CacheMetricsServiceTest {
         assertNotEquals("0.00%", hitRate);
         assertTrue(hitRate.contains("%"));
     }
+
+    @Test
+    @DisplayName("Should handle null cache when calculating statistics")
+    void shouldHandleNullCache_WhenCalculatingStatistics() {
+        when(cacheManager.getCacheNames()).thenReturn(Set.of("tasks"));
+        when(cacheManager.getCache("tasks")).thenReturn(null);
+
+        Map<String, Object> stats = cacheMetricsService.getCacheStatistics();
+
+        assertNotNull(stats);
+        assertTrue(stats.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return zero hit rate when total accesses is zero")
+    void shouldReturnZeroHitRate_WhenTotalAccessesIsZero() {
+        Map<String, Object> stats = cacheMetricsService.getCacheStatistics();
+
+        assertNotNull(stats);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> taskStats = (Map<String, Object>) stats.get("tasks");
+        assertNotNull(taskStats);
+        assertEquals("0.00%", taskStats.get("hitRate"));
+    }
+
+    @Test
+    @DisplayName("Should calculate hit rate correctly with multiple caches")
+    void shouldCalculateHitRate_WithMultipleCaches() {
+        cacheMetricsService.recordCacheHit("tasks");
+        cacheMetricsService.recordCacheMiss("taskStats");
+
+        Map<String, Object> stats = cacheMetricsService.getCacheStatistics();
+
+        assertNotNull(stats);
+        assertTrue(stats.containsKey("tasks"));
+        assertTrue(stats.containsKey("taskStats"));
+    }
 }

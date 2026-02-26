@@ -285,4 +285,24 @@ class CacheServiceTest {
         // Assert
         assertFalse(result);
     }
+
+    @Test
+    @DisplayName("Should handle null cache when evicting task stats")
+    void shouldHandleNullCache_WhenEvictingTaskStats() {
+        // Arrange
+        when(cacheManager.getCache("taskStats")).thenReturn(null);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> cacheService.evictTaskStats("PENDING"));
+    }
+
+    @Test
+    @DisplayName("Should handle null cache when evicting all task stats")
+    void shouldHandleNullCache_WhenEvictingAllTaskStats() {
+        // Arrange
+        when(cacheManager.getCache("taskStats")).thenReturn(null);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> cacheService.evictAllTaskStats());
+    }
 }

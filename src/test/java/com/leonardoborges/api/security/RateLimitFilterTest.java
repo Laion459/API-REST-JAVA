@@ -302,4 +302,70 @@ class RateLimitFilterTest {
         verify(request, atLeastOnce()).getHeader("X-Real-IP");
         verify(request, atLeastOnce()).getRemoteAddr();
     }
+
+
+    @Test
+    @DisplayName("Should return 0 when bucket has available tokens in getRetryAfterSeconds")
+    void shouldReturn0_WhenBucketHasAvailableTokensInGetRetryAfterSeconds() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(10L); // Available tokens > 0
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        String responseBody = stringWriter.toString();
+        assertTrue(responseBody.contains("\"retryAfter\":0"));
+        verify(response).setStatus(429);
+    }
+
+    @Test
+    @DisplayName("Should return 0 when tryConsume(0) returns true in getRetryAfterSeconds")
+    void shouldReturn0_WhenTryConsumeZeroReturnsTrueInGetRetryAfterSeconds() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("X-Real-IP")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+        when(defaultBucket.tryConsume(0)).thenReturn(true); // This branch should return 0
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        String responseBody = stringWriter.toString();
+        assertTrue(responseBody.contains("\"retryAfter\":0"));
+        verify(response).setStatus(429);
+    }
+
+    @Test
+    @DisplayName("Should extract first IP from X-Forwarded-For when multiple IPs are present")
+    void shouldExtractFirstIp_FromXForwardedForWhenMultipleIpsPresent() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn("192.168.1.1, 10.0.0.1, 172.16.0.1");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        verify(response).setStatus(429);
+        String responseBody = stringWriter.toString();
+        assertTrue(responseBody.contains("Rate limit exceeded"));
+    }
+
+    @Test
+    @DisplayName("Should use X-Real-IP when X-Forwarded-For is empty string")
+    void shouldUseXRealIp_WhenXForwardedForIsEmptyString() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/tasks");
+        when(request.getHeader("X-Forwarded-For")).thenReturn("");
+        when(request.getHeader("X-Real-IP")).thenReturn("192.168.1.5");
+        when(defaultBucket.tryConsume(1)).thenReturn(false);
+        when(defaultBucket.getAvailableTokens()).thenReturn(0L);
+
+        rateLimitFilter.doFilterInternal(request, response, filterChain);
+
+        verify(response).setStatus(429);
+        verify(request, atLeastOnce()).getHeader("X-Real-IP");
+    }
 }

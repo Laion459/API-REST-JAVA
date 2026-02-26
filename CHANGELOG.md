@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Expanded test coverage with 475+ automated tests
+- Additional unit tests for exception handlers, validation services, cache services, and rate limiting
+- Tests for edge cases including null handling, branch coverage scenarios, and error conditions
+- Updated minimum branch coverage requirement from 75% to 85% in pom.xml to match project standards
+
 ### Planned Improvements
 
 #### Infrastructure and DevOps
