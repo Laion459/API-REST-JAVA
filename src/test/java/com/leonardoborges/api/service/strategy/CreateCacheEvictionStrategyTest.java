@@ -2,7 +2,6 @@ package com.leonardoborges.api.service.strategy;
 
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.service.CacheService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

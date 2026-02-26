@@ -605,4 +605,46 @@ class TaskServiceTest {
         assertNotNull(result);
         verify(taskRepository).save(any(Task.class));
     }
+
+    @Test
+    @DisplayName("Should not increment status metrics when status is null in update")
+    void shouldNotIncrementStatusMetrics_WhenStatusIsNullInUpdate() {
+        taskRequest.setStatus(null);
+        task.setStatus(Task.TaskStatus.PENDING);
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+
+        TaskResponse result = taskService.updateTask(1L, taskRequest);
+
+        assertNotNull(result);
+        verify(taskMetrics).incrementTaskUpdated();
+        verify(taskMetrics, never()).incrementTaskStatus(anyString());
+    }
+
+    @Test
+    @DisplayName("Should not increment status metrics when status does not change in update")
+    void shouldNotIncrementStatusMetrics_WhenStatusDoesNotChangeInUpdate() {
+        taskRequest.setStatus(Task.TaskStatus.PENDING);
+        task.setStatus(Task.TaskStatus.PENDING);
+
+        when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
+        doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
+        doNothing().when(taskValidationService).validateStatusTransition(any(), any());
+        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
+        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+
+        TaskResponse result = taskService.updateTask(1L, taskRequest);
+
+        assertNotNull(result);
+        verify(taskMetrics).incrementTaskUpdated();
+        verify(taskMetrics, never()).incrementTaskStatus(anyString());
+    }
 }
