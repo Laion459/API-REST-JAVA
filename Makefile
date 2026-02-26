@@ -47,6 +47,11 @@ test-coverage: ## Run tests with coverage report
 	mvn clean test jacoco:report
 	@echo "$(GREEN)Coverage report generated at: target/site/jacoco/index.html$(NC)"
 
+test-coverage-check: ## Run tests with coverage and validate thresholds
+	@echo "$(GREEN)Running tests with coverage check...$(NC)"
+	mvn clean test jacoco:report jacoco:check
+	@echo "$(GREEN)Coverage report generated at: target/site/jacoco/index.html$(NC)"
+
 test-unit: ## Run only unit tests
 	@echo "$(GREEN)Running unit tests...$(NC)"
 	mvn test -Dtest=*Test
