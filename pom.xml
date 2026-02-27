@@ -61,10 +61,11 @@
             <artifactId>hibernate-jcache</artifactId>
         </dependency>
         
-        <!-- JCache API -->
+        <!-- JCache API (JSR-107) -->
         <dependency>
             <groupId>javax.cache</groupId>
             <artifactId>cache-api</artifactId>
+            <version>1.1.1</version>
         </dependency>
         
         <!-- PostgreSQL -->
