@@ -305,7 +305,8 @@ class UserServiceTest {
 
         assertNotNull(response);
         assertEquals("testuser", response.getUsername());
-        verify(userRepository).findByEmail("test@example.com");
+        // findByEmail is called twice: once in loadUserByUsername and once in findUserByUsernameOrEmail
+        verify(userRepository, times(2)).findByEmail("test@example.com");
         verify(auditService).auditAuthentication(eq("LOGIN_SUCCESS"), eq("testuser"), anyString());
     }
 
