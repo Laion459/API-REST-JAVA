@@ -5,8 +5,6 @@ import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.exception.OptimisticLockingException;
 import com.leonardoborges.api.exception.ValidationException;
 import com.leonardoborges.api.model.Task;
-import com.leonardoborges.api.util.InputSanitizer;
-import com.leonardoborges.api.util.SqlInjectionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,19 +14,17 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class TaskValidationService {
     
-    private final SqlInjectionValidator sqlInjectionValidator;
-    private final InputSanitizer inputSanitizer;
+    private final BaseValidationService baseValidationService;
     
     public void validateAndSanitizeTaskRequest(TaskRequest request) {
         if (request == null) {
             throw new ValidationException("Task request cannot be null");
         }
         
-        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new ValidationException("Task title cannot be null or empty");
-        }
+        baseValidationService.validateNotNullOrEmpty(request.getTitle(), "Task title");
+        baseValidationService.validateSqlInjectionSafe(request.getTitle(), "title");
+        baseValidationService.validateSqlInjectionSafe(request.getDescription(), "description");
         
-        validateSqlInjection(request);
         sanitizeTaskRequest(request);
         validateBusinessRules(request);
     }
@@ -52,30 +48,18 @@ public class TaskValidationService {
     }
     
     private void validateBusinessRules(TaskRequest request) {
-        if (request.getPriority() != null && request.getPriority() < 0) {
-            throw new ValidationException("Task priority cannot be negative");
-        }
-    }
-    
-    private void validateSqlInjection(TaskRequest request) {
-        if (request.getTitle() != null && !sqlInjectionValidator.isSafe(request.getTitle())) {
-            throw new ValidationException("Invalid input detected in title field");
-        }
-        
-        if (request.getDescription() != null && !sqlInjectionValidator.isSafe(request.getDescription())) {
-            throw new ValidationException("Invalid input detected in description field");
-        }
+        baseValidationService.validateNotNegative(request.getPriority(), "Task priority");
     }
     
     private void sanitizeTaskRequest(TaskRequest request) {
         if (request.getTitle() != null) {
-            String sanitizedTitle = inputSanitizer.sanitizeAndTruncate(
+            String sanitizedTitle = baseValidationService.sanitizeAndTruncate(
                     request.getTitle(), TaskConstants.TITLE_MAX_LENGTH);
             request.setTitle(sanitizedTitle);
         }
         
         if (request.getDescription() != null) {
-            String sanitizedDescription = inputSanitizer.sanitizeAndTruncate(
+            String sanitizedDescription = baseValidationService.sanitizeAndTruncate(
                     request.getDescription(), TaskConstants.DESCRIPTION_MAX_LENGTH);
             request.setDescription(sanitizedDescription);
         }
