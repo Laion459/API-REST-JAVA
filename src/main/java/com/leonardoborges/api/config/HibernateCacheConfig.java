@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import jakarta.cache.CacheManager;
-import jakarta.cache.Caching;
-import jakarta.cache.spi.CachingProvider;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.spi.CachingProvider;
 import java.util.Map;
 
 /**
