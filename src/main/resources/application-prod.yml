@@ -1,0 +1,136 @@
+spring:
+  application:
+    name: high-performance-api
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tasksdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:30}
+      minimum-idle: ${DB_POOL_MIN_IDLE:10}
+      connection-timeout: ${DB_POOL_TIMEOUT:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME:1800000}
+      leak-detection-threshold: ${DB_POOL_LEAK_DETECTION:60000}
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        jdbc.batch_versioned_data: true
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  
+  cache:
+    type: ${CACHE_TYPE:redis}
+    cache-names: tasks, taskStats, taskLists
+    redis:
+      time-to-live: 600000
+  
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 2000ms
+    password: ${REDIS_PASSWORD:}
+    ssl:
+      enabled: ${REDIS_SSL_ENABLED:false}
+  
+  # R2DBC Configuration (Reactive Database Access)
+  r2dbc:
+    enabled: ${SPRING_R2DBC_ENABLED:true}
+
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+  # Security: Remove server header
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+  # Production: Use HTTPS
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEY_STORE:}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:}
+    key-store-type: ${SSL_KEY_STORE_TYPE:PKCS12}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+  health:
+    indicators:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:0.1} # 10% sampling for production
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: ${SWAGGER_ENABLED:false} # Disable Swagger in production by default
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:false} # Disable Swagger UI in production by default
+    use-root-path: false
+  show-actuator: false
+
+jwt:
+  secret: ${JWT_SECRET:} # REQUIRED: Must be set via environment variable
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
+
+# CORS Configuration - Production
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:} # REQUIRED: Must be set via environment variable
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD
+  allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With,X-Refresh-Token,Idempotency-Key}
+  exposed-headers: Authorization,Content-Type,X-Refresh-Token
+  max-age: 3600
+  allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+
+logging:
+  level:
+    root: WARN
+    com.leonardoborges.api: INFO
+    com.leonardoborges.api.service: INFO
+    com.leonardoborges.api.controller: WARN
+    com.leonardoborges.api.util: WARN
+    com.leonardoborges.api.security: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: ERROR
+    org.springframework.cache: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:/var/log/api/application.log}
+    max-size: 100MB
+    max-history: 30
