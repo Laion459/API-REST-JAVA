@@ -2,10 +2,16 @@
 
 High-performance REST API developed with Spring Boot for backend skills demonstration, focused on scalability, performance, and software engineering best practices.
 
-## Status: v3.0.0
+## Status: v3.1.0
 
 Reference project implementing all software engineering, security, and performance best practices. 
-Includes hybrid MVC + WebFlux architecture for maximum performance. Production-ready.
+Includes hybrid MVC + WebFlux architecture for maximum performance. Production-ready with advanced features:
+- Domain-Driven Design (Value Objects)
+- Granular permissions system
+- User-based rate limiting
+- SSRF protection
+- Hibernate second-level cache
+- Production configuration
 
 ## Objective
 
@@ -35,12 +41,18 @@ Demonstrate practical experience in backend development with Java/Spring Boot, i
 - Complete task CRUD
 - **JWT Authentication with Refresh Tokens** (v1.4.0, v2.1.0)
 - **Role-based Authorization** (USER, ADMIN)
-- **Rate Limiting** (v1.5.0) - Abuse protection
+- **Granular Permissions System** (v3.1.0) - Fine-grained access control beyond roles
+- **Rate Limiting** (v1.5.0) - Abuse protection (IP-based + User-based)
+- **User-based Rate Limiting** (v3.1.0) - Per-user rate limiting for authenticated users
 - **Security Headers** (v1.7.0) - HTTP security headers (OWASP)
 - **Optimistic Locking** (v1.8.0) - Concurrency control
 - **Configurable CORS** (v2.1.0) - Enhanced security
 - **Audit System** (v2.1.0) - Logging of sensitive operations
 - **SQL Injection Prevention** (v2.1.0) - Multi-layer validation
+- **SSRF Protection** (v3.1.0) - Server-Side Request Forgery prevention
+- **Value Objects** (v3.1.0) - Domain-Driven Design with encapsulated business rules
+- **Hibernate Second-Level Cache** (v3.1.0) - Distributed caching for entities
+- **Production Configuration** (v3.1.0) - Optimized application-prod.yml
 - Pagination and filters
 - Intelligent caching (Redis)
 - Multi-layer data validation
@@ -77,6 +89,10 @@ src/
 │   │       ├── repository/       # JPA and R2DBC repositories
 │   │       ├── security/         # Security components
 │   │       ├── service/          # Business logic
+│   │       ├── domain/           # Domain layer (DDD)
+│   │       │   ├── valueobject/  # Value Objects
+│   │       │   └── permission/   # Permission system
+│   │       ├── validation/       # Custom validators
 │   │       └── util/             # Utilities
 │   └── resources/
 │       ├── application.yml       # Configurations
@@ -457,15 +473,19 @@ SERVER_PORT=8081
 
 ### Architecture and Design
 - **Clean Architecture** - Clear separation of responsibilities
+- **Domain-Driven Design (DDD)** - Value Objects encapsulating business rules
 - **SOLID Principles** - Extensible and maintainable code
 - **Strategy Pattern** - Strategic cache eviction
 - **DTO Pattern** - Optimized data transfer
 - **Hybrid Architecture** - MVC + WebFlux for maximum performance
+- **Event-Driven Architecture** - Asynchronous event processing
 
 ### Security
 - **JWT Authentication & Authorization** - Stateless authentication
 - **Persisted Refresh Tokens** - Revocation and complete control
-- **Role-Based Access Control (RBAC)** - Granular access control
+- **Role-Based Access Control (RBAC)** - Role-based access control
+- **Granular Permissions** - Fine-grained permissions beyond roles (task:create, task:read, etc.)
+- **SSRF Protection** - Server-Side Request Forgery prevention with URL validation
 - **Password Encryption (BCrypt)** - Secure passwords
 - **Rate Limiting (Bucket4j)** - Abuse protection
 - **IP-based Rate Limiting** - Additional protection layer
@@ -477,11 +497,13 @@ SERVER_PORT=8081
 - **WebFlux (Reactive Programming)** - High concurrency (10,000+ req/s)
 - **R2DBC** - Non-blocking access to PostgreSQL
 - **Intelligent Cache** - Redis with optimized strategies
+- **Hibernate Second-Level Cache** - Distributed entity caching
 - **Cache Metrics** - Hit rate and performance monitoring
 - **Batch Operations** - Efficient batch processing
 - **Connection Pooling** - Optimized HikariCP
 - **Database Indexing** - Optimized queries
 - **Soft Delete** - Data recovery
+- **User-based Rate Limiting** - Per-user rate limiting for authenticated users
 
 ### Observability
 - **Distributed Tracing** - Integrated Micrometer Tracing

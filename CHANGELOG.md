@@ -5,13 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-02-XX
+
+### Added
+- **Value Objects (DDD)** - TaskTitle, TaskPriority, TaskDescription encapsulating business rules
+- **Granular Permissions System** - Permission enum with 15+ specific permissions (task:create, task:read, etc.)
+- **PermissionService** - Service for managing fine-grained permissions beyond roles
+- **User-based Rate Limiting** - UserRateLimitService for per-user rate limiting using Redis
+- **SSRF Protection** - SsrfValidator to prevent Server-Side Request Forgery attacks
+- **Hibernate Second-Level Cache** - HibernateCacheConfig with distributed entity caching
+- **Production Configuration** - application-prod.yml with optimized production settings
+- **BaseValidationService** - Centralized validation service to reduce code duplication
+- Enhanced TaskRequest validation (priority range 0-100)
+- Cache annotations on Task and User entities (@Cacheable, @Cache)
+
+### Changed
+- RateLimitFilter now checks user-based limits before IP-based limits
+- TaskRequest priority validation updated to 0-100 range
+- TaskValidationService refactored to use BaseValidationService
+- Enhanced security with SSRF protection
+- Improved performance with Hibernate second-level cache
+
+### Security
+- SSRF protection prevents requests to internal/private networks
+- User-based rate limiting adds protection against distributed attacks
+- Granular permissions enable fine-grained access control
+- Enhanced URL validation for all external requests
+
+### Performance
+- Hibernate second-level cache reduces database queries
+- Distributed caching across multiple application instances
+- Query cache enabled for frequently accessed data
+
+### Architecture
+- Domain-Driven Design with Value Objects
+- Clean Architecture principles with domain layer
+- Reduced code duplication with BaseValidationService
+- Enhanced separation of concerns
+
+### Tests
+- TaskTitleTest - Value Object tests
+- TaskPriorityTest - Value Object tests
+- PermissionServiceTest - Permission system tests
+- UserRateLimitServiceTest - User-based rate limiting tests
+- SsrfValidatorTest - SSRF protection tests
+- BaseValidationServiceTest - Validation service tests
+
 ## [Unreleased]
 
 ### Added
-- Expanded test coverage with 475+ automated tests
-- Additional unit tests for exception handlers, validation services, cache services, and rate limiting
+- Expanded test coverage with 500+ automated tests
+- Additional unit tests for Value Objects, permissions, and validation services
 - Tests for edge cases including null handling, branch coverage scenarios, and error conditions
-- Updated minimum branch coverage requirement from 75% to 85% in pom.xml to match project standards
 
 ### Planned Improvements
 
@@ -47,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Security
 - [ ] **JWT secret rotation** - Implement automatic secret rotation
-- [ ] **User-based rate limiting** - Add granular rate limiting per user
+- [x] **User-based rate limiting** - ✅ Implemented in v3.1.0
 - [ ] **Dependency analysis** - Integrate OWASP Dependency Check into CI/CD
 - [ ] **Security scanning** - Add vulnerability scanning to the pipeline
 
