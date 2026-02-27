@@ -1,5 +1,8 @@
 package com.leonardoborges.api.security;
 
+import com.leonardoborges.api.model.User;
+import com.leonardoborges.api.service.UserRateLimitService;
+import com.leonardoborges.api.util.SecurityUtils;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,6 +33,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Bucket defaultBucket;
     private final Bucket authBucket;
     private final Bucket adminBucket;
+    private final UserRateLimitService userRateLimitService;
+    private final SecurityUtils securityUtils;
 
     @Override
     protected void doFilterInternal(
@@ -38,24 +43,50 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        // Check user-based rate limiting first (if authenticated)
+        if (isAuthenticated()) {
+            try {
+                User currentUser = securityUtils.getCurrentUser();
+                if (userRateLimitService.isRateLimitExceeded(currentUser.getId(), request.getRequestURI())) {
+                    log.warn("User-based rate limit exceeded for user {} on endpoint: {}", 
+                            currentUser.getId(), request.getRequestURI());
+                    sendRateLimitResponse(response, 60);
+                    return;
+                }
+            } catch (Exception e) {
+                // If user-based rate limiting fails, fall back to IP-based
+                log.debug("User-based rate limiting failed, falling back to IP-based: {}", e.getMessage());
+            }
+        }
+        
+        // Fall back to IP-based rate limiting
         Bucket bucket = resolveBucket(request);
         
         if (!bucket.tryConsume(1)) {
-            log.warn("Rate limit exceeded for {} from IP: {}", 
+            log.warn("IP-based rate limit exceeded for {} from IP: {}", 
                     request.getRequestURI(), getClientIpAddress(request));
-            
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setContentType("application/json");
-            response.getWriter().write(
-                    String.format(
-                            "{\"error\":\"Rate limit exceeded\",\"message\":\"Too many requests. Please try again later.\",\"retryAfter\":%d}",
-                            getRetryAfterSeconds(bucket)
-                    )
-            );
+            sendRateLimitResponse(response, getRetryAfterSeconds(bucket));
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+    
+    private boolean isAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated() 
+                && !"anonymousUser".equals(authentication.getPrincipal().toString());
+    }
+    
+    private void sendRateLimitResponse(HttpServletResponse response, long retryAfter) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        response.getWriter().write(
+                String.format(
+                        "{\"error\":\"Rate limit exceeded\",\"message\":\"Too many requests. Please try again later.\",\"retryAfter\":%d}",
+                        retryAfter
+                )
+        );
     }
 
     private Bucket resolveBucket(HttpServletRequest request) {
