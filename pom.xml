@@ -379,6 +379,26 @@
                     </includes>
                 </configuration>
             </plugin>
+            
+            <!-- OWASP Dependency Check Plugin for Security Scanning -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>9.0.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <enableRetired>true</enableRetired>
+                    <format>HTML</format>
+                    <outputDirectory>${project.build.directory}/dependency-check-reports</outputDirectory>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
