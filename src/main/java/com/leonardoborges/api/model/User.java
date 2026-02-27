@@ -22,7 +22,6 @@ import java.util.Set;
     @Index(name = "idx_users_deleted_at", columnList = "deleted_at")
 })
 @org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
-@org.hibernate.annotations.Cacheable
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter

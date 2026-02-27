@@ -2,14 +2,13 @@ package com.leonardoborges.api.config;
 
 import org.hibernate.cache.jcache.ConfigSettings;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
-import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import javax.cache.CacheManager;
-import javax.cache.Caching;
-import javax.cache.spi.CachingProvider;
+import jakarta.cache.CacheManager;
+import jakarta.cache.Caching;
+import jakarta.cache.spi.CachingProvider;
 import java.util.Map;
 
 /**
