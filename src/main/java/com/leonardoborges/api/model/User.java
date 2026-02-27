@@ -21,6 +21,8 @@ import java.util.Set;
     @Index(name = "idx_users_deleted", columnList = "deleted"),
     @Index(name = "idx_users_deleted_at", columnList = "deleted_at")
 })
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
+@org.hibernate.annotations.Cacheable
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
@@ -42,7 +44,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     @Enumerated(EnumType.STRING)

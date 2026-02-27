@@ -1,11 +1,15 @@
 package com.leonardoborges.api.controller;
 
 import com.leonardoborges.api.constants.TaskConstants;
+import com.leonardoborges.api.dto.TaskFilterRequest;
 import com.leonardoborges.api.dto.TaskPageResponse;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
+import com.leonardoborges.api.dto.TaskStatsResponse;
 import com.leonardoborges.api.exception.ErrorResponse;
+import com.leonardoborges.api.exception.IdempotencyException;
 import com.leonardoborges.api.model.Task;
+import com.leonardoborges.api.service.IdempotencyService;
 import com.leonardoborges.api.service.TaskService;
 import com.leonardoborges.api.util.SortParameterValidator;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +23,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.leonardoborges.api.validation.ValidationGroups;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.groups.Default;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,7 +34,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -38,11 +44,13 @@ public class TaskController {
     
     private final TaskService taskService;
     private final SortParameterValidator sortParameterValidator;
+    private final IdempotencyService idempotencyService;
     
     @PostMapping
     @Operation(
             summary = "Create new task",
-            description = "Creates a new task in the system. Requires JWT authentication.",
+            description = "Creates a new task in the system. Requires JWT authentication. " +
+                    "Supports idempotency via 'Idempotency-Key' header to prevent duplicate task creation.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -82,8 +90,23 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
+    public ResponseEntity<TaskResponse> createTask(
+            @Valid @org.springframework.validation.annotation.Validated({ValidationGroups.Create.class, Default.class}) 
+            @RequestBody TaskRequest request,
+            HttpServletRequest httpRequest) {
         log.info("POST /api/v1/tasks - Creating new task");
+        
+        String idempotencyKey = httpRequest.getHeader("Idempotency-Key");
+        if (idempotencyKey != null && !idempotencyKey.isEmpty()) {
+            String requestHash = idempotencyService.generateRequestHash(request);
+            if (idempotencyService.isDuplicateRequest(idempotencyKey, requestHash)) {
+                throw new IdempotencyException(
+                        "A request with this idempotency key has already been processed. " +
+                        "Use the same key to retrieve the original response.");
+            }
+            idempotencyService.storeRequest(idempotencyKey, requestHash);
+        }
+        
         TaskResponse response = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -266,6 +289,70 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
     
+    @PostMapping("/search")
+    @Operation(
+            summary = "Search tasks with advanced filters",
+            description = "Searches tasks using advanced filters (status, priority range, text search, date ranges). Requires JWT authentication.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Filtered task list returned successfully",
+                    content = @Content(schema = @Schema(implementation = TaskPageResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid filter parameters",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthenticated - Invalid or missing JWT token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Access denied - Valid JWT token but insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "429",
+                    description = "Too many requests - Rate limit exceeded",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public ResponseEntity<TaskPageResponse> searchTasks(
+            @Valid @RequestBody TaskFilterRequest filters,
+            @Parameter(description = "Pagination parameters") 
+            @PageableDefault(size = TaskConstants.DEFAULT_PAGE_SIZE, sort = "createdAt") Pageable pageable) {
+        log.debug("POST /api/v1/tasks/search - Searching tasks with filters");
+        
+        Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
+                pageable, "createdAt", Sort.Direction.DESC);
+        
+        Page<TaskResponse> page = taskService.getTasksWithFilters(filters, validPageable);
+        
+        TaskPageResponse response = TaskPageResponse.builder()
+                .content(page.getContent())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .size(page.getSize())
+                .number(page.getNumber())
+                .numberOfElements(page.getNumberOfElements())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+    
     @GetMapping("/stats/count")
     @Operation(
             summary = "Task statistics",
@@ -285,7 +372,7 @@ public class TaskController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Statistics returned successfully",
-                    content = @Content(schema = @Schema(implementation = Map.class))
+                    content = @Content(schema = @Schema(implementation = TaskStatsResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -308,14 +395,14 @@ public class TaskController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
-    public ResponseEntity<Map<String, Long>> getTaskStats() {
+    public ResponseEntity<TaskStatsResponse> getTaskStats() {
         log.debug("GET /api/v1/tasks/stats/count - Fetching task statistics");
-        Map<String, Long> stats = Map.of(
-                "pending", taskService.getTaskCountByStatus(Task.TaskStatus.PENDING),
-                "in_progress", taskService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS),
-                "completed", taskService.getTaskCountByStatus(Task.TaskStatus.COMPLETED),
-                "cancelled", taskService.getTaskCountByStatus(Task.TaskStatus.CANCELLED)
-        );
+        TaskStatsResponse stats = TaskStatsResponse.builder()
+                .pending(taskService.getTaskCountByStatus(Task.TaskStatus.PENDING))
+                .inProgress(taskService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS))
+                .completed(taskService.getTaskCountByStatus(Task.TaskStatus.COMPLETED))
+                .cancelled(taskService.getTaskCountByStatus(Task.TaskStatus.CANCELLED))
+                .build();
         return ResponseEntity.ok(stats);
     }
     
@@ -374,9 +461,72 @@ public class TaskController {
     })
     public ResponseEntity<TaskResponse> updateTask(
             @Parameter(description = "Task ID") @PathVariable Long id,
-            @Valid @RequestBody TaskRequest request) {
+            @Valid @org.springframework.validation.annotation.Validated({ValidationGroups.Update.class, Default.class}) 
+            @RequestBody TaskRequest request) {
         log.info("PUT /api/v1/tasks/{} - Updating task", id);
         TaskResponse response = taskService.updateTask(id, request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PatchMapping("/{id}")
+    @Operation(
+            summary = "Partially update task",
+            description = "Partially updates an existing task. Only provided fields will be updated. Supports optimistic locking through the 'version' field. Requires JWT authentication.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Task updated successfully",
+                    content = @Content(schema = @Schema(implementation = TaskResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid input data",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthenticated - Invalid or missing JWT token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Access denied - Valid JWT token but insufficient permissions to access this resource",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Task not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Version conflict - Task was modified by another user (optimistic locking)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Business validation error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "429",
+                    description = "Too many requests - Rate limit exceeded",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public ResponseEntity<TaskResponse> patchTask(
+            @Parameter(description = "Task ID") @PathVariable Long id,
+            @Valid @org.springframework.validation.annotation.Validated({ValidationGroups.Patch.class}) 
+            @RequestBody TaskRequest request) {
+        log.info("PATCH /api/v1/tasks/{} - Partially updating task", id);
+        TaskResponse response = taskService.patchTask(id, request);
         return ResponseEntity.ok(response);
     }
     

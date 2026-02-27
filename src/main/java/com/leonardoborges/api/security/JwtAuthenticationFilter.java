@@ -1,6 +1,7 @@
 package com.leonardoborges.api.security;
 
 import com.leonardoborges.api.service.JwtService;
+import com.leonardoborges.api.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -43,6 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(7);
+            
+            if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                log.warn("Attempted use of blacklisted token");
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
             final String username = jwtService.extractUsername(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

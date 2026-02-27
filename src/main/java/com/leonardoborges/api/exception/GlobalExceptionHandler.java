@@ -97,6 +97,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
     
+    @ExceptionHandler(IdempotencyException.class)
+    public ResponseEntity<ErrorResponse> handleIdempotencyException(
+            IdempotencyException ex, HttpServletRequest request) {
+        log.warn("Idempotency conflict: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Idempotency Conflict")
+                .message(ex.getMessage())
+                .errorCode(ex.getErrorCode())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
     @ExceptionHandler(OptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> handleOptimisticLockingFailureException(
             OptimisticLockingFailureException ex, HttpServletRequest request) {

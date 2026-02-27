@@ -3,7 +3,9 @@ package com.leonardoborges.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leonardoborges.api.dto.TaskRequest;
 import com.leonardoborges.api.dto.TaskResponse;
+import com.leonardoborges.api.exception.IdempotencyException;
 import com.leonardoborges.api.model.Task;
+import com.leonardoborges.api.service.IdempotencyService;
 import com.leonardoborges.api.service.TaskService;
 import com.leonardoborges.api.util.SortParameterValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +62,9 @@ class TaskControllerTest {
 
     @MockBean
     private CorsProperties corsProperties;
+    
+    @MockBean
+    private IdempotencyService idempotencyService;
 
     private TaskResponse taskResponse;
     private TaskRequest taskRequest;
@@ -274,5 +279,66 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.in_progress").value(3))
                 .andExpect(jsonPath("$.completed").value(10))
                 .andExpect(jsonPath("$.cancelled").value(1));
+    }
+    
+    @Test
+    @DisplayName("Should patch task partially successfully")
+    void shouldPatchTaskPartiallySuccessfully() throws Exception {
+        TaskResponse patchedResponse = TaskResponse.builder()
+                .id(1L)
+                .title("Patched Task")
+                .description("Test Description")
+                .status(Task.TaskStatus.PENDING)
+                .priority(1)
+                .version(1L)
+                .build();
+
+        when(taskService.patchTask(eq(1L), any(TaskRequest.class))).thenReturn(patchedResponse);
+
+        TaskRequest patchRequest = TaskRequest.builder()
+                .title("Patched Task")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/tasks/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patchRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Patched Task"))
+                .andExpect(jsonPath("$.description").value("Test Description"));
+    }
+    
+    @Test
+    @DisplayName("Should handle idempotency key for duplicate request")
+    void shouldHandleIdempotencyKey_ForDuplicateRequest() throws Exception {
+        String idempotencyKey = "test-key-123";
+        String requestHash = "hash123";
+        
+        when(idempotencyService.generateRequestHash(any())).thenReturn(requestHash);
+        when(idempotencyService.isDuplicateRequest(idempotencyKey, requestHash)).thenReturn(true);
+
+        mockMvc.perform(post("/api/v1/tasks")
+                        .header("Idempotency-Key", idempotencyKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isConflict());
+    }
+    
+    @Test
+    @DisplayName("Should store idempotency key for new request")
+    void shouldStoreIdempotencyKey_ForNewRequest() throws Exception {
+        String idempotencyKey = "test-key-123";
+        String requestHash = "hash123";
+        
+        when(idempotencyService.generateRequestHash(any())).thenReturn(requestHash);
+        when(idempotencyService.isDuplicateRequest(idempotencyKey, requestHash)).thenReturn(false);
+        when(taskService.createTask(any(TaskRequest.class))).thenReturn(taskResponse);
+
+        mockMvc.perform(post("/api/v1/tasks")
+                        .header("Idempotency-Key", idempotencyKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isCreated());
+        
+        verify(idempotencyService).storeRequest(idempotencyKey, requestHash);
     }
 }

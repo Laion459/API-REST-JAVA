@@ -25,11 +25,50 @@ public class JwtService {
 
     private SecretKey getSigningKey() {
         String secret = jwtProperties.getSecret();
-        if (secret == null || secret.length() < 32) {
-            throw new IllegalStateException("JWT secret is not properly configured. Must be at least 32 characters.");
-        }
+        validateJwtSecret(secret);
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+    
+    private void validateJwtSecret(String secret) {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret is not configured. Must be set via JWT_SECRET environment variable.");
+        }
+        
+        if (secret.length() < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters long for security. Current length: " + secret.length());
+        }
+        
+        if (secret.length() < 64) {
+            log.warn("JWT secret is less than 64 characters. For production, use a secret of at least 64 characters.");
+        }
+        
+        if (isWeakSecret(secret)) {
+            throw new IllegalStateException("JWT secret appears to be weak or predictable. Use a cryptographically random secret.");
+        }
+    }
+    
+    private boolean isWeakSecret(String secret) {
+        if (secret.length() < 32) {
+            return true;
+        }
+        
+        String lowerSecret = secret.toLowerCase();
+        
+        if (lowerSecret.matches("^[a-z]+$") || lowerSecret.matches("^[0-9]+$")) {
+            return true;
+        }
+        
+        if (lowerSecret.matches("^(password|secret|key|token|jwt).*") || 
+            lowerSecret.matches(".*(password|secret|key|token|jwt)$")) {
+            return true;
+        }
+        
+        if (lowerSecret.equals(secret.toLowerCase().repeat(secret.length() / lowerSecret.length()))) {
+            return true;
+        }
+        
+        return false;
     }
 
     public String extractUsername(String token) {

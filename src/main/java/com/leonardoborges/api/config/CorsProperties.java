@@ -2,6 +2,7 @@ package com.leonardoborges.api.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "cors")
 @Getter
 @Setter
+@Slf4j
 public class CorsProperties {
     
     /**
@@ -32,8 +34,9 @@ public class CorsProperties {
     
     /**
      * Allowed headers.
+     * Default: Common headers for REST APIs. Use "*" only in development.
      */
-    private String allowedHeaders = "*";
+    private String allowedHeaders = "Authorization,Content-Type,X-Requested-With,X-Refresh-Token,Idempotency-Key";
     
     /**
      * Exposed headers in CORS responses.
@@ -78,11 +81,18 @@ public class CorsProperties {
     
     /**
      * Parses allowed headers from comma-separated string to List.
+     * In production, "*" should be avoided for security. Use specific headers.
      */
     public List<String> getAllowedHeadersList() {
-        if (allowedHeaders == null || allowedHeaders.trim().isEmpty() || "*".equals(allowedHeaders)) {
+        if (allowedHeaders == null || allowedHeaders.trim().isEmpty()) {
+            return List.of("Authorization", "Content-Type", "X-Requested-With");
+        }
+        
+        if ("*".equals(allowedHeaders.trim())) {
+            log.warn("CORS allowedHeaders is set to '*'. This is insecure for production. Use specific headers.");
             return List.of("*");
         }
+        
         return Arrays.stream(allowedHeaders.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())

@@ -76,6 +76,9 @@ class TaskServiceTest {
     
     @Mock
     private TaskHistoryService taskHistoryService;
+    
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private TaskService taskService;
     private User testUser;
@@ -98,13 +101,11 @@ class TaskServiceTest {
         
         taskService = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 taskMetrics,
-                auditService,
                 securityUtils,
-                taskHistoryService
+                eventPublisher
         );
         
         // Setup test data

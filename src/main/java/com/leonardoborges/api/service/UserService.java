@@ -8,11 +8,11 @@ import com.leonardoborges.api.exception.ValidationException;
 import com.leonardoborges.api.model.RefreshToken;
 import com.leonardoborges.api.model.User;
 import com.leonardoborges.api.repository.UserRepository;
+import com.leonardoborges.api.service.interfaces.IUserService;
 import com.leonardoborges.api.util.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements UserDetailsService {
+public class UserService implements IUserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -35,7 +35,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         User user = findUserByUsernameOrEmail(username);
         
         if (!user.getEnabled()) {
@@ -51,6 +51,7 @@ public class UserService implements UserDetailsService {
                 .build();
     }
     
+    @Override
     @Transactional(readOnly = true)
     public User findUserByUsernameOrEmail(String usernameOrEmail) {
         return userRepository.findByUsername(usernameOrEmail)
@@ -58,6 +59,7 @@ public class UserService implements UserDetailsService {
                         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail)));
     }
 
+    @Override
     @Transactional
     public AuthResponse register(AuthRequest request) {
         log.info("Registering new user: {}", request.getUsername());
@@ -102,6 +104,7 @@ public class UserService implements UserDetailsService {
         return buildAuthResponse(user, token, refreshToken);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public AuthResponse login(String usernameOrEmail, String password) {
         log.info("Login attempt for: {}", usernameOrEmail);
@@ -126,6 +129,7 @@ public class UserService implements UserDetailsService {
         return buildAuthResponse(user, token, refreshToken);
     }
     
+    @Override
     @Transactional
     public AuthResponse refreshToken(String refreshTokenString) {
         log.info("Refresh token request");

@@ -27,6 +27,8 @@ import java.util.Objects;
     @Index(name = "idx_tasks_user_deleted", columnList = "user_id, deleted"),
     @Index(name = "idx_tasks_status_deleted", columnList = "status, deleted")
 })
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
+@org.hibernate.annotations.Cacheable
 @Getter
 @Setter
 @Builder

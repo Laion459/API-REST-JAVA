@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Task, Long>, TaskRepositoryCustom {
     
     @Query("SELECT t FROM Task t WHERE t.user = :user AND t.status = :status AND t.deleted = false")
     Page<Task> findByUserAndStatus(@Param("user") User user, @Param("status") Task.TaskStatus status, Pageable pageable);

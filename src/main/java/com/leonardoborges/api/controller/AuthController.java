@@ -5,13 +5,17 @@ import com.leonardoborges.api.dto.AuthResponse;
 import com.leonardoborges.api.dto.LoginRequest;
 import com.leonardoborges.api.dto.RefreshTokenRequest;
 import com.leonardoborges.api.exception.ErrorResponse;
+import com.leonardoborges.api.service.JwtService;
+import com.leonardoborges.api.service.TokenBlacklistService;
 import com.leonardoborges.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/register")
     @Operation(
@@ -150,5 +156,44 @@ public class AuthController {
         log.info("Refresh token request");
         AuthResponse response = userService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/logout")
+    @Operation(
+            summary = "User logout",
+            description = "Invalidates the current access token by adding it to the blacklist. Requires authentication.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Logout successful"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthenticated - Invalid or missing JWT token",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                long expirationTime = jwtService.extractExpiration(token).getTime() - System.currentTimeMillis();
+                if (expirationTime > 0) {
+                    tokenBlacklistService.blacklistToken(token, expirationTime);
+                    log.info("User logged out successfully");
+                }
+            } catch (Exception e) {
+                log.warn("Error during logout: {}", e.getMessage());
+            }
+        }
+        return ResponseEntity.ok().build();
     }
 }
