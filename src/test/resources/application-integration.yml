@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tasksdb_integration
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+jwt:
+  secret: ${JWT_SECRET:test-secret-key-for-testing-purposes-only-minimum-32-chars}
+  expiration: 3600000
+
+logging:
+  level:
+    root: INFO
+    com.leonardoborges.api: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

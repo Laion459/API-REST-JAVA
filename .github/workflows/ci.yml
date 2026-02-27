@@ -14,8 +14,12 @@ env:
 
 jobs:
   test:
-    name: Run Tests
+    name: Run Tests (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ['21']
+        # Add more Java versions as needed: ['17', '21']
     
     services:
       postgres:
@@ -46,10 +50,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: maven
 
@@ -69,10 +73,8 @@ jobs:
 
       - name: Check code coverage (85% lines, 75% branches minimum)
         run: mvn jacoco:check
-        continue-on-error: true
-        # Coverage check reports results but doesn't fail the build
-        # Review coverage report in artifacts to identify areas needing more tests
-        # Current coverage: ~77% branches - threshold set to 75% for realistic goals
+        # Coverage check will fail the build if thresholds are not met
+        # This ensures code quality standards are maintained
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -104,7 +106,7 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, lint]
     if: github.event_name != 'pull_request'
 
     steps:
@@ -131,7 +133,7 @@ jobs:
   docker-build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, lint]
     if: github.event_name != 'pull_request'
 
     steps:
@@ -186,6 +188,7 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: test
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout code
@@ -224,6 +227,66 @@ jobs:
           path: reports/
           retention-days: 30
 
+  integration-test:
+    name: Integration Tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    needs: test
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tasksdb_integration
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run integration tests with PostgreSQL
+        run: mvn test -Dtest=**/*IntegrationTest
+        env:
+          SPRING_PROFILES_ACTIVE: integration
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/tasksdb_integration
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_REDIS_HOST: localhost
+          SPRING_REDIS_PORT: 6379
+          JWT_SECRET: test-secret-key-for-testing-purposes-only-minimum-32-chars
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: target/surefire-reports/
+          retention-days: 30
+
   lint:
     name: Code Quality Check
     runs-on: ubuntu-latest
@@ -242,5 +305,45 @@ jobs:
       - name: Run Maven compile
         run: mvn clean compile
 
-      - name: Check code style
-        run: mvn checkstyle:check || true
+      - name: Check code style with Checkstyle
+        run: mvn checkstyle:check
+        # Checkstyle will fail the build if code style violations are found
+        # This ensures consistent code quality across the project
+
+      - name: Upload checkstyle report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkstyle-report
+          path: target/checkstyle-result.xml
+          retention-days: 30
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
