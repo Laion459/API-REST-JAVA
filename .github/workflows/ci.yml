@@ -270,7 +270,7 @@ jobs:
           cache: maven
 
       - name: Run integration tests with PostgreSQL
-        run: mvn test -Dtest=**/*IntegrationTest
+        run: mvn failsafe:integration-test failsafe:verify
         env:
           SPRING_PROFILES_ACTIVE: integration
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/tasksdb_integration

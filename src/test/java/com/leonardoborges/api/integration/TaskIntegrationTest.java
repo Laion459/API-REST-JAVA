@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(JpaAuditingConfig.class)
 @ActiveProfiles("integration")
 @DisplayName("Task Integration Tests with PostgreSQL")
+@org.junit.jupiter.api.Tag("integration")
 class TaskIntegrationTest {
 
     @Autowired
