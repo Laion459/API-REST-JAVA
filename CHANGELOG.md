@@ -5,6 +5,132 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2025-03-03
+
+### Added
+- **Application Service Layer** - TaskApplicationService for explicit application orchestration
+- **HATEOAS Support** - Hypermedia links in all responses (Link DTO, HateoasHelper)
+- **DTO Projections** - TaskProjection interface for optimized queries
+- **Granular Cache Eviction** - GranularCacheEvictionStrategy for precise cache invalidation
+- **JWT Secret Rotation** - JwtSecretRotationService for automated secret rotation
+- **Database Sharding** - ShardingConfig with user-based sharding strategy
+- **Contract Tests** - TaskContractTest and ContractTestConfig foundation
+- **Architecture Decision Records (ADRs)** - Complete ADR documentation (6 ADRs)
+- **Test Infrastructure** - TestHibernateCacheConfig for improved test isolation and Hibernate cache handling
+
+### Changed
+- **TaskController** - Now uses TaskApplicationService, includes HATEOAS links
+- **TaskRepository** - Added DTO projection methods for optimized queries
+- **UpdateCacheEvictionStrategy** - Integrated granular cache eviction
+- **JWT Secret Validation** - Improved pattern detection algorithm for weak secret detection
+  - Enhanced validation logic to properly detect repeating patterns
+  - More robust security validation for JWT secrets
+
+### Security
+- **Enhanced JWT Secret Validation** - Improved algorithm for detecting weak and predictable secrets
+  - Better pattern detection for repeating sequences
+  - More accurate validation of secret strength
+
+### Architecture
+- **Clean Architecture** - Explicit Application Service layer
+- **HATEOAS** - Hypermedia-driven API navigation
+- **Performance** - DTO projections reduce data transfer
+- **Cache** - Granular eviction improves hit rates
+
+### Testing
+- **Test Infrastructure** - TestHibernateCacheConfig provides better test isolation
+  - Disables Hibernate second-level cache in tests
+  - Provides test-specific Redis configuration
+  - Improves test reliability and performance
+
+### Documentation
+- **ADRs** - 6 Architecture Decision Records created
+- **Contract Tests** - Foundation for Pact testing
+
+## [3.2.0] - 2025-02-XX
+
+### Added
+- **Password Strength Policy** - PasswordValidator with comprehensive password validation
+  - Minimum 8 characters, maximum 128 characters
+  - Requires uppercase, lowercase, and digits
+  - Optional special characters for better UX
+- **Account Lockout System** - LoginAttemptService for brute force protection
+  - Automatic lockout after 5 failed login attempts
+  - 30-minute lockout duration
+  - Redis-based distributed lockout
+  - Clear attempts after successful login
+- **PageResponseHelper** - Utility class to eliminate code duplication
+  - Centralized pagination response building
+  - DRY principle applied across controllers
+- **SecurityConstants** - Centralized security configuration constants
+  - Password policy constants
+  - Account lockout constants
+  - JWT secret requirements
+  - Bearer token constants
+- **LogSanitizer** - Utility for sanitizing sensitive data in logs
+  - Password sanitization (never logs actual password)
+  - Token sanitization (shows only preview)
+  - Secret sanitization (shows only length)
+  - Email sanitization (masks local part)
+- **Performance Indexes** - Migration V7 with optimized database indexes
+  - Index on updated_at for sorting queries
+  - Composite index (user_id, deleted, status) for common queries
+  - Priority and priority+created_at indexes for sorting
+
+### Changed
+- **Transaction Isolation Levels** - Explicit READ_COMMITTED isolation in all transactions
+  - Prevents race conditions in high concurrency
+  - Consistent behavior across database vendors
+  - Applied to TaskService and UserService
+- **N+1 Query Prevention** - @EntityGraph added to TaskRepository queries
+  - Eager loading of user relationship
+  - Significant performance improvement
+  - Reduced database queries
+- **TaskController** - Uses PageResponseHelper to eliminate duplication
+- **AuthController** - Uses SecurityConstants for magic numbers
+- **JwtAuthenticationFilter** - Uses SecurityConstants for Bearer token handling
+- **AuthRequest** - Password validation updated with SecurityConstants
+- **UserService** - Integrated PasswordValidator and LoginAttemptService
+  - Password strength validation on registration
+  - Account lockout on failed login attempts
+  - Clear attempts on successful login
+  - Log sanitization for sensitive data
+- **TokenBlacklistService** - Uses LogSanitizer for token logging
+- **RefreshTokenService** - Uses LogSanitizer for token logging
+
+### Security
+- **Password Policy Enforcement** - Strong password requirements
+- **Brute Force Protection** - Account lockout after failed attempts
+- **Improved Security Constants** - Centralized security configuration
+- **Enhanced Login Security** - Lockout system prevents brute force attacks
+- **Log Sanitization** - Prevents exposure of sensitive data in logs
+  - Passwords never logged
+  - Tokens show only preview
+  - Secrets show only length
+  - Emails masked appropriately
+
+### Performance
+- **N+1 Queries Fixed** - EntityGraph eliminates multiple queries
+- **Database Indexes** - Optimized indexes for common query patterns
+- **Transaction Isolation** - Explicit isolation prevents race conditions
+
+### Code Quality
+- **DRY Principle** - PageResponseHelper eliminates duplication
+- **Magic Numbers Eliminated** - SecurityConstants centralizes configuration
+- **Better Maintainability** - Centralized utilities and constants
+
+### Database
+- **Migration V7** - Performance indexes added
+  - idx_tasks_updated_at
+  - idx_tasks_user_deleted_status
+  - idx_tasks_priority
+  - idx_tasks_priority_created_at
+
+### Tests
+- PasswordValidator tests (to be added)
+- LoginAttemptService tests (to be added)
+- PageResponseHelper tests (to be added)
+
 ## [3.1.0] - 2025-02-XX
 
 ### Added
