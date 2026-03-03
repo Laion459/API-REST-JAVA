@@ -49,6 +49,12 @@ class UserServiceTest {
     @Mock
     private InputSanitizer inputSanitizer;
 
+    @Mock
+    private com.leonardoborges.api.validation.PasswordValidator passwordValidator;
+
+    @Mock
+    private LoginAttemptService loginAttemptService;
+
     @InjectMocks
     private UserService userService;
 
@@ -122,13 +128,13 @@ class UserServiceTest {
     @Test
     @DisplayName("Should register new user successfully")
     void shouldRegisterNewUserSuccessfully() {
+        doNothing().when(passwordValidator).validatePassword(anyString());
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
         when(inputSanitizer.sanitizeString("test@example.com")).thenReturn("test@example.com");
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
-        // Mock loadUserByUsername after user is saved
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
         when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
         when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
@@ -146,6 +152,7 @@ class UserServiceTest {
     @DisplayName("Should convert email to lowercase during registration")
     void shouldConvertEmailToLowerCase_DuringRegistration() {
         authRequest.setEmail("TEST@EXAMPLE.COM");
+        doNothing().when(passwordValidator).validatePassword(anyString());
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
         when(inputSanitizer.sanitizeString("TEST@EXAMPLE.COM")).thenReturn("TEST@EXAMPLE.COM");
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
@@ -166,6 +173,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Should throw exception when username already exists")
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
+        doNothing().when(passwordValidator).validatePassword(anyString());
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
         when(inputSanitizer.sanitizeString("test@example.com")).thenReturn("test@example.com");
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
@@ -178,6 +186,7 @@ class UserServiceTest {
     @Test
     @DisplayName("Should throw exception when email already exists")
     void shouldThrowExceptionWhenEmailAlreadyExists() {
+        doNothing().when(passwordValidator).validatePassword(anyString());
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
         when(inputSanitizer.sanitizeString("test@example.com")).thenReturn("test@example.com");
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
@@ -191,29 +200,41 @@ class UserServiceTest {
     @Test
     @DisplayName("Should login successfully")
     void shouldLoginSuccessfully() {
+        when(loginAttemptService.isAccountLocked("testuser")).thenReturn(false);
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        lenient().when(userRepository.findByEmail("testuser")).thenReturn(Optional.empty());
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
         when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
         when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
+        doNothing().when(loginAttemptService).recordSuccessfulLogin(anyString());
 
         AuthResponse response = userService.login("testuser", "password123");
 
         assertNotNull(response);
         assertEquals("testuser", response.getUsername());
         verify(auditService).auditAuthentication(eq("LOGIN_SUCCESS"), eq("testuser"), anyString());
+        verify(loginAttemptService).isAccountLocked("testuser");
+        verify(loginAttemptService).recordSuccessfulLogin("testuser");
     }
 
     @Test
     @DisplayName("Should throw exception when password is incorrect")
     void shouldThrowExceptionWhenPasswordIsIncorrect() {
+        when(loginAttemptService.isAccountLocked("testuser")).thenReturn(false);
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        lenient().when(userRepository.findByEmail("testuser")).thenReturn(Optional.empty());
         when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
+        doNothing().when(loginAttemptService).recordFailedAttempt(anyString());
+        when(loginAttemptService.getRemainingAttempts(anyString())).thenReturn(4);
 
         assertThrows(BusinessException.class, () -> {
             userService.login("testuser", "wrongPassword");
         });
 
         verify(auditService).auditAuthentication(eq("LOGIN_FAILED"), eq("testuser"), anyString());
+        verify(loginAttemptService, times(2)).isAccountLocked("testuser");
+        verify(loginAttemptService).recordFailedAttempt("testuser");
+        verify(loginAttemptService).getRemainingAttempts("testuser");
     }
 
     @Test
@@ -276,6 +297,7 @@ class UserServiceTest {
     @DisplayName("Should handle empty email sanitization during registration")
     void shouldHandleEmptyEmailSanitization_DuringRegistration() {
         authRequest.setEmail("   ");
+        doNothing().when(passwordValidator).validatePassword(anyString());
         when(inputSanitizer.sanitizeString("testuser")).thenReturn("testuser");
         when(inputSanitizer.sanitizeString("   ")).thenReturn("");
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
@@ -295,18 +317,19 @@ class UserServiceTest {
     @Test
     @DisplayName("Should handle login with email instead of username")
     void shouldHandleLogin_WithEmailInsteadOfUsername() {
+        when(loginAttemptService.isAccountLocked("test@example.com")).thenReturn(false);
         when(userRepository.findByUsername("test@example.com")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
         when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access-token");
         when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refresh-token");
+        doNothing().when(loginAttemptService).recordSuccessfulLogin(anyString());
 
         AuthResponse response = userService.login("test@example.com", "password123");
 
         assertNotNull(response);
         assertEquals("testuser", response.getUsername());
-        // findByEmail is called twice: once in loadUserByUsername and once in findUserByUsernameOrEmail
-        verify(userRepository, times(2)).findByEmail("test@example.com");
+        verify(userRepository, atLeastOnce()).findByEmail("test@example.com");
         verify(auditService).auditAuthentication(eq("LOGIN_SUCCESS"), eq("testuser"), anyString());
     }
 

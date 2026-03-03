@@ -33,10 +33,10 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        validSecret = "test-secret-key-for-testing-purposes-only-minimum-32-chars";
+        validSecret = "MpmwHKuCKSFAtI7m2ZrraTZ0UXcUtHrKjfGVh58wsyKOTa1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6";
         lenient().when(jwtProperties.getSecret()).thenReturn(validSecret);
-        lenient().when(jwtProperties.getExpiration()).thenReturn(86400000L); // 24 hours
-        lenient().when(jwtProperties.getRefreshExpiration()).thenReturn(604800000L); // 7 days
+        lenient().when(jwtProperties.getExpiration()).thenReturn(86400000L);
+        lenient().when(jwtProperties.getRefreshExpiration()).thenReturn(604800000L);
 
         userDetails = User.builder()
                 .username("testuser")

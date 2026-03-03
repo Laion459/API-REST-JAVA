@@ -9,10 +9,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.util.Collections;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -30,7 +34,7 @@ class UserRateLimitServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         userRateLimitService = new UserRateLimitService(redisTemplate);
     }
 
@@ -44,7 +48,9 @@ class UserRateLimitServiceTest {
     @Test
     @DisplayName("Should return false when rate limit is not exceeded")
     void shouldReturnFalseWhenRateLimitNotExceeded() {
-        when(valueOperations.increment(anyString())).thenReturn(1L);
+        when(valueOperations.increment(contains(":count"))).thenReturn(1L);
+        when(redisTemplate.expire(anyString(), any())).thenReturn(true);
+        doNothing().when(valueOperations).set(anyString(), any());
         
         boolean exceeded = userRateLimitService.isRateLimitExceeded(1L, "/api/v1/tasks");
         assertFalse(exceeded);
@@ -53,36 +59,50 @@ class UserRateLimitServiceTest {
     @Test
     @DisplayName("Should return true when rate limit is exceeded")
     void shouldReturnTrueWhenRateLimitExceeded() {
-        when(valueOperations.increment(anyString())).thenReturn(61L); // Exceeds default limit of 60
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(contains(":count"))).thenReturn(61L);
+        lenient().when(redisTemplate.expire(anyString(), any())).thenReturn(true);
+        lenient().doNothing().when(valueOperations).set(anyString(), any());
         
         boolean exceeded = userRateLimitService.isRateLimitExceeded(1L, "/api/v1/tasks");
-        assertTrue(exceeded);
+        assertTrue(exceeded, "Rate limit should be exceeded when count is 61");
     }
 
     @Test
     @DisplayName("Should use auth limit for auth endpoints")
     void shouldUseAuthLimitForAuthEndpoints() {
-        when(valueOperations.increment(anyString())).thenReturn(6L); // Exceeds auth limit of 5
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(contains(":count"))).thenReturn(6L);
+        lenient().when(redisTemplate.expire(anyString(), any())).thenReturn(true);
+        lenient().doNothing().when(valueOperations).set(anyString(), any());
         
         boolean exceeded = userRateLimitService.isRateLimitExceeded(1L, "/api/v1/auth/login");
-        assertTrue(exceeded);
+        assertTrue(exceeded, "Auth rate limit should be exceeded when count is 6");
     }
 
     @Test
     @DisplayName("Should use admin limit for admin endpoints")
     void shouldUseAdminLimitForAdminEndpoints() {
-        when(valueOperations.increment(anyString())).thenReturn(201L); // Exceeds admin limit of 200
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(contains(":count"))).thenReturn(201L);
+        lenient().when(redisTemplate.expire(anyString(), any())).thenReturn(true);
+        lenient().doNothing().when(valueOperations).set(anyString(), any());
         
         boolean exceeded = userRateLimitService.isRateLimitExceeded(1L, "/api/v1/cache/clear");
-        assertTrue(exceeded);
+        assertTrue(exceeded, "Admin rate limit should be exceeded when count is 201");
     }
 
     @Test
     @DisplayName("Should reset rate limit for user")
     void shouldResetRateLimitForUser() {
+        Set<String> keys = Collections.singleton("rate_limit:user:1:/api/v1/tasks");
+        when(redisTemplate.keys(anyString())).thenReturn(keys);
+        when(redisTemplate.delete(any(Set.class))).thenReturn(1L);
+        
         userRateLimitService.resetRateLimit(1L);
         
-        verify(redisTemplate, atLeastOnce()).delete(any());
+        verify(redisTemplate).keys(anyString());
+        verify(redisTemplate).delete(any(Set.class));
     }
 
     @Test

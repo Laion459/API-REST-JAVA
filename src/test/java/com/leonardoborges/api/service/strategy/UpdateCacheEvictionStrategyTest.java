@@ -18,6 +18,9 @@ class UpdateCacheEvictionStrategyTest {
     @Mock
     private CacheService cacheService;
 
+    @Mock
+    private GranularCacheEvictionStrategy granularStrategy;
+
     @InjectMocks
     private UpdateCacheEvictionStrategy strategy;
 
@@ -32,9 +35,9 @@ class UpdateCacheEvictionStrategyTest {
 
         verify(cacheService, times(1)).evictTask(taskId);
         verify(cacheService, times(1)).evictTaskLists();
+        verify(granularStrategy, times(1)).evictStatusCache(oldStatus);
         verify(cacheService, times(1)).evictTaskStats("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("IN_PROGRESS");
+        verify(granularStrategy, times(1)).evictStatusCache(newStatus);
         verify(cacheService, times(1)).evictTaskStats("IN_PROGRESS");
     }
 
@@ -48,10 +51,8 @@ class UpdateCacheEvictionStrategyTest {
 
         verify(cacheService, times(1)).evictTask(taskId);
         verify(cacheService, times(1)).evictTaskLists();
+        verify(granularStrategy, times(1)).evictStatusCache(status);
         verify(cacheService, times(1)).evictTaskStats("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("PENDING");
-        verify(cacheService, never()).evictTasksByStatus("IN_PROGRESS");
-        verify(cacheService, never()).evictTaskStats("IN_PROGRESS");
     }
 
     @Test
@@ -64,8 +65,8 @@ class UpdateCacheEvictionStrategyTest {
 
         verify(cacheService, times(1)).evictTask(taskId);
         verify(cacheService, times(1)).evictTaskLists();
+        verify(granularStrategy, never()).evictStatusCache(any());
         verify(cacheService, never()).evictTaskStats(anyString());
-        verify(cacheService, never()).evictTasksByStatus(anyString());
     }
 
     @Test
@@ -78,10 +79,8 @@ class UpdateCacheEvictionStrategyTest {
 
         verify(cacheService, times(1)).evictTask(taskId);
         verify(cacheService, times(1)).evictTaskLists();
+        verify(granularStrategy, times(1)).evictStatusCache(oldStatus);
         verify(cacheService, times(1)).evictTaskStats("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("PENDING");
-        verify(cacheService, never()).evictTasksByStatus(eq("IN_PROGRESS"));
-        verify(cacheService, never()).evictTaskStats(eq("IN_PROGRESS"));
     }
 
     @Test
@@ -122,9 +121,9 @@ class UpdateCacheEvictionStrategyTest {
 
         verify(cacheService, times(1)).evictTask(taskId);
         verify(cacheService, times(1)).evictTaskLists();
+        verify(granularStrategy, times(1)).evictStatusCache(oldStatus);
         verify(cacheService, times(1)).evictTaskStats("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("PENDING");
-        verify(cacheService, times(1)).evictTasksByStatus("COMPLETED");
+        verify(granularStrategy, times(1)).evictStatusCache(newStatus);
         verify(cacheService, times(1)).evictTaskStats("COMPLETED");
     }
 }

@@ -33,6 +33,9 @@ class JwtAuthenticationFilterTest {
     private UserDetailsService userDetailsService;
 
     @Mock
+    private com.leonardoborges.api.service.TokenBlacklistService tokenBlacklistService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -86,6 +89,7 @@ class JwtAuthenticationFilterTest {
     @DisplayName("Should set authentication when valid JWT token is provided")
     void shouldSetAuthenticationWhenValidJwtTokenIsProvided() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
         when(jwtService.validateToken(validToken, userDetails)).thenReturn(true);
@@ -104,6 +108,7 @@ class JwtAuthenticationFilterTest {
     @DisplayName("Should not set authentication when username is null")
     void shouldNotSetAuthenticationWhenUsernameIsNull() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenReturn(null);
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -117,11 +122,11 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("Should not set authentication when authentication already exists")
     void shouldNotSetAuthenticationWhenAuthenticationAlreadyExists() throws ServletException, IOException {
-        // Set existing authentication
         org.springframework.security.core.Authentication existingAuth = mock(org.springframework.security.core.Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(existingAuth);
 
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenReturn("testuser");
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -136,6 +141,7 @@ class JwtAuthenticationFilterTest {
     @DisplayName("Should not set authentication when token is invalid")
     void shouldNotSetAuthenticationWhenTokenIsInvalid() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
         when(jwtService.validateToken(validToken, userDetails)).thenReturn(false);
@@ -153,6 +159,7 @@ class JwtAuthenticationFilterTest {
     @DisplayName("Should continue filter chain when exception occurs during authentication")
     void shouldContinueFilterChainWhenExceptionOccursDuringAuthentication() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenThrow(new RuntimeException("Token parsing error"));
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -167,6 +174,7 @@ class JwtAuthenticationFilterTest {
     @DisplayName("Should extract JWT token correctly from Bearer header")
     void shouldExtractJwtTokenCorrectlyFromBearerHeader() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(bearerToken);
+        when(tokenBlacklistService.isTokenBlacklisted(validToken)).thenReturn(false);
         when(jwtService.extractUsername(validToken)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
         when(jwtService.validateToken(validToken, userDetails)).thenReturn(true);
