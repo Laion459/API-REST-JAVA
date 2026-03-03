@@ -10,8 +10,11 @@ import com.leonardoborges.api.exception.ErrorResponse;
 import com.leonardoborges.api.exception.IdempotencyException;
 import com.leonardoborges.api.model.Task;
 import com.leonardoborges.api.service.IdempotencyService;
-import com.leonardoborges.api.service.TaskService;
 import com.leonardoborges.api.util.SortParameterValidator;
+import com.leonardoborges.api.util.PageResponseHelper;
+import com.leonardoborges.api.util.HateoasHelper;
+import com.leonardoborges.api.dto.Link;
+import com.leonardoborges.api.application.TaskApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,6 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -42,7 +47,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Tasks", description = "High-performance task management API")
 public class TaskController {
     
-    private final TaskService taskService;
+    private final TaskApplicationService taskApplicationService;
     private final SortParameterValidator sortParameterValidator;
     private final IdempotencyService idempotencyService;
     
@@ -107,8 +112,19 @@ public class TaskController {
             idempotencyService.storeRequest(idempotencyKey, requestHash);
         }
         
-        TaskResponse response = taskService.createTask(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        TaskResponse response = taskApplicationService.createTask(request);
+        
+        // Add HATEOAS links
+        List<Link> links = List.of(
+            HateoasHelper.buildTaskSelfLink(response.getId()),
+            HateoasHelper.buildTaskUpdateLink(response.getId()),
+            HateoasHelper.buildTaskDeleteLink(response.getId()),
+            HateoasHelper.buildTaskHistoryLink(response.getId())
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @GetMapping("/{id}")
@@ -152,8 +168,20 @@ public class TaskController {
     public ResponseEntity<TaskResponse> getTaskById(
             @Parameter(description = "Task ID") @PathVariable Long id) {
         log.debug("GET /api/v1/tasks/{} - Fetching task", id);
-        TaskResponse response = taskService.getTaskById(id);
-        return ResponseEntity.ok(response);
+        TaskResponse response = taskApplicationService.getTaskById(id);
+        
+        // Add HATEOAS links
+        List<Link> links = List.of(
+            HateoasHelper.buildTaskSelfLink(id),
+            HateoasHelper.buildTaskUpdateLink(id),
+            HateoasHelper.buildTaskPatchLink(id),
+            HateoasHelper.buildTaskDeleteLink(id),
+            HateoasHelper.buildTaskHistoryLink(id)
+        );
+        
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @GetMapping
@@ -203,21 +231,16 @@ public class TaskController {
         Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
                 pageable, "createdAt", Sort.Direction.DESC);
         
-        Page<TaskResponse> page = taskService.getAllTasks(validPageable);
+        Page<TaskResponse> page = taskApplicationService.getAllTasks(validPageable);
+        TaskPageResponse response = PageResponseHelper.buildTaskPageResponse(page);
         
-        TaskPageResponse response = TaskPageResponse.builder()
-                .content(page.getContent())
-                .totalPages(page.getTotalPages())
-                .totalElements(page.getTotalElements())
-                .size(page.getSize())
-                .number(page.getNumber())
-                .numberOfElements(page.getNumberOfElements())
-                .first(page.isFirst())
-                .last(page.isLast())
-                .empty(page.isEmpty())
-                .build();
+        // Add HATEOAS pagination links
+        List<Link> links = HateoasHelper.buildPaginationLinks(page, "/api/v1/tasks");
+        links.addAll(HateoasHelper.buildTaskCollectionLinks());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @GetMapping("/status/{status}")
@@ -272,21 +295,16 @@ public class TaskController {
         Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
                 pageable, "priority", Sort.Direction.DESC);
         
-        Page<TaskResponse> page = taskService.getTasksByStatus(status, validPageable);
+        Page<TaskResponse> page = taskApplicationService.getTasksByStatus(status, validPageable);
+        TaskPageResponse response = PageResponseHelper.buildTaskPageResponse(page);
         
-        TaskPageResponse response = TaskPageResponse.builder()
-                .content(page.getContent())
-                .totalPages(page.getTotalPages())
-                .totalElements(page.getTotalElements())
-                .size(page.getSize())
-                .number(page.getNumber())
-                .numberOfElements(page.getNumberOfElements())
-                .first(page.isFirst())
-                .last(page.isLast())
-                .empty(page.isEmpty())
-                .build();
+        // Add HATEOAS pagination links
+        List<Link> links = HateoasHelper.buildPaginationLinks(page, "/api/v1/tasks/status/" + status);
+        links.addAll(HateoasHelper.buildTaskCollectionLinks());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @PostMapping("/search")
@@ -336,21 +354,16 @@ public class TaskController {
         Pageable validPageable = sortParameterValidator.validateAndNormalizeTaskSort(
                 pageable, "createdAt", Sort.Direction.DESC);
         
-        Page<TaskResponse> page = taskService.getTasksWithFilters(filters, validPageable);
+        Page<TaskResponse> page = taskApplicationService.searchTasks(filters, validPageable);
+        TaskPageResponse response = PageResponseHelper.buildTaskPageResponse(page);
         
-        TaskPageResponse response = TaskPageResponse.builder()
-                .content(page.getContent())
-                .totalPages(page.getTotalPages())
-                .totalElements(page.getTotalElements())
-                .size(page.getSize())
-                .number(page.getNumber())
-                .numberOfElements(page.getNumberOfElements())
-                .first(page.isFirst())
-                .last(page.isLast())
-                .empty(page.isEmpty())
-                .build();
+        // Add HATEOAS pagination links
+        List<Link> links = HateoasHelper.buildPaginationLinks(page, "/api/v1/tasks/search");
+        links.addAll(HateoasHelper.buildTaskCollectionLinks());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @GetMapping("/stats/count")
@@ -398,10 +411,10 @@ public class TaskController {
     public ResponseEntity<TaskStatsResponse> getTaskStats() {
         log.debug("GET /api/v1/tasks/stats/count - Fetching task statistics");
         TaskStatsResponse stats = TaskStatsResponse.builder()
-                .pending(taskService.getTaskCountByStatus(Task.TaskStatus.PENDING))
-                .inProgress(taskService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS))
-                .completed(taskService.getTaskCountByStatus(Task.TaskStatus.COMPLETED))
-                .cancelled(taskService.getTaskCountByStatus(Task.TaskStatus.CANCELLED))
+                .pending(taskApplicationService.getTaskCountByStatus(Task.TaskStatus.PENDING))
+                .inProgress(taskApplicationService.getTaskCountByStatus(Task.TaskStatus.IN_PROGRESS))
+                .completed(taskApplicationService.getTaskCountByStatus(Task.TaskStatus.COMPLETED))
+                .cancelled(taskApplicationService.getTaskCountByStatus(Task.TaskStatus.CANCELLED))
                 .build();
         return ResponseEntity.ok(stats);
     }
@@ -464,8 +477,20 @@ public class TaskController {
             @Valid @org.springframework.validation.annotation.Validated({ValidationGroups.Update.class, Default.class}) 
             @RequestBody TaskRequest request) {
         log.info("PUT /api/v1/tasks/{} - Updating task", id);
-        TaskResponse response = taskService.updateTask(id, request);
-        return ResponseEntity.ok(response);
+        TaskResponse response = taskApplicationService.updateTask(id, request);
+        
+        // Add HATEOAS links
+        List<Link> links = List.of(
+            HateoasHelper.buildTaskSelfLink(id),
+            HateoasHelper.buildTaskUpdateLink(id),
+            HateoasHelper.buildTaskPatchLink(id),
+            HateoasHelper.buildTaskDeleteLink(id),
+            HateoasHelper.buildTaskHistoryLink(id)
+        );
+        
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @PatchMapping("/{id}")
@@ -526,8 +551,20 @@ public class TaskController {
             @Valid @org.springframework.validation.annotation.Validated({ValidationGroups.Patch.class}) 
             @RequestBody TaskRequest request) {
         log.info("PATCH /api/v1/tasks/{} - Partially updating task", id);
-        TaskResponse response = taskService.patchTask(id, request);
-        return ResponseEntity.ok(response);
+        TaskResponse response = taskApplicationService.patchTask(id, request);
+        
+        // Add HATEOAS links
+        List<Link> links = List.of(
+            HateoasHelper.buildTaskSelfLink(id),
+            HateoasHelper.buildTaskUpdateLink(id),
+            HateoasHelper.buildTaskPatchLink(id),
+            HateoasHelper.buildTaskDeleteLink(id),
+            HateoasHelper.buildTaskHistoryLink(id)
+        );
+        
+        return ResponseEntity.ok()
+                .header("Link", buildLinkHeader(links))
+                .body(response);
     }
     
     @DeleteMapping("/{id}")
@@ -565,6 +602,18 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(@Parameter(description = "Task ID") @PathVariable Long id) {
         log.info("DELETE /api/v1/tasks/{} - Deleting task", id);
-        taskService.deleteTask(id);
+        taskApplicationService.deleteTask(id);
+    }
+    
+    /**
+     * Builds Link header for HATEOAS.
+     * Format: <url>; rel="relation"; method="HTTP_METHOD"
+     */
+    private String buildLinkHeader(List<Link> links) {
+        return links.stream()
+                .map(link -> String.format("<%s>; rel=\"%s\"; method=\"%s\"", 
+                    link.getHref(), link.getRel(), link.getMethod()))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
     }
 }

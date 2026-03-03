@@ -45,4 +45,15 @@ public final class TaskConstants {
     public static final int RATE_LIMIT_REQUESTS_PER_HOUR = 1000;
     public static final int RATE_LIMIT_AUTH_REQUESTS_PER_MINUTE = 5;
     public static final int RATE_LIMIT_ADMIN_REQUESTS_PER_MINUTE = 200;
+    
+    // Security constants
+    public static final int MIN_TOKEN_EXPIRATION_TIME_MS = 0;
+    public static final int MIN_PASSWORD_LENGTH = 8;
+    public static final int MAX_PASSWORD_LENGTH = 128;
+    public static final int MAX_LOGIN_ATTEMPTS = 5;
+    public static final long ACCOUNT_LOCKOUT_DURATION_MINUTES = 30;
+    
+    // JWT constants
+    public static final int MIN_JWT_SECRET_LENGTH = 32;
+    public static final int RECOMMENDED_JWT_SECRET_LENGTH = 64;
 }

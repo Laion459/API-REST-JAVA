@@ -5,6 +5,7 @@ import com.leonardoborges.api.dto.AuthResponse;
 import com.leonardoborges.api.dto.LoginRequest;
 import com.leonardoborges.api.dto.RefreshTokenRequest;
 import com.leonardoborges.api.exception.ErrorResponse;
+import com.leonardoborges.api.constants.SecurityConstants;
 import com.leonardoborges.api.service.JwtService;
 import com.leonardoborges.api.service.TokenBlacklistService;
 import com.leonardoborges.api.service.UserService;
@@ -182,11 +183,11 @@ public class AuthController {
     })
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        if (authHeader != null && authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
+            String token = authHeader.substring(SecurityConstants.BEARER_PREFIX_LENGTH);
             try {
                 long expirationTime = jwtService.extractExpiration(token).getTime() - System.currentTimeMillis();
-                if (expirationTime > 0) {
+                if (expirationTime > SecurityConstants.MIN_TOKEN_EXPIRATION_TIME_MS) {
                     tokenBlacklistService.blacklistToken(token, expirationTime);
                     log.info("User logged out successfully");
                 }

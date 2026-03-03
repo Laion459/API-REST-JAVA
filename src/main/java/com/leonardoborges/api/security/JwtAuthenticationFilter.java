@@ -1,5 +1,6 @@
 package com.leonardoborges.api.security;
 
+import com.leonardoborges.api.constants.SecurityConstants;
 import com.leonardoborges.api.service.JwtService;
 import com.leonardoborges.api.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
@@ -38,13 +39,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         final String authHeader = request.getHeader("Authorization");
         
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            final String jwt = authHeader.substring(7);
+            final String jwt = authHeader.substring(SecurityConstants.BEARER_PREFIX_LENGTH);
             
             if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
                 log.warn("Attempted use of blacklisted token");

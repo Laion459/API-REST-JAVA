@@ -30,6 +30,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -49,7 +50,7 @@ public class TaskService implements ITaskService {
     }
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public TaskResponse createTask(@NonNull TaskRequest request) {
         log.info("Creating new task: title={}", request.getTitle());
         Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskCreationTimer() : null;
@@ -83,7 +84,7 @@ public class TaskService implements ITaskService {
     
     @Override
     @Cacheable(value = "tasks", keyGenerator = "taskCacheKeyGenerator")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public TaskResponse getTaskById(@NonNull Long id) {
         log.debug("Fetching task with ID: {}", id);
         Timer.Sample sample = isMetricsEnabled() ? taskMetrics.startTaskRetrievalTimer() : null;
@@ -105,7 +106,7 @@ public class TaskService implements ITaskService {
     
     @Override
     @Cacheable(value = "taskLists", keyGenerator = "taskCacheKeyGenerator")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Page<TaskResponse> getAllTasks(@NonNull Pageable pageable) {
         log.debug("Fetching all tasks with pagination: {}", pageable);
         User currentUser = securityUtils.getCurrentUser();
@@ -115,7 +116,7 @@ public class TaskService implements ITaskService {
     
     @Override
     @Cacheable(value = "taskLists", keyGenerator = "taskCacheKeyGenerator")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Page<TaskResponse> getTasksByStatus(@NonNull Task.TaskStatus status, @NonNull Pageable pageable) {
         log.debug("Fetching tasks with status: {}", status);
         User currentUser = securityUtils.getCurrentUser();
@@ -125,7 +126,7 @@ public class TaskService implements ITaskService {
     
     @Override
     @Cacheable(value = "taskLists", keyGenerator = "taskCacheKeyGenerator")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Page<TaskResponse> getTasksWithFilters(@NonNull TaskFilterRequest filters, @NonNull Pageable pageable) {
         log.debug("Fetching tasks with filters: {}", filters);
         User currentUser = securityUtils.getCurrentUser();
@@ -135,7 +136,7 @@ public class TaskService implements ITaskService {
     
     @Override
     @Cacheable(value = "taskStats", keyGenerator = "taskCacheKeyGenerator")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Long getTaskCountByStatus(@NonNull Task.TaskStatus status) {
         log.debug("Counting tasks with status: {}", status);
         User currentUser = securityUtils.getCurrentUser();
@@ -143,7 +144,7 @@ public class TaskService implements ITaskService {
     }
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @CachePut(value = "tasks", keyGenerator = "taskCacheKeyGenerator")
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public TaskResponse updateTask(@NonNull Long id, @NonNull TaskRequest request) {
@@ -174,7 +175,7 @@ public class TaskService implements ITaskService {
     }
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @CachePut(value = "tasks", keyGenerator = "taskCacheKeyGenerator")
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public TaskResponse patchTask(@NonNull Long id, @NonNull TaskRequest request) {
@@ -235,7 +236,7 @@ public class TaskService implements ITaskService {
     
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteTask(@NonNull Long id) {
         log.info("Deleting task with ID: {}", id);
         
@@ -262,7 +263,7 @@ public class TaskService implements ITaskService {
     
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void restoreTask(@NonNull Long id) {
         log.info("Restoring task with ID: {}", id);
         
