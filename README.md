@@ -1,11 +1,12 @@
-# High Performance REST API
+# Spring Boot REST API
 
-High-performance REST API developed with Spring Boot for backend skills demonstration, focused on scalability, performance, and software engineering best practices.
+REST API developed with Spring Boot for backend skills demonstration. 
+Implements software engineering best practices, clean architecture, and design patterns.
 
-## Status: v3.2.0
+## Status: v3.3.0
 
-Reference project implementing all software engineering, security, and performance best practices. 
-Includes hybrid MVC + WebFlux architecture for maximum performance. Production-ready with advanced features:
+Reference project implementing software engineering, security, and architecture best practices. 
+Includes hybrid MVC + WebFlux architecture demonstrating knowledge in reactive programming. Production-ready with advanced features:
 - Domain-Driven Design (Value Objects)
 - Granular permissions system
 - User-based rate limiting
@@ -21,11 +22,13 @@ Includes hybrid MVC + WebFlux architecture for maximum performance. Production-r
 ## Objective
 
 Demonstrate practical experience in backend development with Java/Spring Boot, including:
-- High-performance REST APIs
-- Concurrent programming and optimization
+- Software architecture (Clean Architecture, DDD)
+- Security (JWT, OWASP Top 10)
+- Data persistence (JPA, transactions, optimizations)
+- Reactive programming (WebFlux, R2DBC)
 - Caching and query optimization
-- Monitoring and metrics
-- Automated testing
+- Observability (metrics, logging, health checks)
+- Automated testing (570+ tests, 90%+ coverage)
 - Docker and CI/CD
 
 ## Technologies
@@ -33,7 +36,7 @@ Demonstrate practical experience in backend development with Java/Spring Boot, i
 - **Java 21** (LTS) - Programming language
 - **Spring Boot 3.2.0** - Backend framework
 - **Spring Data JPA** - Data persistence (MVC)
-- **Spring WebFlux + R2DBC** - Reactive programming for high performance
+- **Spring WebFlux + R2DBC** - Reactive programming with non-blocking I/O
 - **PostgreSQL** - Relational database
 - **Redis** - Caching and optimization (blocking and reactive)
 - **Swagger/OpenAPI** - Automatic documentation
@@ -78,7 +81,7 @@ Demonstrate practical experience in backend development with Java/Spring Boot, i
 - Docker and Docker Compose
 - **CI/CD Pipeline** (v1.6.0) - GitHub Actions
 
-## Arquitetura
+## Architecture
 
 ```
 src/
@@ -206,7 +209,7 @@ mvn spring-boot:run
 mvn clean package
 
 # Run
-java -jar target/high-performance-api-1.0.0.jar
+java -jar target/spring-boot-rest-api-1.0.0.jar
 ```
 
 ## API Documentation
@@ -243,9 +246,9 @@ The Swagger documentation is complete with:
 - `GET /api/v1/tasks/{taskId}/history/field/{fieldName}` - History of a specific field
 - `GET /api/v1/tasks/{taskId}/history/date-range` - History by date range
 
-**Reactive Tasks (WebFlux - High Performance):** (Requires authentication)
-- `GET /api/v2/reactive/tasks` - List tasks (reactive, high concurrency)
-- `GET /api/v2/reactive/tasks/{id}` - Get task (reactive, low latency)
+**Reactive Tasks (WebFlux - Reactive Programming):** (Requires authentication)
+- `GET /api/v2/reactive/tasks` - List tasks (reactive, non-blocking I/O)
+- `GET /api/v2/reactive/tasks/{id}` - Get task (reactive, WebFlux)
 - `GET /api/v2/reactive/tasks/status/{status}` - Filter by status (reactive)
 - `GET /api/v2/reactive/tasks/stats/count` - Statistics (reactive)
 
@@ -263,7 +266,7 @@ The Swagger documentation is complete with:
 - `GET /api/v1/audit/stats/failed` - Failed actions statistics
 
 **Note:** 
-- Reactive endpoints (`/api/v2/reactive/*`) are optimized for high-concurrency reads (10,000+ req/s)
+- Reactive endpoints (`/api/v2/reactive/*`) use WebFlux for read operations with non-blocking I/O, suitable for high concurrency
 - Use MVC endpoints (`/api/v1/*`) for write operations that require complex transactions
 - Batch operations are ideal for efficiently processing multiple operations
 
@@ -487,7 +490,7 @@ SERVER_PORT=8081
 - **SOLID Principles** - Extensible and maintainable code
 - **Strategy Pattern** - Strategic cache eviction
 - **DTO Pattern** - Optimized data transfer
-- **Hybrid Architecture** - MVC + WebFlux for maximum performance
+- **Hybrid Architecture** - MVC + WebFlux demonstrating knowledge in reactive programming
 - **Event-Driven Architecture** - Asynchronous event processing
 
 ### Security
@@ -507,7 +510,7 @@ SERVER_PORT=8081
 - **SQL Injection Prevention** - Multi-layer validation
 
 ### Performance
-- **WebFlux (Reactive Programming)** - High concurrency (10,000+ req/s)
+- **WebFlux (Reactive Programming)** - Reactive programming with non-blocking I/O for high concurrency
 - **R2DBC** - Non-blocking access to PostgreSQL
 - **Intelligent Cache** - Redis with optimized strategies
 - **Hibernate Second-Level Cache** - Distributed entity caching
@@ -596,7 +599,7 @@ jobs:
       - name: Build JAR
         run: mvn clean package -DskipTests
       - name: Build Docker image
-        run: docker build -t high-performance-api:latest .
+        run: docker build -t spring-boot-rest-api:latest .
 ```
 
 ## Deploy
@@ -604,7 +607,7 @@ jobs:
 ### Docker
 ```bash
 # Build image
-docker build -t high-performance-api:latest .
+docker build -t spring-boot-rest-api:latest .
 
 # Run container
 docker run -p 8081:8080 \
@@ -613,7 +616,7 @@ docker run -p 8081:8080 \
   -e SPRING_DATASOURCE_PASSWORD=postgres \
   -e SPRING_REDIS_HOST=host.docker.internal \
   -e SPRING_REDIS_PORT=6379 \
-  high-performance-api:latest
+  spring-boot-rest-api:latest
 ```
 
 ### Cloud (AWS/GCP/Azure)
@@ -625,7 +628,7 @@ docker run -p 8081:8080 \
 
 This project demonstrates:
 - Practical experience with Java/Spring Boot
-- Knowledge in high-performance REST APIs
+- Knowledge in REST API development with Spring Boot
 - Concurrent programming and optimization
 - Caching and performance strategies
 - Monitoring and observability
@@ -645,4 +648,4 @@ This project is for technical skills demonstration purposes.
 
 ---
 
-*Developed with focus on high performance, scalability, and software engineering best practices.*
+*Developed with focus on software engineering best practices, clean architecture, and technical knowledge demonstration.*
