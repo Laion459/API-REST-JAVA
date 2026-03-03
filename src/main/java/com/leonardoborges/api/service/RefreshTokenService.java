@@ -3,6 +3,7 @@ package com.leonardoborges.api.service;
 import com.leonardoborges.api.config.JwtProperties;
 import com.leonardoborges.api.exception.BusinessException;
 import com.leonardoborges.api.model.RefreshToken;
+import com.leonardoborges.api.util.LogSanitizer;
 import com.leonardoborges.api.model.User;
 import com.leonardoborges.api.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -113,8 +114,7 @@ public class RefreshTokenService {
             RefreshToken refreshToken = tokenOpt.get();
             refreshToken.revoke(revokedBy);
             refreshTokenRepository.save(refreshToken);
-            String tokenPreview = token.length() > 20 ? token.substring(0, 20) + "..." : token;
-            log.info("Refresh token revoked: {} by {}", tokenPreview, revokedBy);
+            log.info("Refresh token revoked: {} by {}", LogSanitizer.sanitizeToken(token), revokedBy);
         }
     }
     

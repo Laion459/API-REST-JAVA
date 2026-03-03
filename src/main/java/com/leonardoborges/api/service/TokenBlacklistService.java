@@ -1,5 +1,6 @@
 package com.leonardoborges.api.service;
 
+import com.leonardoborges.api.util.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,7 +25,7 @@ public class TokenBlacklistService {
         long ttlSeconds = expirationTimeMillis / 1000;
         
         redisTemplate.opsForValue().set(key, "blacklisted", ttlSeconds, TimeUnit.SECONDS);
-        log.debug("Token blacklisted: {}", token.substring(0, Math.min(20, token.length())) + "...");
+        log.debug("Token blacklisted: {}", LogSanitizer.sanitizeToken(token));
     }
     
     public boolean isTokenBlacklisted(String token) {
@@ -44,6 +45,6 @@ public class TokenBlacklistService {
         
         String key = BLACKLIST_PREFIX + token;
         redisTemplate.delete(key);
-        log.debug("Token removed from blacklist: {}", token.substring(0, Math.min(20, token.length())) + "...");
+        log.debug("Token removed from blacklist: {}", LogSanitizer.sanitizeToken(token));
     }
 }

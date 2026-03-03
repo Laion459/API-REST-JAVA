@@ -10,12 +10,15 @@ import com.leonardoborges.api.model.User;
 import com.leonardoborges.api.repository.UserRepository;
 import com.leonardoborges.api.service.interfaces.IUserService;
 import com.leonardoborges.api.util.InputSanitizer;
+import com.leonardoborges.api.util.LogSanitizer;
+import com.leonardoborges.api.validation.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
@@ -32,9 +35,11 @@ public class UserService implements IUserService {
     private final RefreshTokenService refreshTokenService;
     private final AuditService auditService;
     private final InputSanitizer inputSanitizer;
+    private final PasswordValidator passwordValidator;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public UserDetails loadUserByUsername(String username) {
         User user = findUserByUsernameOrEmail(username);
         
@@ -52,7 +57,7 @@ public class UserService implements IUserService {
     }
     
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public User findUserByUsernameOrEmail(String usernameOrEmail) {
         return userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
@@ -60,9 +65,12 @@ public class UserService implements IUserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public AuthResponse register(AuthRequest request) {
         log.info("Registering new user: {}", request.getUsername());
+
+        // Validate password strength
+        passwordValidator.validatePassword(request.getPassword());
 
         // Sanitize inputs
         String username = inputSanitizer.sanitizeString(request.getUsername());
@@ -89,9 +97,9 @@ public class UserService implements IUserService {
         user = userRepository.save(user);
         log.info("User registered successfully: {}", user.getUsername());
         
-        // Audit sensitive operation
+        // Audit sensitive operation (email sanitized for security)
         auditService.audit("USER_REGISTERED", "User", user.getId(), 
-                String.format("Username: %s, Email: %s", user.getUsername(), user.getEmail()));
+                String.format("Username: %s, Email: %s", user.getUsername(), LogSanitizer.sanitizeEmail(user.getEmail())));
 
         // Generate tokens
         UserDetails userDetails = loadUserByUsername(user.getUsername());
@@ -105,32 +113,58 @@ public class UserService implements IUserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public AuthResponse login(String usernameOrEmail, String password) {
         log.info("Login attempt for: {}", usernameOrEmail);
 
-        UserDetails userDetails = loadUserByUsername(usernameOrEmail);
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            log.warn("Invalid password for user: {}", usernameOrEmail);
-            auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "Invalid password");
-            throw new BusinessException("Invalid credentials");
+        // Check if account is locked
+        if (loginAttemptService.isAccountLocked(usernameOrEmail)) {
+            log.warn("Login attempt for locked account: {}", usernameOrEmail);
+            auditService.auditAuthentication("LOGIN_BLOCKED", usernameOrEmail, "Account is locked");
+            throw new BusinessException("Account is temporarily locked due to too many failed login attempts. Please try again later.");
         }
 
-        User user = findUserByUsernameOrEmail(usernameOrEmail);
+        try {
+            UserDetails userDetails = loadUserByUsername(usernameOrEmail);
 
-        String token = jwtService.generateToken(userDetails);
-        String refreshToken = refreshTokenService.createRefreshToken(user);
-        log.info("User logged in successfully: {}", user.getUsername());
-        
-        // Audit successful login
-        auditService.auditAuthentication("LOGIN_SUCCESS", user.getUsername(), "User authenticated successfully");
+            if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+                loginAttemptService.recordFailedAttempt(usernameOrEmail);
+                int remainingAttempts = loginAttemptService.getRemainingAttempts(usernameOrEmail);
+                
+                log.warn("Invalid password for user: {} ({} attempts remaining)", usernameOrEmail, remainingAttempts);
+                auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, 
+                    String.format("Invalid password. %d attempts remaining", remainingAttempts));
+                
+                if (loginAttemptService.isAccountLocked(usernameOrEmail)) {
+                    throw new BusinessException("Account has been locked due to too many failed login attempts. Please try again later.");
+                }
+                
+                throw new BusinessException(String.format("Invalid credentials. %d attempts remaining", remainingAttempts));
+            }
 
-        return buildAuthResponse(user, token, refreshToken);
+            // Successful login - clear failed attempts
+            loginAttemptService.recordSuccessfulLogin(usernameOrEmail);
+            User user = findUserByUsernameOrEmail(usernameOrEmail);
+
+            String token = jwtService.generateToken(userDetails);
+            String refreshToken = refreshTokenService.createRefreshToken(user);
+            log.info("User logged in successfully: {}", user.getUsername());
+            
+            // Audit successful login
+            auditService.auditAuthentication("LOGIN_SUCCESS", user.getUsername(), "User authenticated successfully");
+
+            return buildAuthResponse(user, token, refreshToken);
+        } catch (UsernameNotFoundException e) {
+            // Don't reveal if user exists or not (security best practice)
+            loginAttemptService.recordFailedAttempt(usernameOrEmail);
+            log.warn("Login attempt for non-existent user: {}", usernameOrEmail);
+            auditService.auditAuthentication("LOGIN_FAILED", usernameOrEmail, "User not found");
+            throw new BusinessException("Invalid credentials");
+        }
     }
     
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public AuthResponse refreshToken(String refreshTokenString) {
         log.info("Refresh token request");
         

@@ -115,15 +115,18 @@ public class UserRateLimitService {
     
     /**
      * Creates a bucket that always rejects requests (for rate limit exceeded).
+     * Uses capacity 1 and immediately consumes the token to simulate exhausted bucket.
      */
     private Bucket createRejectedBucket() {
         Bandwidth bandwidth = Bandwidth.builder()
-                .capacity(0)
-                .refillIntervally(0, Duration.ofMinutes(1))
+                .capacity(1)
+                .refillIntervally(1, Duration.ofMinutes(1))
                 .build();
-        return Bucket.builder()
+        Bucket bucket = Bucket.builder()
                 .addLimit(bandwidth)
                 .build();
+        bucket.tryConsume(1);
+        return bucket;
     }
     
     /**
