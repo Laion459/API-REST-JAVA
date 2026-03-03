@@ -15,7 +15,7 @@ import java.time.Duration;
 import java.util.Map;
 
 /**
- * Reactive service for high-performance read operations.
+ * Reactive service for non-blocking read operations using WebFlux.
  * Uses reactive programming (Mono/Flux) for better scalability.
  */
 @Service

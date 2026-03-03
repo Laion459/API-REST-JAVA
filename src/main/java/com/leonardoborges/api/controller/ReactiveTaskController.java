@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 /**
- * Reactive controller for high-performance read operations.
+ * Reactive controller for concurrent read operations using WebFlux.
  * Uses WebFlux for better scalability and resource usage.
  * 
  * Reactive endpoints optimized for:
@@ -37,7 +37,7 @@ import java.util.Map;
 @RequestMapping("/api/v2/reactive/tasks")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Reactive Tasks", description = "High-performance reactive endpoints for task reading (WebFlux)")
+@Tag(name = "Reactive Tasks", description = "Reactive endpoints for task reading using WebFlux (non-blocking I/O)")
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "spring.r2dbc.enabled", havingValue = "true", matchIfMissing = false)
 public class ReactiveTaskController {
     
@@ -47,8 +47,8 @@ public class ReactiveTaskController {
     @GetMapping("/{id}")
     @Operation(
             summary = "Get task by ID (Reactive)",
-            description = "Returns a specific task using reactive programming (WebFlux) for high performance. " +
-                    "Optimized for high concurrency and low latency. Requires JWT authentication.",
+            description = "Returns a specific task using reactive programming (WebFlux) with non-blocking I/O. " +
+                    "Suitable for high concurrency scenarios. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -80,12 +80,12 @@ public class ReactiveTaskController {
     @GetMapping
     @Operation(
             summary = "List all tasks (Reactive)",
-            description = "Returns a paginated list of tasks using reactive programming for high performance. " +
-                    "Supports thousands of concurrent requests. Requires JWT authentication.\n\n" +
+            description = "Returns a paginated list of tasks using reactive programming (WebFlux) with non-blocking I/O. " +
+                    "Suitable for high concurrency scenarios. Requires JWT authentication.\n\n" +
                     "**Parameters:**\n" +
                     "- `page`: Page number (default: 0)\n" +
                     "- `size`: Page size (default: 20)\n\n" +
-                    "**Performance:** Optimized for high concurrency using non-blocking event loop.",
+                    "**Architecture:** Uses non-blocking event loop for concurrent request handling.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {
@@ -127,8 +127,8 @@ public class ReactiveTaskController {
     @GetMapping("/status/{status}")
     @Operation(
             summary = "List tasks by status (Reactive)",
-            description = "Returns a paginated list of tasks filtered by status using reactive programming. " +
-                    "Optimized for high performance. Requires JWT authentication.",
+            description = "Returns a paginated list of tasks filtered by status using reactive programming (WebFlux). " +
+                    "Uses non-blocking I/O for concurrent operations. Requires JWT authentication.",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @ApiResponses(value = {

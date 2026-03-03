@@ -20,9 +20,9 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("High Performance REST API")
-                        .version("2.1.0")
-                        .description("High-performance REST API developed with Spring Boot to demonstrate backend skills, focused on scalability, performance, and software engineering best practices.")
+                        .title("Spring Boot REST API")
+                        .version("3.3.0")
+                        .description("REST API developed with Spring Boot to demonstrate backend skills and software engineering best practices. Implements clean architecture, security best practices, and modern Spring Boot features including reactive programming (WebFlux) for concurrent operations.")
                         .contact(new Contact()
                                 .name("Leonardo Borges")
                                 .email("laion459@gmail.com"))

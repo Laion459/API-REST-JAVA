@@ -10,7 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Reactive repository for high-performance read operations.
+ * Reactive repository for non-blocking read operations using R2DBC.
  * Uses R2DBC for non-blocking access to PostgreSQL.
  */
 @Repository

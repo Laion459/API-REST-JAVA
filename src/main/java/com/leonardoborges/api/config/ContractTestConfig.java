@@ -53,7 +53,7 @@ public class ContractTestConfig {
     public static ContractMetadata defaultMetadata() {
         return new ContractMetadata(
             "api-client",
-            "high-performance-api",
+            "spring-boot-rest-api",
             "3.2.0"
         );
     }

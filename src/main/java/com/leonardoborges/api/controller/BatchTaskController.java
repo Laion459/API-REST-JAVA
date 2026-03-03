@@ -32,7 +32,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/tasks/batch")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Batch Tasks", description = "Batch operations for high performance")
+@Tag(name = "Batch Tasks", description = "Batch operations for efficient bulk processing")
 public class BatchTaskController {
     
     private final BatchTaskService batchTaskService;

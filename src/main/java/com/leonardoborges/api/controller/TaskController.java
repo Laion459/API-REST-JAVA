@@ -44,7 +44,7 @@ import java.util.List;
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Tasks", description = "High-performance task management API")
+@Tag(name = "Tasks", description = "Task management API with MVC architecture")
 public class TaskController {
     
     private final TaskApplicationService taskApplicationService;
