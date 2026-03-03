@@ -2,7 +2,7 @@
 
 High-performance REST API developed with Spring Boot for backend skills demonstration, focused on scalability, performance, and software engineering best practices.
 
-## Status: v3.1.0
+## Status: v3.2.0
 
 Reference project implementing all software engineering, security, and performance best practices. 
 Includes hybrid MVC + WebFlux architecture for maximum performance. Production-ready with advanced features:
@@ -12,6 +12,11 @@ Includes hybrid MVC + WebFlux architecture for maximum performance. Production-r
 - SSRF protection
 - Hibernate second-level cache
 - Production configuration
+- **Password strength policy** (v3.2.0)
+- **Account lockout system** (v3.2.0)
+- **N+1 query prevention** (v3.2.0)
+- **Explicit transaction isolation** (v3.2.0)
+- **Performance indexes** (v3.2.0)
 
 ## Objective
 
@@ -53,6 +58,11 @@ Demonstrate practical experience in backend development with Java/Spring Boot, i
 - **Value Objects** (v3.1.0) - Domain-Driven Design with encapsulated business rules
 - **Hibernate Second-Level Cache** (v3.1.0) - Distributed caching for entities
 - **Production Configuration** (v3.1.0) - Optimized application-prod.yml
+- **Password Strength Policy** (v3.2.0) - Enforced password requirements (8+ chars, uppercase, lowercase, digits)
+- **Account Lockout** (v3.2.0) - Automatic lockout after 5 failed login attempts (30 min)
+- **N+1 Query Prevention** (v3.2.0) - EntityGraph optimizations for better performance
+- **Transaction Isolation** (v3.2.0) - Explicit READ_COMMITTED isolation for consistency
+- **Performance Indexes** (v3.2.0) - Optimized database indexes for common queries
 - Pagination and filters
 - Intelligent caching (Redis)
 - Multi-layer data validation
@@ -487,8 +497,11 @@ SERVER_PORT=8081
 - **Granular Permissions** - Fine-grained permissions beyond roles (task:create, task:read, etc.)
 - **SSRF Protection** - Server-Side Request Forgery prevention with URL validation
 - **Password Encryption (BCrypt)** - Secure passwords
+- **Password Strength Policy** (v3.2.0) - Enforced strong password requirements
+- **Account Lockout** (v3.2.0) - Brute force protection with automatic lockout
 - **Rate Limiting (Bucket4j)** - Abuse protection
 - **IP-based Rate Limiting** - Additional protection layer
+- **User-based Rate Limiting** - Per-user rate limiting for authenticated users
 - **Security Headers (OWASP)** - HTTP security headers
 - **Input Sanitization** - Injection attack prevention
 - **SQL Injection Prevention** - Multi-layer validation
@@ -501,7 +514,9 @@ SERVER_PORT=8081
 - **Cache Metrics** - Hit rate and performance monitoring
 - **Batch Operations** - Efficient batch processing
 - **Connection Pooling** - Optimized HikariCP
-- **Database Indexing** - Optimized queries
+- **Database Indexing** - Optimized queries (v3.2.0: additional performance indexes)
+- **N+1 Query Prevention** (v3.2.0) - EntityGraph eliminates multiple queries
+- **Transaction Isolation** (v3.2.0) - Explicit isolation prevents race conditions
 - **Soft Delete** - Data recovery
 - **User-based Rate Limiting** - Per-user rate limiting for authenticated users
 
@@ -517,7 +532,8 @@ SERVER_PORT=8081
 - **Validation** - Multi-layer validation
 - **Optimistic Locking** - Concurrency control
 - **Structured Logging** - Organized logs
-- **Constants for Magic Numbers** - Clean code
+- **Constants for Magic Numbers** (v3.2.0) - SecurityConstants and TaskConstants
+- **DRY Principle** (v3.2.0) - PageResponseHelper eliminates duplication
 - **API Versioning** - Controlled compatibility
 - **Documentation (Swagger)** - Complete documentation
 - **Code Coverage** - Comprehensive tests (475+ tests, target: 90% lines, 85% branches)
