@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de Testes de Performance - High Performance API
-# Coleta métricas comparáveis com resultados anteriores
+# Script de Testes de Performance - Spring Boot REST API
+# Coleta métricas de performance para análise
 
 API_URL="${API_URL:-http://localhost:8081/api/v1/tasks}"
 TOTAL_REQUESTS=10000
@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}=========================================="
-echo "PERFORMANCE TESTS - High Performance API"
+echo "PERFORMANCE TESTS - Spring Boot REST API"
 echo "==========================================${NC}"
 echo ""
 echo "Configuração:"

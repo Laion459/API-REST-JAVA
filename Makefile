@@ -1,7 +1,7 @@
 .PHONY: help build test run clean docker-up docker-down docker-build docker-run coverage format lint install up down ps logs build-docker stop clean-docker test-fast test-debug test-specific test-report test-verify docker-ps
 
 # Variables
-APP_NAME=high-performance-api
+APP_NAME=spring-boot-rest-api
 JAR_FILE=target/$(APP_NAME)-1.0.0.jar
 DOCKER_IMAGE=$(APP_NAME):latest
 DOCKER_CONTAINER=$(APP_NAME)-container

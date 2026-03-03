@@ -31,7 +31,7 @@
                     <pattern>
                         <pattern>
                             {
-                                "service": "high-performance-api",
+                                "service": "spring-boot-rest-api",
                                 "thread": "%thread",
                                 "logger": "%logger{40}"
                             }
@@ -61,7 +61,7 @@
                     <pattern>
                         <pattern>
                             {
-                                "service": "high-performance-api",
+                                "service": "spring-boot-rest-api",
                                 "thread": "%thread",
                                 "logger": "%logger{40}"
                             }

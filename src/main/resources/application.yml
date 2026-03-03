@@ -1,6 +1,6 @@
 spring:
   application:
-    name: high-performance-api
+    name: spring-boot-rest-api
   
   datasource:
     url: jdbc:postgresql://localhost:5432/tasksdb
@@ -42,7 +42,7 @@ spring:
     timeout: 2000ms
   
   # R2DBC Configuration (Reactive Database Access)
-  # Enabled only for high-performance reactive endpoints
+  # Enabled for reactive endpoints with non-blocking I/O (WebFlux)
   r2dbc:
     enabled: ${SPRING_R2DBC_ENABLED:true}
 
