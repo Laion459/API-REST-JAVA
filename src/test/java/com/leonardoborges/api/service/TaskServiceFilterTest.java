@@ -77,10 +77,6 @@ class TaskServiceFilterTest {
                 .build();
         
         Page<Task> taskPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        when(taskRepository.findTasksWithFilters(eq(testUser), eq(filters), any(Pageable.class)))
-                .thenReturn(taskPage);
-        
-        Page<Task> taskPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         Page<TaskResponse> responsePage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         
         when(taskRepository.findTasksWithFilters(eq(testUser), eq(filters), any(Pageable.class)))

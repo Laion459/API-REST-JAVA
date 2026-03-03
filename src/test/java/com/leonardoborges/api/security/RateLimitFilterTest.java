@@ -40,6 +40,12 @@ class RateLimitFilterTest {
     private Bucket adminBucket;
 
     @Mock
+    private com.leonardoborges.api.service.UserRateLimitService userRateLimitService;
+
+    @Mock
+    private com.leonardoborges.api.util.SecurityUtils securityUtils;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -57,7 +63,8 @@ class RateLimitFilterTest {
     void setUp() throws IOException {
         SecurityContextHolder.clearContext();
         // Create filter manually to ensure mocks are injected in correct order
-        rateLimitFilter = new RateLimitFilter(defaultBucket, authBucket, adminBucket);
+        rateLimitFilter = new RateLimitFilter(defaultBucket, authBucket, adminBucket, 
+                userRateLimitService, securityUtils);
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
         lenient().when(response.getWriter()).thenReturn(printWriter);

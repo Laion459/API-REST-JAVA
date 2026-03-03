@@ -29,6 +29,8 @@ class TaskValidationServiceTest {
     @Mock
     private InputSanitizer inputSanitizer;
 
+    private BaseValidationService baseValidationService;
+
     @InjectMocks
     private TaskValidationService validationService;
 
@@ -56,6 +58,17 @@ class TaskValidationServiceTest {
 
         lenient().when(sqlInjectionValidator.isSafe(anyString())).thenReturn(true);
         lenient().when(inputSanitizer.sanitizeAndTruncate(anyString(), anyInt())).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Create real BaseValidationService instance with mocked dependencies
+        baseValidationService = new BaseValidationService(sqlInjectionValidator, inputSanitizer);
+        // Use reflection to inject baseValidationService into validationService
+        try {
+            java.lang.reflect.Field field = TaskValidationService.class.getDeclaredField("baseValidationService");
+            field.setAccessible(true);
+            field.set(validationService, baseValidationService);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to inject baseValidationService", e);
+        }
     }
 
     @Test

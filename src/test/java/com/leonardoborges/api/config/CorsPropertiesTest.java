@@ -73,25 +73,29 @@ class CorsPropertiesTest {
     }
 
     @Test
-    @DisplayName("Should return wildcard when allowedHeaders is null")
+    @DisplayName("Should return default headers when allowedHeaders is null")
     void shouldReturnWildcard_WhenAllowedHeadersIsNull() {
         corsProperties.setAllowedHeaders(null);
 
         List<String> result = corsProperties.getAllowedHeadersList();
 
-        assertEquals(1, result.size());
-        assertEquals("*", result.get(0));
+        assertEquals(3, result.size());
+        assertTrue(result.contains("Authorization"));
+        assertTrue(result.contains("Content-Type"));
+        assertTrue(result.contains("X-Requested-With"));
     }
 
     @Test
-    @DisplayName("Should return wildcard when allowedHeaders is empty")
+    @DisplayName("Should return default headers when allowedHeaders is empty")
     void shouldReturnWildcard_WhenAllowedHeadersIsEmpty() {
         corsProperties.setAllowedHeaders("   ");
 
         List<String> result = corsProperties.getAllowedHeadersList();
 
-        assertEquals(1, result.size());
-        assertEquals("*", result.get(0));
+        assertEquals(3, result.size());
+        assertTrue(result.contains("Authorization"));
+        assertTrue(result.contains("Content-Type"));
+        assertTrue(result.contains("X-Requested-With"));
     }
 
     @Test

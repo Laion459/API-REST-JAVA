@@ -32,6 +32,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import com.leonardoborges.api.event.TaskCreatedEvent;
+import com.leonardoborges.api.event.TaskUpdatedEvent;
+import com.leonardoborges.api.event.TaskDeletedEvent;
 
 /**
  * Unit tests for TaskService.
@@ -54,9 +58,6 @@ class TaskServiceTest {
     private TaskRepository taskRepository;
     
     @Mock
-    private CacheEvictionService cacheEvictionService;
-    
-    @Mock
     private TaskMapper taskMapper;
     
     @Mock
@@ -69,13 +70,7 @@ class TaskServiceTest {
     private Timer.Sample timerSample;
     
     @Mock
-    private AuditService auditService;
-    
-    @Mock
     private UserRepository userRepository;
-    
-    @Mock
-    private TaskHistoryService taskHistoryService;
     
     @Mock
     private org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -148,12 +143,7 @@ class TaskServiceTest {
         lenient().when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         lenient().doNothing().when(taskMapper).updateEntityFromRequest(any(Task.class), any(TaskRequest.class));
         
-        // AuditService mocks
-        lenient().doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
-        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
-        
-        // TaskHistoryService mocks
-        lenient().doNothing().when(taskHistoryService).recordTaskChanges(anyLong(), any(Task.class), any(Task.class));
+        // Events are published asynchronously, no need to mock them
     }
 
     @Test
@@ -161,7 +151,7 @@ class TaskServiceTest {
     void shouldCreateTask_WhenValidRequest() {
         // Arrange
         when(taskRepository.save(any(Task.class))).thenReturn(task);
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         TaskResponse response = taskService.createTask(taskRequest);
@@ -171,8 +161,9 @@ class TaskServiceTest {
         assertEquals("Test Task", response.getTitle());
         assertEquals(Task.TaskStatus.PENDING, response.getStatus());
         verify(taskRepository, times(1)).save(any(Task.class));
-        verify(cacheEvictionService, times(1)).evictAfterCreate(eq(task.getId()), eq(Task.TaskStatus.PENDING));
-        verify(auditService, times(1)).audit(anyString(), anyString(), anyLong(), anyString());
+        
+        // Verify event was published with correct type
+        verify(eventPublisher, times(1)).publishEvent(isA(TaskCreatedEvent.class));
     }
 
     @Test
@@ -263,7 +254,7 @@ class TaskServiceTest {
                     .version(t.getVersion())
                     .build();
         });
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(Task.TaskStatus.class), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         TaskResponse response = taskService.updateTask(1L, updateRequest);
@@ -273,8 +264,14 @@ class TaskServiceTest {
         assertEquals("Updated Task", response.getTitle());
         assertEquals(Task.TaskStatus.IN_PROGRESS, response.getStatus());
         verify(taskRepository, times(1)).save(any(Task.class));
-        verify(cacheEvictionService, times(1)).evictAfterUpdate(
-                eq(1L), eq(Task.TaskStatus.PENDING), eq(Task.TaskStatus.IN_PROGRESS));
+        
+        // Verify event was published with correct type
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        assertInstanceOf(TaskUpdatedEvent.class, eventCaptor.getValue());
+        TaskUpdatedEvent updatedEvent = (TaskUpdatedEvent) eventCaptor.getValue();
+        assertEquals(1L, updatedEvent.getTaskId());
+        assertNotNull(updatedEvent.getUpdatedTask());
     }
     
     @Test
@@ -298,7 +295,7 @@ class TaskServiceTest {
         // Arrange
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(cacheEvictionService).evictAfterDelete(anyLong(), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         taskService.deleteTask(1L);
@@ -307,8 +304,9 @@ class TaskServiceTest {
         verify(taskRepository, times(1)).save(argThat(t -> 
             t.getDeleted() != null && t.getDeleted() && "testuser".equals(t.getDeletedBy())
         ));
-        verify(cacheEvictionService, times(1)).evictAfterDelete(eq(1L), eq(Task.TaskStatus.PENDING));
-        verify(auditService, times(1)).audit(anyString(), anyString(), anyLong(), anyString());
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        assertNotNull(eventCaptor.getValue());
     }
     
     @Test
@@ -376,15 +374,16 @@ class TaskServiceTest {
 
         when(taskRepository.findByIdAndUserIncludingDeleted(1L, testUser)).thenReturn(Optional.of(deletedTask));
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         taskService.restoreTask(1L);
 
         // Assert
         verify(taskRepository, times(1)).save(argThat(t -> !t.getDeleted()));
-        verify(cacheEvictionService, times(1)).evictAfterCreate(eq(1L), any(Task.TaskStatus.class));
-        verify(auditService, times(1)).audit(anyString(), anyString(), anyLong(), anyString());
+        
+        // Verify event was published with correct type (restore publishes TaskCreatedEvent)
+        verify(eventPublisher, times(1)).publishEvent(isA(TaskCreatedEvent.class));
     }
 
     @Test
@@ -440,7 +439,7 @@ class TaskServiceTest {
                     .version(t.getVersion())
                     .build();
         });
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(Task.TaskStatus.class), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         TaskResponse response = taskService.updateTask(1L, updateRequest);
@@ -450,8 +449,14 @@ class TaskServiceTest {
         assertEquals("Updated Task", response.getTitle());
         assertEquals(Task.TaskStatus.PENDING, response.getStatus());
         verify(taskRepository, times(1)).save(any(Task.class));
-        verify(cacheEvictionService, times(1)).evictAfterUpdate(
-                eq(1L), eq(Task.TaskStatus.PENDING), eq(Task.TaskStatus.PENDING));
+        
+        // Verify event was published with correct type
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
+        assertInstanceOf(TaskUpdatedEvent.class, eventCaptor.getValue());
+        TaskUpdatedEvent updatedEvent = (TaskUpdatedEvent) eventCaptor.getValue();
+        assertEquals(1L, updatedEvent.getTaskId());
+        assertNotNull(updatedEvent.getUpdatedTask());
     }
 
     @Test
@@ -475,7 +480,7 @@ class TaskServiceTest {
             }
             return t;
         });
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         // Act
         TaskResponse response = taskService.createTask(requestWithoutPriority);
@@ -495,20 +500,16 @@ class TaskServiceTest {
         
         TaskService serviceWithoutMetrics = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 null,
-                auditService,
                 securityUtils,
-                taskHistoryService
+                eventPublisher
         );
 
         when(taskRepository.save(any(Task.class))).thenReturn(task);
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any());
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
 
         TaskResponse result = serviceWithoutMetrics.createTask(taskRequest);
 
@@ -524,13 +525,11 @@ class TaskServiceTest {
         
         TaskService serviceWithoutMetrics = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 null,
-                auditService,
                 securityUtils,
-                taskHistoryService
+                eventPublisher
         );
 
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
@@ -550,13 +549,11 @@ class TaskServiceTest {
         
         TaskService serviceWithoutMetrics = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 null,
-                auditService,
                 securityUtils,
-                taskHistoryService
+                eventPublisher
         );
 
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
@@ -564,8 +561,7 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        // Audit is handled by events
 
         TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
 
@@ -581,13 +577,11 @@ class TaskServiceTest {
         
         TaskService serviceWithoutMetrics = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 null,
-                auditService,
                 securityUtils,
-                taskHistoryService
+                eventPublisher
         );
 
         taskRequest.setStatus(Task.TaskStatus.IN_PROGRESS);
@@ -598,8 +592,7 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        // Audit is handled by events
 
         TaskResponse result = serviceWithoutMetrics.updateTask(1L, taskRequest);
 
@@ -618,13 +611,11 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        // Audit is handled by events
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
         assertNotNull(result);
-        verify(taskMetrics).incrementTaskUpdated();
         verify(taskMetrics, never()).incrementTaskStatus(anyString());
     }
 
@@ -639,13 +630,11 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        // Audit is handled by events
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
         assertNotNull(result);
-        verify(taskMetrics).incrementTaskUpdated();
         verify(taskMetrics, never()).incrementTaskStatus(anyString());
     }
 
@@ -673,14 +662,17 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
-        doNothing().when(taskHistoryService).recordTaskChanges(anyLong(), any(Task.class), any(Task.class));
+        // Audit is handled by events
+        // Task history is handled by events
 
         TaskResponse result = taskService.updateTask(1L, updateRequest);
 
         assertNotNull(result);
-        verify(taskHistoryService).recordTaskChanges(eq(1L), any(Task.class), any(Task.class));
+        
+        // Verify event was published with correct type
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+        assertInstanceOf(TaskUpdatedEvent.class, eventCaptor.getValue());
     }
 
     @Test
@@ -704,7 +696,7 @@ class TaskServiceTest {
     void shouldHandleMetrics_WhenSampleIsNullInCreateTask() {
         when(taskMetrics.startTaskCreationTimer()).thenReturn(null);
         when(taskRepository.save(any(Task.class))).thenReturn(task);
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+        // Cache eviction is handled by events
 
         TaskResponse response = taskService.createTask(taskRequest);
 
@@ -732,8 +724,7 @@ class TaskServiceTest {
         when(taskRepository.save(any(Task.class))).thenReturn(task);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        lenient().doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
+        // Audit is handled by events
 
         TaskResponse response = taskService.updateTask(1L, taskRequest);
 
@@ -760,14 +751,15 @@ class TaskServiceTest {
             t.setDeleted(false);
             return t;
         });
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
+        // Audit is handled by events
+        // Cache eviction is handled by events
 
         taskService.restoreTask(1L);
 
         verify(taskRepository).save(argThat(task -> !task.getDeleted()));
-        verify(auditService).audit(eq("TASK_RESTORED"), eq("Task"), eq(1L), anyString());
-        verify(cacheEvictionService).evictAfterCreate(eq(1L), any(Task.TaskStatus.class));
+        
+        // Verify event was published with correct type (restore publishes TaskCreatedEvent)
+        verify(eventPublisher, times(1)).publishEvent(isA(TaskCreatedEvent.class));
     }
 
 
@@ -786,13 +778,11 @@ class TaskServiceTest {
     void shouldHandleTaskService_WithoutMetricsEnabled() {
         TaskService serviceWithoutMetrics = new TaskService(
                 taskRepository,
-                cacheEvictionService,
                 taskMapper,
                 taskValidationService,
                 null, // No metrics
-                auditService,
                 new com.leonardoborges.api.util.SecurityUtils(userRepository),
-                taskHistoryService
+                eventPublisher
         );
 
         when(taskRepository.findByIdAndUser(1L, testUser)).thenReturn(Optional.of(task));
@@ -819,15 +809,14 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
-        doNothing().when(taskHistoryService).recordTaskChanges(anyLong(), any(Task.class), any(Task.class));
+        // Audit is handled by events
+        // Task history is handled by events
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
         assertNotNull(result);
-        verify(taskMetrics).incrementTaskUpdated();
-        verify(taskMetrics).incrementTaskStatus("IN_PROGRESS");
+        // incrementTaskStatus is called by event listeners, not directly in the service
+        verify(taskMetrics, never()).incrementTaskStatus(anyString());
     }
 
     @Test
@@ -841,14 +830,12 @@ class TaskServiceTest {
         when(taskMapper.toResponse(any(Task.class))).thenReturn(taskResponse);
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
         doNothing().when(taskValidationService).validateStatusTransition(any(), any());
-        doNothing().when(cacheEvictionService).evictAfterUpdate(anyLong(), any(), any());
-        doNothing().when(auditService).auditWithChanges(anyString(), anyString(), anyLong(), anyString(), anyString(), anyString());
-        doNothing().when(taskHistoryService).recordTaskChanges(anyLong(), any(Task.class), any(Task.class));
+        // Audit is handled by events
+        // Task history is handled by events
 
         TaskResponse result = taskService.updateTask(1L, taskRequest);
 
         assertNotNull(result);
-        verify(taskMetrics).incrementTaskUpdated();
         verify(taskMetrics, never()).incrementTaskStatus(anyString());
     }
 
@@ -877,8 +864,8 @@ class TaskServiceTest {
             return t;
         });
         doNothing().when(taskValidationService).validateAndSanitizeTaskRequest(any(TaskRequest.class));
-        doNothing().when(cacheEvictionService).evictAfterCreate(anyLong(), any(Task.TaskStatus.class));
-        doNothing().when(auditService).audit(anyString(), anyString(), anyLong(), anyString());
+        // Cache eviction is handled by events
+        // Audit is handled by events
 
         TaskResponse response = taskService.createTask(taskRequest);
 

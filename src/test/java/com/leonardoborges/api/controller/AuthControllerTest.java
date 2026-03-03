@@ -5,6 +5,7 @@ import com.leonardoborges.api.dto.AuthRequest;
 import com.leonardoborges.api.dto.AuthResponse;
 import com.leonardoborges.api.dto.LoginRequest;
 import com.leonardoborges.api.dto.RefreshTokenRequest;
+import com.leonardoborges.api.service.JwtService;
 import com.leonardoborges.api.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,12 @@ class AuthControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private com.leonardoborges.api.service.TokenBlacklistService tokenBlacklistService;
 
     @MockBean
     private CorsProperties corsProperties;

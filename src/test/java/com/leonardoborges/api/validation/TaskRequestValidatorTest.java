@@ -34,11 +34,11 @@ class TaskRequestValidatorTest {
         validator = new TaskRequestValidator();
         validator.initialize(mock(ValidTaskRequest.class));
         
-        when(context.disableDefaultConstraintViolation()).thenReturn(context);
-        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(violationBuilder);
-        when(violationBuilder.addConstraintViolation()).thenReturn(context);
-        when(violationBuilder.addPropertyNode(anyString())).thenReturn(nodeBuilder);
-        when(nodeBuilder.addConstraintViolation()).thenReturn(context);
+        lenient().doNothing().when(context).disableDefaultConstraintViolation();
+        lenient().when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(violationBuilder);
+        lenient().when(violationBuilder.addConstraintViolation()).thenReturn(context);
+        lenient().when(violationBuilder.addPropertyNode(anyString())).thenReturn(nodeBuilder);
+        lenient().when(nodeBuilder.addConstraintViolation()).thenReturn(context);
     }
     
     @Test

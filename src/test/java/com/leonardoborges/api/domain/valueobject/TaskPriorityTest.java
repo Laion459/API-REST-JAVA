@@ -18,15 +18,15 @@ class TaskPriorityTest {
     @Test
     void shouldCreateDefaultPriority() {
         TaskPriority priority = TaskPriority.defaultPriority();
-        assertEquals(1, priority.getValue());
+        assertEquals(0, priority.getValue()); // Default priority is 0
     }
     
     @Test
     void shouldCreateFromNullable() {
-        TaskPriority priority1 = TaskPriority.fromNullable(null);
-        assertEquals(1, priority1.getValue());
+        TaskPriority priority1 = TaskPriority.ofNullable(null);
+        assertEquals(0, priority1.getValue()); // Default priority is 0
         
-        TaskPriority priority2 = TaskPriority.fromNullable(5);
+        TaskPriority priority2 = TaskPriority.ofNullable(5);
         assertEquals(5, priority2.getValue());
     }
     
@@ -37,7 +37,7 @@ class TaskPriorityTest {
     
     @Test
     void shouldThrowExceptionForPriorityAboveMax() {
-        assertThrows(ValidationException.class, () -> TaskPriority.of(11));
+        assertThrows(ValidationException.class, () -> TaskPriority.of(101));
     }
     
     @Test
@@ -48,8 +48,8 @@ class TaskPriorityTest {
     
     @Test
     void shouldAllowMaxPriority() {
-        TaskPriority priority = TaskPriority.of(10);
-        assertEquals(10, priority.getValue());
+        TaskPriority priority = TaskPriority.of(100);
+        assertEquals(100, priority.getValue());
     }
     
     @Test
@@ -62,21 +62,12 @@ class TaskPriorityTest {
     }
     
     @Test
-    void shouldIdentifyUrgentPriority() {
-        TaskPriority urgent = TaskPriority.of(8);
-        TaskPriority normal = TaskPriority.of(5);
+    void shouldComparePrioritiesCorrectly() {
+        TaskPriority urgent = TaskPriority.of(80);
+        TaskPriority normal = TaskPriority.of(50);
         
-        assertTrue(urgent.isUrgent());
-        assertFalse(normal.isUrgent());
-    }
-    
-    @Test
-    void shouldIdentifyLowPriority() {
-        TaskPriority low = TaskPriority.of(2);
-        TaskPriority normal = TaskPriority.of(5);
-        
-        assertTrue(low.isLow());
-        assertFalse(normal.isLow());
+        assertTrue(urgent.isHigherThan(normal));
+        assertTrue(normal.isLowerThan(urgent));
     }
     
     @Test
