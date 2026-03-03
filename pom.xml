@@ -13,10 +13,10 @@
     </parent>
     
     <groupId>com.leonardoborges</groupId>
-    <artifactId>high-performance-api</artifactId>
+    <artifactId>spring-boot-rest-api</artifactId>
     <version>1.0.0</version>
-    <name>High Performance REST API</name>
-    <description>High-performance REST API with Spring Boot for backend skills demonstration</description>
+    <name>Spring Boot REST API</name>
+    <description>REST API developed with Spring Boot for backend skills demonstration, implementing software engineering best practices and clean architecture</description>
     
     <properties>
         <java.version>21</java.version>
