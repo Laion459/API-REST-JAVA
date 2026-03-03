@@ -64,8 +64,15 @@ public class JwtService {
             return true;
         }
         
-        if (lowerSecret.equals(secret.toLowerCase().repeat(secret.length() / lowerSecret.length()))) {
-            return true;
+        int length = lowerSecret.length();
+        for (int patternLength = 1; patternLength <= length / 2; patternLength++) {
+            if (length % patternLength == 0) {
+                String pattern = lowerSecret.substring(0, patternLength);
+                String repeated = pattern.repeat(length / patternLength);
+                if (repeated.equals(lowerSecret)) {
+                    return true;
+                }
+            }
         }
         
         return false;
