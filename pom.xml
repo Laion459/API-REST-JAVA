@@ -209,13 +209,6 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- Mockito Core (explicit to avoid classpath issues) -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
         <!-- Reactor Test (for reactive tests) -->
         <dependency>
             <groupId>io.projectreactor</groupId>
@@ -370,6 +363,7 @@
                 <configuration>
                     <!-- Exclude integration tests by default (they require PostgreSQL) -->
                     <excludedGroups>integration</excludedGroups>
+                    <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</argLine>
                 </configuration>
             </plugin>
             
